@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER & PROFILES ====================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(STUDENT)
+  status    Status   @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+  schedules      Schedule[]      @relation("TeacherSchedules")
+
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  STAFF
+  TEACHER
+  STUDENT
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+model StudentProfile {
+  id          String @id @default(uuid())
+  userId      String @unique
+  parentPhone String?
+  address     String?
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+  invoices    Invoice[]
+
+  @@map("student_profiles")
+}
+
+model TeacherProfile {
+  id             String @id @default(uuid())
+  userId         String @unique
+  specialization String?
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("teacher_profiles")
+}
+
+// ==================== ACADEMIC ====================
+
+model Course {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+  price       Float  @default(300000)
+  createdAt   DateTime @default(now())
+
+  schedules Schedule[]
+
+  @@map("courses")
+}
+
+model Classroom {
+  id        String @id @default(uuid())
+  name      String
+  capacity  Int    @default(20)
+  createdAt DateTime @default(now())
+
+  schedules Schedule[]
+
+  @@map("classrooms")
+}
+
+model Schedule {
+  id          String   @id @default(uuid())
+  courseId    String
+  teacherId   String
+  classroomId String
+  day         Day
+  startTime   String   // "09:00"
+  endTime     String   // "10:00"
+  createdAt   DateTime @default(now())
+
+  course      Course       @relation(fields: [courseId], references: [id])
+  teacher     User         @relation("TeacherSchedules", fields: [teacherId], references: [id])
+  classroom   Classroom    @relation(fields: [classroomId], references: [id])
+  enrollments Enrollment[]
+
+  @@map("schedules")
+}
+
+enum Day {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+  SABTU
+  MINGGU
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  studentId  String
+  scheduleId String
+  enrolledAt DateTime @default(now())
+
+  student      StudentProfile @relation(fields: [studentId], references: [id])
+  schedule     Schedule       @relation(fields: [scheduleId], references: [id])
+  attendances  Attendance[]
+  finalGrades  FinalGrade[]
+
+  @@unique([studentId, scheduleId])
+  @@map("enrollments")
+}
+
+// ==================== ATTENDANCE & GRADING ====================
+
+model Attendance {
+  id           String       @id @default(uuid())
+  enrollmentId String
+  date         DateTime     @default(now())
+  status       AttendanceStatus
+  journal      String?      // Catatan harian guru
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  @@map("attendances")
+}
+
+enum AttendanceStatus {
+  HADIR
+  ABSEN
+  IZIN
+  SAKIT
+}
+
+model FinalGrade {
+  id           String @id @default(uuid())
+  enrollmentId String @unique
+  score        Int    // 0-100
+  evaluation   String? // Catatan evaluasi semester
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  @@map("final_grades")
+}
+
+// ==================== FINANCE ====================
+
+model Invoice {
+  id        String        @id @default(uuid())
+  studentId String
+  month     Int           // 1-12
+  year      Int
+  amount    Float         @default(0)
+  status    InvoiceStatus @default(UNPAID)
+  bankRef   String?       // Nomor Referensi Bank
+  proofUrl  String?       // URL bukti transfer di Supabase Storage
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, month, year])
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+}
+
+// ==================== CMS ====================
+
+model EventBanner {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  imageUrl    String   // URL di Supabase Storage
+  createdAt   DateTime @default(now())
+
+  @@map("event_banners")
+}
