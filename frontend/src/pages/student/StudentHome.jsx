@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { BookOpen, Calendar, Clock, MapPin, Receipt, AlertCircle } from 'lucide-react';
+import { BookOpen, Calendar, Clock, MapPin, Receipt, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function StudentHome() {
   const [data, setData] = useState({ enrollments: [], user: null });

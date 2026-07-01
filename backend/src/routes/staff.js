@@ -42,10 +42,10 @@ router.post('/approve/:userId', async (req, res, next) => {
 // POST /api/staff/invoices/generate — Generate tagihan bulan ini
 router.post('/invoices/generate', async (req, res, next) => {
   try {
-    const { studentId } = req.body || {};
+    const { studentId, month: reqMonth, year: reqYear } = req.body;
     const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
+    const month = reqMonth ? parseInt(reqMonth) : now.getMonth() + 1;
+    const year = reqYear ? parseInt(reqYear) : now.getFullYear();
 
     const whereClause = {};
     if (studentId) {
