@@ -50,3 +50,11 @@ MEMORY.md
 PROJECT_PLAN.md
 RULES.md
 SOUL.md
+
+frontend/node_modules/
+node_modules/
+frontend/.env
+
+backend/node_modules/
+node_modules/
+backend/.env
