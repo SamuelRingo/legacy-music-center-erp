@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { supabase, getSignedUrl } from '../lib/supabase.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -44,6 +45,14 @@ router.get('/invoices', async (req, res, next) => {
       where: { studentId: profile.id },
       orderBy: [{ year: 'desc' }, { month: 'desc' }]
     });
+
+    for (const inv of invoices) {
+      if (inv.proofUrl && supabase && !inv.proofUrl.startsWith('http')) {
+        const signedUrl = await getSignedUrl('payment-proofs', inv.proofUrl);
+        if (signedUrl) inv.proofUrl = signedUrl;
+      }
+    }
+
     res.json(invoices);
   } catch (error) {
     next(error);
@@ -100,6 +109,40 @@ router.get('/grades', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+// POST /api/student/invoices/:id/proof — Upload bukti transfer
+router.post('/invoices/:id/proof', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { imageBase64 } = req.body;
+    if (!imageBase64) return res.status(400).json({ message: 'Bukti transfer wajib diisi' });
+
+    let filePath = null;
+    if (supabase) {
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, 'base64');
+      filePath = `proofs/${req.user.id}/${Date.now()}.jpg`;
+      
+      const { error } = await supabase.storage
+        .from('payment-proofs')
+        .upload(filePath, buffer, { contentType: 'image/jpeg' });
+        
+      if (error) {
+        console.error('Supabase upload error:', error);
+        return res.status(500).json({ message: 'Gagal upload bukti transfer ke storage' });
+      }
+    } else {
+      filePath = 'mock-path.jpg';
+    }
+
+    const invoice = await prisma.invoice.update({
+      where: { id },
+      data: { proofUrl: filePath }
+    });
+
+    res.json(invoice);
+  } catch (error) { next(error); }
 });
 
 export default router;

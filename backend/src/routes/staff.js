@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
-import { supabase } from '../lib/supabase.js';
+import { supabase, getSignedUrl } from '../lib/supabase.js';
 import multer from 'multer';
 
 const router = Router();
@@ -141,6 +141,15 @@ router.get('/invoices', async (req, res, next) => {
       include: { student: { include: { user: { select: { name: true, email: true } } } } },
       orderBy: { createdAt: 'desc' }
     });
+    
+    // Append signed URLs
+    for (const inv of invoices) {
+      if (inv.proofUrl && supabase && !inv.proofUrl.startsWith('http')) {
+        const signedUrl = await getSignedUrl('payment-proofs', inv.proofUrl);
+        if (signedUrl) inv.proofUrl = signedUrl;
+      }
+    }
+
     res.json(invoices);
   } catch (error) {
     next(error);
@@ -255,8 +264,7 @@ router.post('/events', async (req, res, next) => {
           
         finalImageUrl = publicUrlData.publicUrl;
       } else {
-        console.warn("Supabase not configured, using mock image URL");
-        finalImageUrl = "https://via.placeholder.com/800x400?text=Mock+Banner";
+        return res.status(500).json({ message: 'Konfigurasi Supabase (SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY) belum diatur di backend' });
       }
     }
 
@@ -298,8 +306,7 @@ router.put('/events/:id', async (req, res, next) => {
           
         finalImageUrl = publicUrlData.publicUrl;
       } else {
-        console.warn("Supabase not configured, using mock image URL");
-        finalImageUrl = "https://via.placeholder.com/800x400?text=Mock+Banner";
+        return res.status(500).json({ message: 'Konfigurasi Supabase (SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY) belum diatur di backend' });
       }
     }
 
