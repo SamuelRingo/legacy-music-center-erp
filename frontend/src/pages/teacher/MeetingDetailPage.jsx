@@ -4,7 +4,7 @@ import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import ConfirmActionDialog from '../../components/shared/ConfirmActionDialog';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams();
@@ -244,7 +244,7 @@ export default function MeetingDetailPage() {
         </div>
       </div>
 
-      <ConfirmActionDialog
+      <ConfirmDialog
         open={showUnsavedDialog}
         onOpenChange={setShowUnsavedDialog}
         title="Simpan perubahan?"
@@ -254,7 +254,7 @@ export default function MeetingDetailPage() {
           if (pendingNavigation) navigate(pendingNavigation);
         }}
         confirmText="Tetap Keluar"
-        variant="destructive"
+        variant="danger"
       />
     </div>
   );

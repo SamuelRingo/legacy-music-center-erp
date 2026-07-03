@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
-import ConfirmActionDialog from '../../components/shared/ConfirmActionDialog';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import { ActionMenu } from '../../components/shared/ActionMenu';
 import { Button } from '@/components/ui/button';
-import { Receipt, CheckCircle, Clock } from 'lucide-react';
+import { Receipt, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function InvoicePage() {
@@ -16,6 +17,9 @@ export default function InvoicePage() {
   
   const [payDialogState, setPayDialogState] = useState({ open: false, invoiceId: null });
   const [isPaying, setIsPaying] = useState(false);
+
+  const [deleteDialogState, setDeleteDialogState] = useState({ open: false, invoiceId: null });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -63,6 +67,21 @@ export default function InvoicePage() {
     }
   };
 
+  const handleDeleteInvoice = async () => {
+    if (!deleteDialogState.invoiceId) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/staff/invoices/${deleteDialogState.invoiceId}`);
+      toast.success('Tagihan berhasil dihapus!');
+      fetchData();
+      setDeleteDialogState({ open: false, invoiceId: null });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Gagal menghapus tagihan');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
   };
@@ -88,15 +107,12 @@ export default function InvoicePage() {
     {
       header: 'Aksi',
       cell: (row) => (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setPayDialogState({ open: true, invoiceId: row.id })} 
-          disabled={row.status === 'PAID'}
-          className={row.status === 'PAID' ? 'opacity-50' : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200'}
-        >
-          {row.status === 'PAID' ? 'Sudah Lunas' : 'Tandai Lunas'}
-        </Button>
+        <ActionMenu
+          actions={[
+            row.status !== 'PAID' && { label: 'Tandai Lunas', icon: CheckCircle, onClick: () => setPayDialogState({ open: true, invoiceId: row.id }) },
+            row.status !== 'PAID' && { label: 'Hapus', icon: Trash2, onClick: () => setDeleteDialogState({ open: true, invoiceId: row.id }), isDanger: true }
+          ].filter(Boolean)}
+        />
       )
     }
   ];
@@ -131,7 +147,7 @@ export default function InvoicePage() {
         />
       )}
 
-      <ConfirmActionDialog 
+      <ConfirmDialog 
         open={isGenerateOpen} 
         onOpenChange={setIsGenerateOpen}
         title="Generate Tagihan"
@@ -141,14 +157,26 @@ export default function InvoicePage() {
         isProcessing={isGenerating}
       />
 
-      <ConfirmActionDialog 
-        open={payDialogState.open} 
-        onOpenChange={(open) => setPayDialogState(prev => ({ ...prev, open }))}
+      <ConfirmDialog
+        open={payDialogState.open}
+        onOpenChange={open => !open && setPayDialogState({ open: false, invoiceId: null })}
         title="Tandai Lunas"
-        description="Apakah Anda yakin ingin menandai tagihan ini sebagai LUNAS? Timestamp pembayaran akan otomatis tercatat saat ini juga."
+        description="Apakah Anda yakin ingin menandai tagihan ini sebagai lunas? Tindakan ini tidak dapat dibatalkan."
+        variant="default"
         confirmText="Tandai Lunas"
         onConfirm={handleMarkPaid}
         isProcessing={isPaying}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogState.open}
+        onOpenChange={open => !open && setDeleteDialogState({ open: false, invoiceId: null })}
+        title="Hapus Tagihan"
+        description="Apakah Anda yakin ingin menghapus tagihan ini? Tindakan ini permanen."
+        variant="danger"
+        confirmText="Hapus Tagihan"
+        onConfirm={handleDeleteInvoice}
+        isProcessing={isDeleting}
       />
     </div>
   );

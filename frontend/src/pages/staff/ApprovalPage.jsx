@@ -16,6 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { CheckCircle2, Inbox, Calendar, User, Phone, MapPin } from 'lucide-react';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import { ActionMenu } from '../../components/shared/ActionMenu';
+import { Eye } from 'lucide-react';
 
 export default function ApprovalPage() {
   const [pendingStudents, setPendingStudents] = useState([]);
@@ -24,6 +29,7 @@ export default function ApprovalPage() {
   
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [confirmApprove, setConfirmApprove] = useState(false);
   
   // Assignment state
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
@@ -116,9 +122,11 @@ export default function ApprovalPage() {
     {
       header: 'Aksi',
       cell: (row) => (
-        <Button size="sm" variant="outline" onClick={() => handleRowClick(row)} className="h-8 text-xs bg-white dark:bg-zinc-900 shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
-          Proses
-        </Button>
+        <ActionMenu
+          actions={[
+            { label: 'Lihat', icon: Eye, onClick: () => handleRowClick(row) }
+          ]}
+        />
       )
     }
   ];
@@ -222,12 +230,23 @@ export default function ApprovalPage() {
           )}
 
           <div className="flex justify-end items-center w-full border-t border-zinc-200 dark:border-zinc-800 pt-4 mt-6">
-            <Button onClick={handleApprove} disabled={isActivating} className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto shadow-sm">
+            <Button onClick={() => setConfirmApprove(true)} disabled={isActivating} className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto shadow-sm">
               {isActivating ? 'Memproses Aktivasi & Tagihan...' : 'Aktifkan Akun & Buat Tagihan'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmApprove}
+        onOpenChange={setConfirmApprove}
+        title="Approve Siswa"
+        description="Apakah Anda yakin ingin mengaktifkan akun siswa ini dan generate tagihan pertamanya? Pastikan semua jadwal kelas sudah di-assign dengan benar."
+        variant="default"
+        confirmText="Ya, Aktifkan"
+        onConfirm={handleApprove}
+        isProcessing={isActivating}
+      />
     </div>
   );
 }

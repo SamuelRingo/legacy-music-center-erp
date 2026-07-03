@@ -114,6 +114,23 @@ router.post('/invoices/:id/pay', async (req, res, next) => {
   }
 });
 
+// DELETE /api/staff/invoices/:id — Hapus invoice
+router.delete('/invoices/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    // Make sure invoice exists and is unpaid
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) return res.status(404).json({ message: 'Invoice tidak ditemukan' });
+    if (invoice.status === 'PAID') {
+      return res.status(400).json({ message: 'Invoice yang sudah lunas tidak dapat dihapus' });
+    }
+
+    await prisma.invoice.delete({ where: { id } });
+    res.json({ message: 'Invoice berhasil dihapus' });
+  } catch (error) { next(error); }
+});
+
 // GET /api/staff/invoices — All invoices
 router.get('/invoices', async (req, res, next) => {
   try {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
-import ConfirmActionDialog from '../../components/shared/ConfirmActionDialog';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, FileBadge, CalendarPlus, Calendar as CalendarIcon, ArrowRight, Trash2, FileText, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -153,7 +153,7 @@ export default function ClassDetailPage() {
           <Button 
             variant="outline" 
             size="sm"
-            className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
+            className="gap-2 text-zinc-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50"
             onClick={() => {
               setGradeModal({ open: true, enrollmentId: row.id, studentName: row.student?.user?.name });
               setGradeForm({ score: '', evaluation: '' });
@@ -417,7 +417,7 @@ export default function ClassDetailPage() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmActionDialog 
+      <ConfirmDialog 
         open={!!meetingToDelete}
         onOpenChange={(open) => !open && setMeetingToDelete(null)}
         title="Hapus Pertemuan"
@@ -425,10 +425,10 @@ export default function ClassDetailPage() {
         onConfirm={deleteMeeting}
         confirmText="Hapus Pertemuan"
         isProcessing={isDeletingMeeting}
-        variant="destructive"
+        variant="danger"
       />
 
-      <ConfirmActionDialog
+      <ConfirmDialog
         open={editGradeConfirm.open}
         onOpenChange={(open) => !open && setEditGradeConfirm({ open: false, row: null, finalGrade: null })}
         title="Edit Nilai Akhir"

@@ -1,18 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
-import { Home, FileText } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import TeacherHome from './TeacherHome';
 import ClassDetailPage from './ClassDetailPage';
 import MeetingDetailPage from './MeetingDetailPage';
 
 export default function TeacherDashboard() {
-  const sidebarLinks = [
-    { label: 'Jadwal Mengajar', href: '/teacher', icon: Home },
-    { label: 'Rekap Presensi', href: '/teacher/reports', icon: FileText },
-  ];
 
   return (
-    <DashboardLayout sidebarLinks={sidebarLinks}>
+    <DashboardLayout>
       <Routes>
         <Route path="/" element={<TeacherHome />} />
         <Route path="/schedules/:id" element={<ClassDetailPage />} />
