@@ -4,6 +4,7 @@ import RegisterPage from './pages/public/RegisterPage';
 import LoginPage from './pages/public/LoginPage';
 import AdminDashboard from './pages/admin/Dashboard';
 import StaffDashboard from './pages/staff/Dashboard';
+import LandingCmsPage from './pages/staff/LandingCmsPage';
 import TeacherDashboard from './pages/teacher/Dashboard';
 import StudentDashboard from './pages/student/Dashboard';
 import ProtectedRoute from './components/layout/ProtectedRoute';

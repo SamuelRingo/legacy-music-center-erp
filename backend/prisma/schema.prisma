@@ -215,3 +215,17 @@ model EventBanner {
 
   @@map("event_banners")
 }
+
+// ==================== CMS LANDING PAGE ====================
+
+model LandingContent {
+  id        String   @id @default(uuid())
+  section   String   // "hero", "about", "facility", "footer", "chatbot"
+  key       String   // "slider_1", "about_text", "facility_piano_img", dll
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([section, key])
+  @@map("landing_content")
+}

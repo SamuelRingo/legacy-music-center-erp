@@ -518,4 +518,72 @@ router.get('/reports/academic', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// ==================== CMS LANDING PAGE ====================
+
+// GET /api/staff/landing-content?section=all
+router.get('/landing-content', async (req, res, next) => {
+  try {
+    const { section } = req.query;
+    const where = section && section !== 'all' ? { section } : {};
+    
+    const contents = await prisma.landingContent.findMany({ where });
+    res.json(contents);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/staff/landing-content
+// Body: { section, key, value, imageBase64 }
+router.put('/landing-content', async (req, res, next) => {
+  try {
+    const { section, key, value, imageBase64 } = req.body;
+    let finalValue = value;
+
+    if (imageBase64) {
+      // Decode base64
+      const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ error: 'Invalid base64 format' });
+      }
+      
+      const mimeType = matches[1];
+      const buffer = Buffer.from(matches[2], 'base64');
+      const ext = mimeType.split('/')[1];
+      const fileName = `${section}_${key}_${Date.now()}.${ext}`;
+
+      // Upload to supabase
+      const { data, error } = await supabase.storage
+        .from('landing-content')
+        .upload(fileName, buffer, {
+          contentType: mimeType,
+          upsert: true
+        });
+
+      if (error) {
+        console.error('Supabase upload error:', error);
+        return res.status(500).json({ error: 'Failed to upload image' });
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('landing-content')
+        .getPublicUrl(fileName);
+
+      finalValue = urlData.publicUrl;
+    }
+
+    const content = await prisma.landingContent.upsert({
+      where: {
+        section_key: { section, key }
+      },
+      update: { value: finalValue },
+      create: { section, key, value: finalValue }
+    });
+
+    res.json(content);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

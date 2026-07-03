@@ -32,7 +32,6 @@ export default function TeacherHome() {
   }, []);
 
   if (loading) {
-  if (loading) {
     return <LoadingSkeleton type="card" rows={3} />;
   }
 

@@ -33,6 +33,7 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
           { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
           { label: 'Laporan', href: '/staff/reports', icon: FileText },
           { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
+          { label: 'Konten Landing Page', href: '/staff/landing-cms', icon: ImageIcon },
         ];
       case 'STAFF':
         return [
@@ -42,6 +43,7 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
           { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
           { label: 'Laporan', href: '/staff/reports', icon: FileText },
           { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
+          { label: 'Konten Landing Page', href: '/staff/landing-cms', icon: ImageIcon },
           { label: 'Profil Saya', href: '/staff/profile', icon: UserIcon },
         ];
       case 'TEACHER':

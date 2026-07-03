@@ -57,7 +57,21 @@ export default {
   				'accent-foreground': 'var(--sidebar-accent-foreground)',
   				border: 'var(--sidebar-border)',
   				ring: 'var(--sidebar-ring)'
-  			}
+  			},
+  			gold: {
+  				DEFAULT: '#D4AF37',
+  				400: '#E5C158',
+  				500: '#D4AF37',
+  				600: '#B5952F'
+  			},
+  			'landing-primary': 'var(--primary-gold)',
+  			'landing-primary-light': 'var(--primary-light)',
+  			'landing-primary-dark': 'var(--primary-dark)',
+  			'landing-secondary': 'var(--secondary-dark)',
+  			'landing-bg': 'var(--bg-color)',
+  			'landing-card': 'var(--bg-card)',
+  			'landing-text': 'var(--text-color)',
+  			'landing-muted': 'var(--text-muted)'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

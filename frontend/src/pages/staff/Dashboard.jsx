@@ -6,6 +6,7 @@ import SchedulingPage from './SchedulingPage';
 import InvoicePage from './InvoicePage';
 import ReportsPage from './ReportsPage';
 import EventsPage from './EventsPage';
+import LandingCmsPage from './LandingCmsPage';
 import ProfilePage from '../../components/shared/ProfilePage';
 
 export default function StaffDashboard() {
@@ -19,6 +20,7 @@ export default function StaffDashboard() {
         <Route path="/invoices" element={<InvoicePage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/events" element={<EventsPage />} />
+        <Route path="/landing-cms" element={<LandingCmsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </DashboardLayout>
