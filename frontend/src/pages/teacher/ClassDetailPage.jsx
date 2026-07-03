@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
+import ConfirmActionDialog from '../../components/shared/ConfirmActionDialog';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Users, CalendarCheck, FileBadge, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, FileBadge, CalendarPlus, Calendar as CalendarIcon, ArrowRight, Trash2, FileText, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -15,17 +16,24 @@ import {
 } from "@/components/ui/dialog";
 
 export default function ClassDetailPage() {
-  const { id } = useParams();
+  const { id: scheduleId } = useParams();
   const navigate = useNavigate();
-  const [enrollments, setEnrollments] = useState([]);
+  const [activeTab, setActiveTab] = useState('meetings'); // 'meetings' or 'students'
+  
   const [scheduleData, setScheduleData] = useState(null);
+  const [enrollments, setEnrollments] = useState([]);
+  const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' = terlama ke terbaru, 'desc' = terbaru ke terlama
 
-  // Attendance Modal
-  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
-  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [attendanceState, setAttendanceState] = useState({});
-  const [isSubmittingAttendance, setIsSubmittingAttendance] = useState(false);
+  // New Meeting Modal
+  const [isMeetingOpen, setIsMeetingOpen] = useState(false);
+  const [newMeetingDate, setNewMeetingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSubmittingMeeting, setIsSubmittingMeeting] = useState(false);
+
+  // Delete Meeting Dialog
+  const [meetingToDelete, setMeetingToDelete] = useState(null);
+  const [isDeletingMeeting, setIsDeletingMeeting] = useState(false);
 
   // Grade Modal
   const [gradeModal, setGradeModal] = useState({ open: false, enrollmentId: null, studentName: '' });
@@ -33,22 +41,19 @@ export default function ClassDetailPage() {
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
 
   useEffect(() => {
-    fetchEnrollments();
-  }, [id]);
+    fetchData();
+  }, [scheduleId]);
 
-  const fetchEnrollments = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/teacher/enrollments/${id}`);
-      setScheduleData(res.data.schedule);
-      setEnrollments(res.data.enrollments);
-      
-      // Initialize attendance state (default HADIR)
-      const initialAtt = {};
-      res.data.enrollments.forEach(enr => {
-        initialAtt[enr.id] = { status: 'HADIR', journal: '' };
-      });
-      setAttendanceState(initialAtt);
+      const [studentsRes, meetingsRes] = await Promise.all([
+        api.get(`/teacher/schedules/${scheduleId}/students`),
+        api.get(`/teacher/schedules/${scheduleId}/meetings`)
+      ]);
+      setScheduleData(studentsRes.data.schedule);
+      setEnrollments(studentsRes.data.enrollments);
+      setMeetings(meetingsRes.data);
     } catch (error) {
       toast.error('Gagal memuat data kelas');
       console.error(error);
@@ -57,35 +62,33 @@ export default function ClassDetailPage() {
     }
   };
 
-  const handleAttendanceChange = (enrollmentId, field, value) => {
-    setAttendanceState(prev => ({
-      ...prev,
-      [enrollmentId]: {
-        ...prev[enrollmentId],
-        [field]: value
-      }
-    }));
+  const createMeeting = async () => {
+    setIsSubmittingMeeting(true);
+    try {
+      const res = await api.post(`/teacher/schedules/${scheduleId}/meetings`, {
+        meetingDate: newMeetingDate
+      });
+      toast.success('Pertemuan berhasil dibuat');
+      setIsMeetingOpen(false);
+      navigate(`/teacher/meetings/${res.data.id}`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Gagal membuat pertemuan');
+      setIsSubmittingMeeting(false);
+    }
   };
 
-  const submitAttendance = async () => {
-    setIsSubmittingAttendance(true);
-    const payload = {
-      date: attendanceDate,
-      attendances: Object.entries(attendanceState).map(([enrollmentId, data]) => ({
-        enrollmentId,
-        status: data.status,
-        journal: data.journal
-      }))
-    };
-
+  const deleteMeeting = async () => {
+    if (!meetingToDelete) return;
+    setIsDeletingMeeting(true);
     try {
-      const res = await api.post('/teacher/attendance', payload);
-      toast.success(res.data.message || 'Presensi berhasil disimpan');
-      setIsAttendanceOpen(false);
+      await api.delete(`/teacher/meetings/${meetingToDelete.id}`);
+      toast.success('Pertemuan berhasil dihapus');
+      setMeetingToDelete(null);
+      fetchData(); // Refresh list
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Gagal menyimpan presensi');
+      toast.error('Gagal menghapus pertemuan');
     } finally {
-      setIsSubmittingAttendance(false);
+      setIsDeletingMeeting(false);
     }
   };
 
@@ -110,6 +113,7 @@ export default function ClassDetailPage() {
 
   const columns = [
     { header: 'Nama Siswa', cell: (row) => row.student?.user?.name },
+    { header: 'No. Telp (Wali)', cell: (row) => row.student?.parentPhone || '-' },
     { 
       header: 'Tanggal Daftar', 
       cell: (row) => new Date(row.enrolledAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) 
@@ -149,16 +153,10 @@ export default function ClassDetailPage() {
             </span>
           </nav>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Detail Kelas</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Kelola presensi dan nilai siswa untuk kelas ini.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            {scheduleData ? `${scheduleData.day}, ${scheduleData.startTime} - ${scheduleData.endTime}` : 'Kelola pertemuan dan siswa.'}
+          </p>
         </div>
-        <Button 
-          onClick={() => setIsAttendanceOpen(true)}
-          className="gap-2 bg-amber-600 hover:bg-amber-700 text-white shadow-lg"
-          disabled={enrollments.length === 0}
-        >
-          <CalendarCheck size={18} />
-          Isi Presensi
-        </Button>
       </div>
 
       {loading ? (
@@ -166,89 +164,177 @@ export default function ClassDetailPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
         </div>
       ) : (
-        <div className="w-full">
-          <DataTable 
-            columns={columns} 
-            data={enrollments} 
-            searchKey="student.user.name" 
-            searchPlaceholder="Cari nama siswa..." 
-          />
+        <div className="space-y-6">
+          {/* Custom Tabs */}
+          <div className="border-b border-zinc-200 dark:border-zinc-800">
+            <nav className="-mb-px flex gap-6">
+              <button
+                onClick={() => setActiveTab('meetings')}
+                className={`py-4 px-1 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'meetings'
+                    ? 'border-amber-500 text-amber-600 dark:border-amber-500 dark:text-amber-500'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300 dark:text-zinc-400 dark:hover:text-zinc-300'
+                }`}
+              >
+                Pertemuan
+              </button>
+              <button
+                onClick={() => setActiveTab('students')}
+                className={`py-4 px-1 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'students'
+                    ? 'border-amber-500 text-amber-600 dark:border-amber-500 dark:text-amber-500'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300 dark:text-zinc-400 dark:hover:text-zinc-300'
+                }`}
+              >
+                Anggota Kelas
+              </button>
+            </nav>
+          </div>
+
+          {/* Tab Contents */}
+          {activeTab === 'meetings' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Daftar Pertemuan</h2>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    className="gap-2 text-zinc-600 dark:text-zinc-300"
+                  >
+                    <ArrowUpDown size={16} />
+                    Sortir: {sortOrder === 'asc' ? 'Terlama' : 'Terbaru'}
+                  </Button>
+                  <Button 
+                    onClick={() => setIsMeetingOpen(true)}
+                    className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                  >
+                    <CalendarPlus size={16} />
+                    Buat Pertemuan
+                  </Button>
+                </div>
+              </div>
+
+              {meetings.length === 0 ? (
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-8 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
+                  <p className="text-zinc-500 dark:text-zinc-400">Belum ada pertemuan yang tercatat.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {[...meetings].sort((a, b) => {
+                    const dateA = new Date(a.meetingDate);
+                    const dateB = new Date(b.meetingDate);
+                    return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+                  }).map((m) => (
+                    <div 
+                      key={m.id}
+                      className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all group flex flex-col gap-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div 
+                          className="flex-1 cursor-pointer"
+                          onClick={() => navigate(`/teacher/meetings/${m.id}`)}
+                        >
+                          <h3 className="font-bold text-zinc-900 dark:text-white group-hover:text-amber-600 transition-colors">
+                            {m.title}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+                            <CalendarIcon size={14} />
+                            {new Date(m.meetingDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                          </div>
+                          
+                          {/* Attendance summary badges */}
+                          <div className="flex flex-wrap items-center gap-2 mt-3">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800/50 dark:text-emerald-400">
+                              Hadir: {m.attendances?.filter(a => a.status === 'HADIR').length || 0}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md bg-amber-50 border border-amber-100 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800/50 dark:text-amber-400">
+                              Izin: {m.attendances?.filter(a => a.status === 'IZIN').length || 0}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 border border-blue-100 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800/50 dark:text-blue-400">
+                              Sakit: {m.attendances?.filter(a => a.status === 'SAKIT').length || 0}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md bg-rose-50 border border-rose-100 text-rose-700 dark:bg-rose-900/20 dark:border-rose-800/50 dark:text-rose-400">
+                              Absen: {m.attendances?.filter(a => a.status === 'ABSEN').length || 0}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 shrink-0 pt-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => { e.stopPropagation(); setMeetingToDelete(m); }}
+                            className="text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors h-8 w-8"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                          <div 
+                            className="w-8 h-8 rounded-full cursor-pointer bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                            onClick={() => navigate(`/teacher/meetings/${m.id}`)}
+                          >
+                            <ArrowRight size={16} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Journal separated below */}
+                      <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                        <div className="flex items-start gap-2.5 text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/40 p-3.5 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                          <FileText size={16} className={`shrink-0 mt-0.5 ${m.journal ? 'text-amber-500' : 'text-zinc-400'}`} />
+                          <p className={`italic leading-relaxed ${!m.journal && 'text-zinc-400'}`}>
+                            {m.journal || 'Belum ada catatan jurnal...'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'students' && (
+            <div className="w-full">
+              <DataTable 
+                columns={columns} 
+                data={enrollments} 
+                searchKey="student.user.name" 
+                searchPlaceholder="Cari nama siswa..." 
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Attendance Dialog */}
-      <Dialog open={isAttendanceOpen} onOpenChange={setIsAttendanceOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto">
+      {/* New Meeting Dialog */}
+      <Dialog open={isMeetingOpen} onOpenChange={setIsMeetingOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Isi Presensi Kelas</DialogTitle>
+            <DialogTitle>Buat Pertemuan Baru</DialogTitle>
             <DialogDescription>
-              Silakan isi status kehadiran dan jurnal materi untuk masing-masing siswa.
+              Tentukan tanggal pertemuan untuk kelas ini. Judul pertemuan akan di-generate otomatis.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="py-4 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Tanggal Pertemuan
-              </label>
-              <div className="relative">
-                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
-                <input 
-                  type="date" 
-                  value={attendanceDate}
-                  onChange={(e) => setAttendanceDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {enrollments.map((enr) => (
-                <div key={enr.id} className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="w-48 shrink-0">
-                      <p className="font-bold text-zinc-900 dark:text-white">{enr.student?.user?.name}</p>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      {['HADIR', 'ABSEN', 'IZIN', 'SAKIT'].map(status => (
-                        <button
-                          key={status}
-                          onClick={() => handleAttendanceChange(enr.id, 'status', status)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                            attendanceState[enr.id]?.status === status
-                              ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:border-amber-500/50 dark:text-amber-300'
-                              : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800'
-                          }`}
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex-1">
-                      <input 
-                        type="text" 
-                        placeholder="Catatan jurnal materi hari ini..."
-                        value={attendanceState[enr.id]?.journal || ''}
-                        onChange={(e) => handleAttendanceChange(enr.id, 'journal', e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="py-4">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Tanggal Pertemuan
+            </label>
+            <input 
+              type="date" 
+              value={newMeetingDate}
+              onChange={(e) => setNewMeetingDate(e.target.value)}
+              className="w-full px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white"
+            />
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAttendanceOpen(false)}>Batal</Button>
+            <Button variant="outline" onClick={() => setIsMeetingOpen(false)}>Batal</Button>
             <Button 
-              onClick={submitAttendance} 
-              disabled={isSubmittingAttendance}
+              onClick={createMeeting}
+              disabled={isSubmittingMeeting}
               className="bg-amber-600 hover:bg-amber-700 text-white"
             >
-              {isSubmittingAttendance ? 'Menyimpan...' : 'Simpan Presensi'}
+              {isSubmittingMeeting ? 'Membuat...' : 'Buat Pertemuan'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -299,6 +385,17 @@ export default function ClassDetailPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmActionDialog 
+        open={!!meetingToDelete}
+        onOpenChange={(open) => !open && setMeetingToDelete(null)}
+        title="Hapus Pertemuan"
+        description={`Apakah Anda yakin ingin menghapus ${meetingToDelete?.title}? Seluruh data absensi pada pertemuan ini juga akan terhapus secara permanen.`}
+        onConfirm={deleteMeeting}
+        confirmText="Hapus Pertemuan"
+        isProcessing={isDeletingMeeting}
+        variant="destructive"
+      />
     </div>
   );
 }

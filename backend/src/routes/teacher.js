@@ -28,31 +28,8 @@ router.get('/schedules', async (req, res, next) => {
   }
 });
 
-// POST /api/teacher/attendance — Submit presensi + jurnal
-router.post('/attendance', async (req, res, next) => {
-  try {
-    const { attendances, date } = req.body;
-    // attendances: [{ enrollmentId, status, journal }]
-    
-    const attendanceDate = date ? new Date(date) : new Date();
-
-    const created = await prisma.attendance.createMany({
-      data: attendances.map(a => ({
-        enrollmentId: a.enrollmentId,
-        status: a.status,
-        journal: a.journal || null,
-        date: attendanceDate
-      }))
-    });
-
-    res.status(201).json({ message: 'Presensi tersimpan', count: created.count });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/teacher/enrollments/:scheduleId — Students and details for a schedule
-router.get('/enrollments/:scheduleId', async (req, res, next) => {
+// GET /api/teacher/schedules/:scheduleId/students — Students and details for a schedule
+router.get('/schedules/:scheduleId/students', async (req, res, next) => {
   try {
     const schedule = await prisma.schedule.findUnique({
       where: { id: req.params.scheduleId },
@@ -65,6 +42,135 @@ router.get('/enrollments/:scheduleId', async (req, res, next) => {
     });
 
     res.json({ schedule, enrollments });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/teacher/schedules/:scheduleId/meetings — List meetings
+router.get('/schedules/:scheduleId/meetings', async (req, res, next) => {
+  try {
+    const meetings = await prisma.meeting.findMany({
+      where: { scheduleId: req.params.scheduleId },
+      include: { attendances: true },
+      orderBy: { meetingDate: 'asc' }
+    });
+    res.json(meetings);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/teacher/schedules/:scheduleId/meetings — Create meeting
+router.post('/schedules/:scheduleId/meetings', async (req, res, next) => {
+  try {
+    const { meetingDate } = req.body;
+    const scheduleId = req.params.scheduleId;
+
+    const count = await prisma.meeting.count({ where: { scheduleId } });
+    
+    const meeting = await prisma.meeting.create({
+      data: {
+        scheduleId,
+        title: `Pertemuan ke-${count + 1}`,
+        meetingDate: meetingDate ? new Date(meetingDate) : new Date(),
+      }
+    });
+
+    res.status(201).json(meeting);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/teacher/meetings/:meetingId — Delete a meeting
+router.delete('/meetings/:meetingId', async (req, res, next) => {
+  try {
+    const meetingId = req.params.meetingId;
+    
+    await prisma.$transaction([
+      prisma.meetingAttendance.deleteMany({ where: { meetingId } }),
+      prisma.meeting.delete({ where: { id: meetingId } })
+    ]);
+    
+    res.json({ message: 'Pertemuan berhasil dihapus' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/teacher/meetings/:meetingId — Detail meeting + attendance
+router.get('/meetings/:meetingId', async (req, res, next) => {
+  try {
+    const meeting = await prisma.meeting.findUnique({
+      where: { id: req.params.meetingId },
+      include: {
+        schedule: { 
+          include: { 
+            course: true,
+            enrollments: {
+              include: { student: { include: { user: { select: { name: true } } } } }
+            }
+          } 
+        },
+        attendances: {
+          include: {
+            enrollment: {
+              include: { student: { include: { user: { select: { name: true } } } } }
+            }
+          }
+        }
+      }
+    });
+    if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
+    res.json(meeting);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/teacher/meetings/:meetingId/journal — Update journal
+router.put('/meetings/:meetingId/journal', async (req, res, next) => {
+  try {
+    const { journal } = req.body;
+    const meeting = await prisma.meeting.update({
+      where: { id: req.params.meetingId },
+      data: { journal }
+    });
+    res.json({ message: 'Jurnal diperbarui', meeting });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/teacher/meetings/:meetingId/attendance — Bulk upsert attendance
+router.post('/meetings/:meetingId/attendance', async (req, res, next) => {
+  try {
+    const { attendances } = req.body; // [{ enrollmentId, status, note }]
+    const meetingId = req.params.meetingId;
+
+    // Use a transaction to upsert multiple
+    await prisma.$transaction(
+      attendances.map(att => 
+        prisma.meetingAttendance.upsert({
+          where: {
+            meetingId_enrollmentId: {
+              meetingId,
+              enrollmentId: att.enrollmentId
+            }
+          },
+          update: { status: att.status, note: att.note },
+          create: {
+            meetingId,
+            enrollmentId: att.enrollmentId,
+            status: att.status,
+            note: att.note || null
+          }
+        })
+      )
+    );
+
+    res.json({ message: 'Presensi tersimpan' });
   } catch (error) {
     next(error);
   }

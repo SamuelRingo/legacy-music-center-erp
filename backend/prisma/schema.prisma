@@ -101,6 +101,7 @@ model Schedule {
   teacher     User         @relation("TeacherSchedules", fields: [teacherId], references: [id])
   classroom   Classroom    @relation(fields: [classroomId], references: [id])
   enrollments Enrollment[]
+  meetings    Meeting[]
 
   @@map("schedules")
 }
@@ -121,10 +122,10 @@ model Enrollment {
   scheduleId String
   enrolledAt DateTime @default(now())
 
-  student      StudentProfile @relation(fields: [studentId], references: [id])
-  schedule     Schedule       @relation(fields: [scheduleId], references: [id])
-  attendances  Attendance[]
-  finalGrades  FinalGrade[]
+  student            StudentProfile      @relation(fields: [studentId], references: [id])
+  schedule           Schedule            @relation(fields: [scheduleId], references: [id])
+  meetingAttendances MeetingAttendance[]
+  finalGrades        FinalGrade[]
 
   @@unique([studentId, scheduleId])
   @@map("enrollments")
@@ -132,16 +133,32 @@ model Enrollment {
 
 // ==================== ATTENDANCE & GRADING ====================
 
-model Attendance {
-  id           String       @id @default(uuid())
-  enrollmentId String
-  date         DateTime     @default(now())
-  status       AttendanceStatus
-  journal      String?      // Catatan harian guru
+model Meeting {
+  id          String   @id @default(uuid())
+  scheduleId  String
+  title       String   // "Pertemuan ke-1", auto-increment per schedule
+  meetingDate DateTime
+  journal     String?  // 1 jurnal per pertemuan
+  createdAt   DateTime @default(now())
 
+  schedule    Schedule            @relation(fields: [scheduleId], references: [id])
+  attendances MeetingAttendance[]
+
+  @@map("meetings")
+}
+
+model MeetingAttendance {
+  id           String           @id @default(uuid())
+  meetingId    String
+  enrollmentId String
+  status       AttendanceStatus // HADIR/ABSEN/IZIN/SAKIT
+  note         String?
+
+  meeting    Meeting    @relation(fields: [meetingId], references: [id])
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
 
-  @@map("attendances")
+  @@unique([meetingId, enrollmentId])
+  @@map("meeting_attendances")
 }
 
 enum AttendanceStatus {
