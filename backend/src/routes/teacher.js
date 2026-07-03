@@ -38,7 +38,10 @@ router.get('/schedules/:scheduleId/students', async (req, res, next) => {
 
     const enrollments = await prisma.enrollment.findMany({
       where: { scheduleId: req.params.scheduleId },
-      include: { student: { include: { user: { select: { name: true } } } } }
+      include: { 
+        student: { include: { user: { select: { name: true } } } },
+        finalGrades: true
+      }
     });
 
     res.json({ schedule, enrollments });

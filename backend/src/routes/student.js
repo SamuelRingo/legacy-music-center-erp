@@ -50,7 +50,7 @@ router.get('/invoices', async (req, res, next) => {
   }
 });
 
-// GET /api/student/progress — Attendance + journals
+// GET /api/student/progress — Consolidated progress (meetings + final grade)
 router.get('/progress', async (req, res, next) => {
   try {
     const profile = await prisma.studentProfile.findUnique({
@@ -58,16 +58,23 @@ router.get('/progress', async (req, res, next) => {
     });
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
 
-    const attendances = await prisma.attendance.findMany({
-      where: { enrollment: { studentId: profile.id } },
+    const enrollments = await prisma.enrollment.findMany({
+      where: { studentId: profile.id },
       include: {
-        enrollment: {
-          include: { schedule: { include: { course: true } } }
-        }
-      },
-      orderBy: { date: 'desc' }
+        schedule: {
+          include: { 
+            course: true,
+            teacher: { select: { name: true } }
+          }
+        },
+        meetingAttendances: {
+          include: { meeting: true },
+          orderBy: { meeting: { meetingDate: 'asc' } }
+        },
+        finalGrades: true
+      }
     });
-    res.json(attendances);
+    res.json(enrollments);
   } catch (error) {
     next(error);
   }

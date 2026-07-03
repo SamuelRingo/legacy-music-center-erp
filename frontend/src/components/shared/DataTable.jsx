@@ -54,7 +54,7 @@ export default function DataTable({
           <TableHeader className="bg-zinc-50 dark:bg-zinc-900/50">
             <TableRow>
               {columns.map((col, index) => (
-                <TableHead key={index} className="font-semibold text-zinc-900 dark:text-zinc-300">
+                <TableHead key={index} className={`font-semibold text-zinc-900 dark:text-zinc-300 ${col.className || ''}`}>
                   {col.header}
                 </TableHead>
               ))}
@@ -75,7 +75,7 @@ export default function DataTable({
                   className={`transition-colors ${onRowClick ? 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50' : ''}`}
                 >
                   {columns.map((col, colIndex) => (
-                    <TableCell key={colIndex}>
+                    <TableCell key={colIndex} className={col.className || ''}>
                       {col.cell ? col.cell(row) : row[col.accessorKey]}
                     </TableCell>
                   ))}

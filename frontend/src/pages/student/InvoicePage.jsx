@@ -64,14 +64,12 @@ export default function StudentInvoicePage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-          <DataTable 
-            columns={columns} 
-            data={invoices} 
-            searchKey="month" 
-            searchPlaceholder="Cari bulan..." 
-          />
-        </div>
+        <DataTable 
+          columns={columns} 
+          data={invoices} 
+          searchKey="month" 
+          searchPlaceholder="Cari bulan..." 
+        />
       )}
     </div>
   );

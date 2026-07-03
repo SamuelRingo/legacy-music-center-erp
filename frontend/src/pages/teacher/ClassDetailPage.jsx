@@ -39,6 +39,7 @@ export default function ClassDetailPage() {
   const [gradeModal, setGradeModal] = useState({ open: false, enrollmentId: null, studentName: '' });
   const [gradeForm, setGradeForm] = useState({ score: '', evaluation: '' });
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
+  const [editGradeConfirm, setEditGradeConfirm] = useState({ open: false, row: null, finalGrade: null });
 
   useEffect(() => {
     fetchData();
@@ -104,6 +105,7 @@ export default function ClassDetailPage() {
       toast.success('Nilai akhir berhasil disimpan');
       setGradeModal({ open: false, enrollmentId: null, studentName: '' });
       setGradeForm({ score: '', evaluation: '' });
+      fetchData(); // Refresh list to show updated grade
     } catch (error) {
       toast.error(error.response?.data?.message || 'Gagal menyimpan nilai');
     } finally {
@@ -119,20 +121,49 @@ export default function ClassDetailPage() {
       cell: (row) => new Date(row.enrolledAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) 
     },
     {
+      header: 'Nilai Akhir',
+      className: 'w-32 text-center',
+      cell: (row) => {
+        const finalGrade = row.finalGrades && row.finalGrades.length > 0 ? row.finalGrades[0] : null;
+        return finalGrade ? (
+          <span className="font-bold text-emerald-600 dark:text-emerald-400">{finalGrade.score}</span>
+        ) : (
+          <span className="text-zinc-400">-</span>
+        );
+      }
+    },
+    {
       header: 'Aksi',
-      cell: (row) => (
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
-          onClick={() => {
-            setGradeModal({ open: true, enrollmentId: row.id, studentName: row.student?.user?.name });
-          }}
-        >
-          <FileBadge size={14} />
-          Beri Nilai Akhir
-        </Button>
-      )
+      className: 'w-36 text-center',
+      cell: (row) => {
+        const finalGrade = row.finalGrades && row.finalGrades.length > 0 ? row.finalGrades[0] : null;
+        if (finalGrade) {
+          return (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
+              onClick={() => setEditGradeConfirm({ open: true, row, finalGrade })}
+            >
+              Edit Nilai
+            </Button>
+          );
+        }
+        return (
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
+            onClick={() => {
+              setGradeModal({ open: true, enrollmentId: row.id, studentName: row.student?.user?.name });
+              setGradeForm({ score: '', evaluation: '' });
+            }}
+          >
+            <FileBadge size={14} />
+            Beri Nilai Akhir
+          </Button>
+        );
+      }
     }
   ];
 
@@ -395,6 +426,27 @@ export default function ClassDetailPage() {
         confirmText="Hapus Pertemuan"
         isProcessing={isDeletingMeeting}
         variant="destructive"
+      />
+
+      <ConfirmActionDialog
+        open={editGradeConfirm.open}
+        onOpenChange={(open) => !open && setEditGradeConfirm({ open: false, row: null, finalGrade: null })}
+        title="Edit Nilai Akhir"
+        description={`Siswa ${editGradeConfirm.row?.student?.user?.name} sudah memiliki nilai ${editGradeConfirm.finalGrade?.score}. Apakah Anda yakin ingin mengubah evaluasi dan nilainya?`}
+        onConfirm={() => {
+          setGradeModal({ 
+            open: true, 
+            enrollmentId: editGradeConfirm.row.id, 
+            studentName: editGradeConfirm.row.student?.user?.name 
+          });
+          setGradeForm({ 
+            score: editGradeConfirm.finalGrade.score.toString(), 
+            evaluation: editGradeConfirm.finalGrade.evaluation 
+          });
+          setEditGradeConfirm({ open: false, row: null, finalGrade: null });
+        }}
+        confirmText="Lanjut Edit"
+        variant="default"
       />
     </div>
   );
