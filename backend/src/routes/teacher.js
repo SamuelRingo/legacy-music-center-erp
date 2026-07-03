@@ -31,15 +31,17 @@ router.get('/schedules', async (req, res, next) => {
 // POST /api/teacher/attendance — Submit presensi + jurnal
 router.post('/attendance', async (req, res, next) => {
   try {
-    const { attendances } = req.body;
+    const { attendances, date } = req.body;
     // attendances: [{ enrollmentId, status, journal }]
+    
+    const attendanceDate = date ? new Date(date) : new Date();
 
     const created = await prisma.attendance.createMany({
       data: attendances.map(a => ({
         enrollmentId: a.enrollmentId,
         status: a.status,
         journal: a.journal || null,
-        date: new Date()
+        date: attendanceDate
       }))
     });
 
@@ -49,14 +51,20 @@ router.post('/attendance', async (req, res, next) => {
   }
 });
 
-// GET /api/teacher/enrollments/:scheduleId — Students in a schedule
+// GET /api/teacher/enrollments/:scheduleId — Students and details for a schedule
 router.get('/enrollments/:scheduleId', async (req, res, next) => {
   try {
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: req.params.scheduleId },
+      include: { course: true }
+    });
+
     const enrollments = await prisma.enrollment.findMany({
       where: { scheduleId: req.params.scheduleId },
       include: { student: { include: { user: { select: { name: true } } } } }
     });
-    res.json(enrollments);
+
+    res.json({ schedule, enrollments });
   } catch (error) {
     next(error);
   }
