@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { 
   Menu, X, LogOut, User as UserIcon, 
   Home, Users, Music, Building, Contact, 
-  Calendar, Receipt, FileText, CheckSquare 
+  Calendar, Receipt, FileText, CheckSquare, Image as ImageIcon
 } from 'lucide-react';
 
 export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsMobileOpen, handleLogout }) {
@@ -31,7 +31,8 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
           { label: 'Approval Pendaftaran', href: '/staff/approvals', icon: Users },
           { label: 'Jadwal & Kelas', href: '/staff/schedules', icon: Calendar },
           { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
-          { label: 'Laporan Keuangan', href: '/staff/reports', icon: FileText },
+          { label: 'Laporan', href: '/staff/reports', icon: FileText },
+          { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
         ];
       case 'STAFF':
         return [
@@ -39,7 +40,8 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
           { label: 'Persetujuan Siswa', href: '/staff/approvals', icon: Users },
           { label: 'Jadwal & Kelas', href: '/staff/schedules', icon: Calendar },
           { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
-          { label: 'Laporan Keuangan', href: '/staff/reports', icon: FileText },
+          { label: 'Laporan', href: '/staff/reports', icon: FileText },
+          { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
         ];
       case 'TEACHER':
         return [

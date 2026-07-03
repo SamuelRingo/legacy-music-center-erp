@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { supabase } from '../lib/supabase.js';
+import multer from 'multer';
 
 const router = Router();
 const prisma = new PrismaClient();
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.use(authenticate);
 router.use(authorize('STAFF', 'SUPER_ADMIN'));
@@ -210,6 +213,117 @@ router.get('/dashboard-stats', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// ==================== EVENT BANNERS ====================
+
+// GET /api/staff/events — Semua banner (tanpa limit)
+router.get('/events', async (req, res, next) => {
+  try {
+    const events = await prisma.eventBanner.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(events);
+  } catch (error) { next(error); }
+});
+
+// POST /api/staff/events — Tambah banner
+router.post('/events', async (req, res, next) => {
+  try {
+    const { title, description, imageUrl, imageBase64 } = req.body;
+    if (!title) return res.status(400).json({ message: 'Title wajib diisi' });
+    if (!imageUrl && !imageBase64) return res.status(400).json({ message: 'Gambar wajib diisi' });
+
+    let finalImageUrl = imageUrl;
+    
+    if (imageBase64) {
+      if (supabase) {
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+        const fileName = `banners/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        
+        const { error } = await supabase.storage
+          .from(process.env.SUPABASE_STORAGE_BUCKET_EVENTS || 'event-banners')
+          .upload(fileName, buffer, { contentType: 'image/jpeg' });
+          
+        if (error) {
+          console.error('Supabase upload error:', error);
+          return res.status(500).json({ message: 'Gagal upload gambar ke storage' });
+        }
+        
+        const { data: publicUrlData } = supabase.storage
+          .from(process.env.SUPABASE_STORAGE_BUCKET_EVENTS || 'event-banners')
+          .getPublicUrl(fileName);
+          
+        finalImageUrl = publicUrlData.publicUrl;
+      } else {
+        console.warn("Supabase not configured, using mock image URL");
+        finalImageUrl = "https://via.placeholder.com/800x400?text=Mock+Banner";
+      }
+    }
+
+    const event = await prisma.eventBanner.create({
+      data: { title, description, imageUrl: finalImageUrl }
+    });
+    res.status(201).json(event);
+  } catch (error) { next(error); }
+});
+
+// PUT /api/staff/events/:id — Edit banner
+router.put('/events/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, description, imageUrl, imageBase64 } = req.body;
+    
+    if (!title) return res.status(400).json({ message: 'Title wajib diisi' });
+
+    let finalImageUrl = imageUrl;
+    
+    if (imageBase64) {
+      if (supabase) {
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+        const fileName = `banners/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        
+        const { error } = await supabase.storage
+          .from(process.env.SUPABASE_STORAGE_BUCKET_EVENTS || 'event-banners')
+          .upload(fileName, buffer, { contentType: 'image/jpeg' });
+          
+        if (error) {
+          console.error('Supabase upload error:', error);
+          return res.status(500).json({ message: 'Gagal upload gambar ke storage' });
+        }
+        
+        const { data: publicUrlData } = supabase.storage
+          .from(process.env.SUPABASE_STORAGE_BUCKET_EVENTS || 'event-banners')
+          .getPublicUrl(fileName);
+          
+        finalImageUrl = publicUrlData.publicUrl;
+      } else {
+        console.warn("Supabase not configured, using mock image URL");
+        finalImageUrl = "https://via.placeholder.com/800x400?text=Mock+Banner";
+      }
+    }
+
+    const event = await prisma.eventBanner.update({
+      where: { id },
+      data: { 
+        title, 
+        description, 
+        ...(finalImageUrl && { imageUrl: finalImageUrl })
+      }
+    });
+    res.json(event);
+  } catch (error) { next(error); }
+});
+
+// DELETE /api/staff/events/:id — Hapus banner
+router.delete('/events/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.eventBanner.delete({ where: { id } });
+    res.json({ message: 'Event berhasil dihapus' });
+  } catch (error) { next(error); }
+});
+
 // POST /api/staff/enroll
 router.post('/enroll', async (req, res, next) => {
   try {
@@ -302,6 +416,98 @@ router.get('/teachers', async (req, res, next) => {
       select: { id: true, name: true }
     });
     res.json(teachers);
+  } catch (error) { next(error); }
+});
+
+// ==================== REPORTS ====================
+
+// GET /api/staff/reports/finance
+router.get('/reports/finance', async (req, res, next) => {
+  try {
+    const invoices = await prisma.invoice.findMany({
+      orderBy: { createdAt: 'asc' }
+    });
+    
+    const revenueByMonth = {};
+    let paidCount = 0;
+    let unpaidCount = 0;
+    let totalRevenue = 0;
+    let totalReceivable = 0;
+
+    invoices.forEach(inv => {
+      if (inv.status === 'PAID') {
+        paidCount++;
+        totalRevenue += inv.amount;
+        const date = new Date(inv.createdAt);
+        const monthYear = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
+        if (!revenueByMonth[monthYear]) revenueByMonth[monthYear] = 0;
+        revenueByMonth[monthYear] += inv.amount;
+      } else {
+        unpaidCount++;
+        totalReceivable += inv.amount;
+      }
+    });
+
+    const revenueTrend = Object.keys(revenueByMonth).map(key => ({
+      name: key,
+      revenue: revenueByMonth[key]
+    }));
+
+    res.json({
+      paidCount,
+      unpaidCount,
+      totalRevenue,
+      totalReceivable,
+      revenueTrend
+    });
+  } catch (error) { next(error); }
+});
+
+// GET /api/staff/reports/academic
+router.get('/reports/academic', async (req, res, next) => {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const attendances = await prisma.meetingAttendance.findMany({
+      where: {
+        meeting: { meetingDate: { gte: thirtyDaysAgo } }
+      }
+    });
+
+    let presentCount = 0;
+    attendances.forEach(a => {
+      if (a.status === 'HADIR') presentCount++;
+    });
+    const attendancePercentage = attendances.length > 0 ? Math.round((presentCount / attendances.length) * 100) : 0;
+
+    const courses = await prisma.course.findMany({
+      include: {
+        schedules: {
+          include: { _count: { select: { enrollments: true } } }
+        }
+      }
+    });
+
+    const coursePopularity = courses.map(c => {
+      const totalEnrollments = c.schedules.reduce((acc, sch) => acc + sch._count.enrollments, 0);
+      return {
+        name: c.name,
+        enrollments: totalEnrollments
+      };
+    }).sort((a, b) => b.enrollments - a.enrollments);
+
+    const totalActiveStudents = await prisma.user.count({ where: { role: 'STUDENT', status: 'ACTIVE' } });
+    const totalTeachers = await prisma.user.count({ where: { role: 'TEACHER', status: 'ACTIVE' } });
+    const activeClasses = await prisma.schedule.count();
+
+    res.json({
+      attendancePercentage,
+      coursePopularity,
+      totalActiveStudents,
+      totalTeachers,
+      activeClasses
+    });
   } catch (error) { next(error); }
 });
 
