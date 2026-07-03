@@ -21,11 +21,15 @@ import { CheckCircle2, Inbox, Calendar, User, Phone, MapPin } from 'lucide-react
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { ActionMenu } from '../../components/shared/ActionMenu';
 import { Eye } from 'lucide-react';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function ApprovalPage() {
   const [pendingStudents, setPendingStudents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -39,6 +43,7 @@ export default function ApprovalPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(false);
     try {
       const [pendingRes, schedRes] = await Promise.all([
         api.get('/staff/pending'),
@@ -48,6 +53,7 @@ export default function ApprovalPage() {
       setSchedules(schedRes.data);
     } catch (error) {
       console.error('Failed to fetch data:', error);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -139,9 +145,11 @@ export default function ApprovalPage() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-        </div>
+        <LoadingSkeleton type="table" rows={4} />
+      ) : error ? (
+        <ErrorState onRetry={fetchData} />
+      ) : pendingStudents.length === 0 ? (
+        <EmptyState title="Tidak Ada Menunggu Approval" description="Semua siswa baru sudah dikonfirmasi." />
       ) : (
         <DataTable 
           columns={columns} 

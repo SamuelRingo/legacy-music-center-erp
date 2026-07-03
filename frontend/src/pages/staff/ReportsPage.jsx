@@ -7,30 +7,36 @@ import { Printer, TrendingUp, Users, BookOpen, Receipt, DollarSign, AlertCircle,
 import { useReactToPrint } from 'react-to-print';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import MetricCard from '../../components/shared/MetricCard';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('finance');
   const [financeData, setFinanceData] = useState(null);
   const [academicData, setAcademicData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const printRef = useRef();
 
+  const fetchData = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const [finRes, acadRes] = await Promise.all([
+        api.get('/staff/reports/finance'),
+        api.get('/staff/reports/academic')
+      ]);
+      setFinanceData(finRes.data);
+      setAcademicData(acadRes.data);
+    } catch (err) {
+      setError(true);
+      toast.error('Gagal memuat data laporan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [finRes, acadRes] = await Promise.all([
-          api.get('/staff/reports/finance'),
-          api.get('/staff/reports/academic')
-        ]);
-        setFinanceData(finRes.data);
-        setAcademicData(acadRes.data);
-      } catch (err) {
-        toast.error('Gagal memuat data laporan');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
@@ -43,20 +49,15 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded" />
-        <div className="h-64 bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded" />
+      <div className="space-y-6">
+        <LoadingSkeleton type="card" rows={4} />
+        <LoadingSkeleton type="table" rows={3} />
       </div>
     );
   }
 
-  if (!financeData || !academicData) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
-        <p>Gagal memuat data.</p>
-        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Coba Lagi</Button>
-      </div>
-    );
+  if (error || !financeData || !academicData) {
+    return <ErrorState onRetry={fetchData} />;
   }
 
   const pieData = [

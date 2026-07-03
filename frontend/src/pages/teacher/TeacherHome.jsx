@@ -3,32 +3,41 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import { Calendar, Clock, MapPin, Users, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function TeacherHome() {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
+  const fetchSchedules = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await api.get('/teacher/schedules');
+      setSchedules(res.data);
+    } catch (error) {
+      console.error('Failed to fetch schedules', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        const res = await api.get('/teacher/schedules');
-        setSchedules(res.data);
-      } catch (error) {
-        console.error('Failed to fetch schedules', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSchedules();
   }, []);
 
   if (loading) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-      </div>
-    );
+  if (loading) {
+    return <LoadingSkeleton type="card" rows={3} />;
+  }
+
+  if (error) {
+    return <ErrorState onRetry={fetchSchedules} />;
   }
 
   return (
@@ -42,12 +51,7 @@ export default function TeacherHome() {
       </div>
 
       {schedules.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 text-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
-            <BookOpen className="text-zinc-400" />
-          </div>
-          <p className="text-zinc-500 dark:text-zinc-400 font-medium">Anda belum memiliki jadwal mengajar.</p>
-        </div>
+        <EmptyState title="Belum Ada Jadwal" description="Anda belum memiliki jadwal mengajar." />
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
           {schedules.map((schedule) => (

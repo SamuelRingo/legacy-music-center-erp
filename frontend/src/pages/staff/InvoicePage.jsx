@@ -6,10 +6,14 @@ import { ActionMenu } from '../../components/shared/ActionMenu';
 import { Button } from '@/components/ui/button';
 import { Receipt, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function InvoicePage() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   
   // Modal States
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -23,10 +27,12 @@ export default function InvoicePage() {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await api.get('/staff/invoices');
       setInvoices(res.data);
     } catch (error) {
+      setError(true);
       toast.error('Gagal memuat daftar tagihan');
       console.error('Failed to fetch invoices:', error);
     } finally {
@@ -135,9 +141,11 @@ export default function InvoicePage() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-        </div>
+        <LoadingSkeleton type="table" rows={5} />
+      ) : error ? (
+        <ErrorState onRetry={fetchData} />
+      ) : invoices.length === 0 ? (
+        <EmptyState title="Belum Ada Tagihan" description="Klik 'Generate Tagihan Bulan Ini' untuk membuat tagihan baru." />
       ) : (
         <DataTable 
           columns={columns} 

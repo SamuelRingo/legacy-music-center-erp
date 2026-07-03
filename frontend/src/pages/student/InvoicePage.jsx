@@ -2,22 +2,30 @@ import { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { CheckCircle, Clock, Receipt } from 'lucide-react';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function StudentInvoicePage() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await api.get('/student/invoices');
+      setInvoices(res.data);
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get('/student/invoices');
-        setInvoices(res.data);
-      } catch (error) {
-        console.error('Failed to fetch invoices:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
@@ -60,9 +68,11 @@ export default function StudentInvoicePage() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-        </div>
+        <LoadingSkeleton type="table" rows={4} />
+      ) : error ? (
+        <ErrorState onRetry={fetchData} />
+      ) : invoices.length === 0 ? (
+        <EmptyState title="Belum Ada Tagihan" description="Kamu belum memiliki tagihan bulan ini." />
       ) : (
         <DataTable 
           columns={columns} 

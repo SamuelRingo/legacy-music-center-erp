@@ -18,12 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 const DAYS = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
 
 export default function SchedulingPage() {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   // Lookups
   const [courses, setCourses] = useState([]);
@@ -55,6 +59,7 @@ export default function SchedulingPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(false);
     try {
       const [schedRes, courseRes, teacherRes, roomRes] = await Promise.all([
         api.get('/staff/schedules'),
@@ -68,6 +73,7 @@ export default function SchedulingPage() {
       setClassrooms(roomRes.data);
     } catch (error) {
       console.error('Failed to fetch data:', error);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -188,9 +194,11 @@ export default function SchedulingPage() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-        </div>
+        <LoadingSkeleton type="table" rows={6} />
+      ) : error ? (
+        <ErrorState onRetry={fetchData} />
+      ) : schedules.length === 0 ? (
+        <EmptyState title="Belum Ada Jadwal" description="Silakan buat jadwal kelas pertama Anda." />
       ) : (
         <DataTable 
           columns={columns} 

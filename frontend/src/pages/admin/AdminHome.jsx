@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import { Users, GraduationCap, Calendar, Clock } from 'lucide-react';
+import MetricCard from '../../components/shared/MetricCard';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function AdminHome() {
   const [stats, setStats] = useState({
@@ -10,10 +13,23 @@ export default function AdminHome() {
     pendingApprovals: 0
   });
 
-  useEffect(() => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchStats = () => {
+    setLoading(true);
+    setError(false);
     api.get('/admin/dashboard-stats')
       .then(res => setStats(res.data))
-      .catch(err => console.error('Error fetching admin stats:', err));
+      .catch(err => {
+        console.error('Error fetching admin stats:', err);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
   const statCards = [
@@ -30,22 +46,24 @@ export default function AdminHome() {
         <p className="text-zinc-500 dark:text-zinc-400 mt-1">Ringkasan aktivitas dan metrik sistem musik ERP.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
-                <Icon size={24} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{stat.title}</p>
-                <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{stat.value}</h3>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {loading ? (
+        <LoadingSkeleton type="card" rows={4} />
+      ) : error ? (
+        <ErrorState onRetry={fetchStats} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {statCards.map((stat, index) => (
+            <MetricCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              colorClass={stat.color}
+              bgClass={stat.bg}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

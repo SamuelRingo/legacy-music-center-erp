@@ -14,6 +14,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function ClassDetailPage() {
   const { id: scheduleId } = useParams();
@@ -24,6 +27,7 @@ export default function ClassDetailPage() {
   const [enrollments, setEnrollments] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' = terlama ke terbaru, 'desc' = terbaru ke terlama
 
   // New Meeting Modal
@@ -47,6 +51,7 @@ export default function ClassDetailPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(false);
     try {
       const [studentsRes, meetingsRes] = await Promise.all([
         api.get(`/teacher/schedules/${scheduleId}/students`),
@@ -56,6 +61,7 @@ export default function ClassDetailPage() {
       setEnrollments(studentsRes.data.enrollments);
       setMeetings(meetingsRes.data);
     } catch (error) {
+      setError(true);
       toast.error('Gagal memuat data kelas');
       console.error(error);
     } finally {
@@ -191,9 +197,9 @@ export default function ClassDetailPage() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-        </div>
+        <LoadingSkeleton type="card" rows={4} />
+      ) : error ? (
+        <ErrorState onRetry={fetchData} />
       ) : (
         <div className="space-y-6">
           {/* Custom Tabs */}
@@ -247,9 +253,7 @@ export default function ClassDetailPage() {
               </div>
 
               {meetings.length === 0 ? (
-                <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-8 text-center border border-dashed border-zinc-200 dark:border-zinc-800">
-                  <p className="text-zinc-500 dark:text-zinc-400">Belum ada pertemuan yang tercatat.</p>
-                </div>
+                <EmptyState title="Belum Ada Pertemuan" description="Belum ada pertemuan yang tercatat untuk kelas ini." />
               ) : (
                 <div className="grid grid-cols-1 gap-4">
                   {[...meetings].sort((a, b) => {
@@ -327,12 +331,16 @@ export default function ClassDetailPage() {
 
           {activeTab === 'students' && (
             <div className="w-full">
-              <DataTable 
-                columns={columns} 
-                data={enrollments} 
-                searchKey="student.user.name" 
-                searchPlaceholder="Cari nama siswa..." 
-              />
+              {enrollments.length === 0 ? (
+                <EmptyState title="Belum Ada Siswa" description="Belum ada siswa yang mendaftar ke kelas ini." />
+              ) : (
+                <DataTable 
+                  columns={columns} 
+                  data={enrollments} 
+                  searchKey="student.user.name" 
+                  searchPlaceholder="Cari nama siswa..." 
+                />
+              )}
             </div>
           )}
         </div>

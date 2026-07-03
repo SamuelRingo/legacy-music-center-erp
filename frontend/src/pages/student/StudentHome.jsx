@@ -1,31 +1,44 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { BookOpen, Calendar, Clock, MapPin, Receipt, AlertCircle, CheckCircle } from 'lucide-react';
+import { BookOpen, Calendar, Clock, MapPin, Receipt, CheckCircle } from 'lucide-react';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function StudentHome() {
   const [data, setData] = useState({ enrollments: [], user: null });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await api.get('/student/dashboard');
+      setData(res.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get('/student/dashboard');
-        setData(res.data);
-      } catch (error) {
-        console.error('Failed to fetch dashboard', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
   if (loading) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
+      <div className="space-y-6">
+        <LoadingSkeleton type="card" rows={1} />
+        <LoadingSkeleton type="card" rows={2} />
       </div>
     );
+  }
+
+  if (error) {
+    return <ErrorState onRetry={fetchData} />;
   }
 
   return (
@@ -48,12 +61,7 @@ export default function StudentHome() {
           </h2>
           
           {data.enrollments.length === 0 ? (
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 text-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
-              <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                <AlertCircle className="text-zinc-400" />
-              </div>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium">Kamu belum terdaftar di kelas manapun.</p>
-            </div>
+            <EmptyState title="Belum Ada Kelas" description="Kamu belum terdaftar di kelas manapun." />
           ) : (
             <div className="grid sm:grid-cols-2 gap-4">
               {data.enrollments.map((enr) => (

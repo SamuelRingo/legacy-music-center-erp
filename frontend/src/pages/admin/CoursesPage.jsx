@@ -10,9 +10,14 @@ import { toast } from 'sonner';
 import { Edit2, Trash2, Plus } from 'lucide-react';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { ActionMenu } from '../../components/shared/ActionMenu';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null });
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,11 +29,16 @@ export default function CoursesPage() {
   }, []);
 
   const fetchCourses = async () => {
+    setLoading(true);
+    setError(false);
     try {
       const res = await api.get('/admin/courses');
       setCourses(res.data);
     } catch (err) {
+      setError(true);
       toast.error('Gagal memuat kursus');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -105,13 +115,21 @@ export default function CoursesPage() {
         <p className="text-sm text-zinc-500">Kelola daftar kursus atau kelas musik yang tersedia</p>
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={courses} 
-        searchKey="name" 
-        searchPlaceholder="Cari nama kursus..." 
-        actionElement={actionButton}
-      />
+      {loading ? (
+        <LoadingSkeleton type="table" rows={5} />
+      ) : error ? (
+        <ErrorState onRetry={fetchCourses} />
+      ) : courses.length === 0 ? (
+        <EmptyState title="Belum Ada Kursus" description="Silakan tambahkan kursus musik pertama Anda." />
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={courses} 
+          searchKey="name" 
+          searchPlaceholder="Cari nama kursus..." 
+          actionElement={actionButton}
+        />
+      )}
 
       {/* Form Modal */}
       <Dialog open={modal.open} onOpenChange={open => !open && closeModal()}>

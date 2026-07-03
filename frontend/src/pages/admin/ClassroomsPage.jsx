@@ -9,9 +9,14 @@ import { toast } from 'sonner';
 import { Edit2, Trash2, Plus } from 'lucide-react';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { ActionMenu } from '../../components/shared/ActionMenu';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function ClassroomsPage() {
   const [classrooms, setClassrooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null });
   const [formData, setFormData] = useState({ name: '', capacity: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,11 +28,16 @@ export default function ClassroomsPage() {
   }, []);
 
   const fetchClassrooms = async () => {
+    setLoading(true);
+    setError(false);
     try {
       const res = await api.get('/admin/classrooms');
       setClassrooms(res.data);
     } catch (err) {
+      setError(true);
       toast.error('Gagal memuat ruang kelas');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,13 +113,21 @@ export default function ClassroomsPage() {
         <p className="text-sm text-zinc-500">Kelola daftar ruang kelas beserta kapasitasnya</p>
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={classrooms} 
-        searchKey="name" 
-        searchPlaceholder="Cari nama ruangan..." 
-        actionElement={actionButton}
-      />
+      {loading ? (
+        <LoadingSkeleton type="table" rows={5} />
+      ) : error ? (
+        <ErrorState onRetry={fetchClassrooms} />
+      ) : classrooms.length === 0 ? (
+        <EmptyState title="Belum Ada Ruang Kelas" description="Silakan tambahkan ruang kelas baru." />
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={classrooms} 
+          searchKey="name" 
+          searchPlaceholder="Cari nama ruangan..." 
+          actionElement={actionButton}
+        />
+      )}
 
       {/* Form Modal */}
       <Dialog open={modal.open} onOpenChange={open => !open && closeModal()}>

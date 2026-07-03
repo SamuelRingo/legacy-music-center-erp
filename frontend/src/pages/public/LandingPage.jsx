@@ -2,18 +2,25 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function LandingPage() {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [errorEvents, setErrorEvents] = useState(false);
 
   useEffect(() => {
     async function fetchEvents() {
+      setLoadingEvents(true);
+      setErrorEvents(false);
       try {
         const res = await api.get('/public/events');
         setEvents(res.data);
       } catch (error) {
         console.error('Failed to fetch events:', error);
+        setErrorEvents(true);
       } finally {
         setLoadingEvents(false);
       }
@@ -98,9 +105,12 @@ export default function LandingPage() {
             </div>
 
             {loadingEvents ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 dark:border-white"></div>
-              </div>
+              <LoadingSkeleton type="card" rows={3} />
+            ) : errorEvents ? (
+              <ErrorState onRetry={() => {
+                setLoadingEvents(true);
+                api.get('/public/events').then(res => setEvents(res.data)).catch(() => setErrorEvents(true)).finally(() => setLoadingEvents(false));
+              }} />
             ) : events.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {events.map((event) => (
@@ -127,13 +137,7 @@ export default function LandingPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-700">
-                <svg className="mx-auto h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-white">Belum ada acara</h3>
-                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Nantikan update acara terbaru dari kami.</p>
-              </div>
+              <EmptyState title="Belum Ada Acara" description="Nantikan update acara terbaru dari kami." />
             )}
           </div>
         </section>

@@ -10,7 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, Trash2, Image as ImageIcon, Edit } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
-import ActionMenu from '../../components/shared/ActionMenu';
+import { ActionMenu } from '../../components/shared/ActionMenu';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
@@ -129,22 +132,11 @@ export default function EventsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1,2,3].map(i => (
-          <div key={i} className="h-64 bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-xl" />
-        ))}
-      </div>
-    );
+    return <LoadingSkeleton type="card" rows={3} />;
   }
 
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
-        <p>Gagal memuat data event banner.</p>
-        <Button variant="outline" className="mt-4" onClick={fetchEvents}>Coba Lagi</Button>
-      </div>
-    );
+    return <ErrorState onRetry={fetchEvents} />;
   }
 
   return (
@@ -160,10 +152,7 @@ export default function EventsPage() {
       </div>
 
       {events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-zinc-500 border-2 border-dashed rounded-xl dark:border-zinc-800">
-          <ImageIcon size={48} className="mb-4 text-zinc-300 dark:text-zinc-700" />
-          <p>Belum ada event banner.</p>
-        </div>
+        <EmptyState title="Belum Ada Event Banner" description="Tambahkan banner acara untuk ditampilkan di halaman utama." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (

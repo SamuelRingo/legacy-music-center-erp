@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams();
@@ -17,6 +19,7 @@ export default function MeetingDetailPage() {
   const [initialAttendanceState, setInitialAttendanceState] = useState({});
   
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Unsaved changes handling
@@ -54,6 +57,7 @@ export default function MeetingDetailPage() {
 
   const fetchMeeting = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await api.get(`/teacher/meetings/${meetingId}`);
       const m = res.data;
@@ -78,6 +82,7 @@ export default function MeetingDetailPage() {
       setInitialJournal(m.journal || '');
       setInitialAttendanceState(JSON.parse(JSON.stringify(stateMap)));
     } catch (error) {
+      setError(true);
       toast.error('Gagal memuat detail pertemuan');
       console.error(error);
     } finally {
@@ -126,11 +131,11 @@ export default function MeetingDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-      </div>
-    );
+    return <LoadingSkeleton type="card" rows={3} />;
+  }
+
+  if (error) {
+    return <ErrorState onRetry={fetchMeeting} />;
   }
 
   if (!meeting) return null;

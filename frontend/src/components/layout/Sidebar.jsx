@@ -42,17 +42,19 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
           { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
           { label: 'Laporan', href: '/staff/reports', icon: FileText },
           { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
+          { label: 'Profil Saya', href: '/staff/profile', icon: UserIcon },
         ];
       case 'TEACHER':
         return [
           { label: 'Jadwal Mengajar', href: '/teacher', icon: Home },
-          { label: 'Rekap Presensi', href: '/teacher/reports', icon: FileText },
+          { label: 'Profil Saya', href: '/teacher/profile', icon: UserIcon },
         ];
       case 'STUDENT':
         return [
           { label: 'Dashboard', href: '/student', icon: Home },
           { label: 'Tagihan Saya', href: '/student/invoices', icon: Receipt },
           { label: 'Progress Belajar', href: '/student/progress', icon: CheckSquare },
+          { label: 'Profil Saya', href: '/student/profile', icon: UserIcon },
         ];
       default:
         return [];

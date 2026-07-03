@@ -4,10 +4,14 @@ import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
 import { CheckSquare, FileText, Calendar, Clock, Printer, User, Music, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function StudentProgressPage() {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [activeEnrollment, setActiveEnrollment] = useState(null);
 
   useEffect(() => {
@@ -15,10 +19,13 @@ export default function StudentProgressPage() {
   }, []);
 
   const fetchProgress = async () => {
+    setLoading(true);
+    setError(false);
     try {
       const res = await api.get('/student/progress');
       setEnrollments(res.data);
     } catch (error) {
+      setError(true);
       toast.error('Gagal memuat progress belajar');
       console.error(error);
     } finally {
@@ -27,11 +34,11 @@ export default function StudentProgressPage() {
   };
 
   if (loading) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-white"></div>
-      </div>
-    );
+    return <LoadingSkeleton type="card" rows={3} />;
+  }
+
+  if (error) {
+    return <ErrorState onRetry={fetchProgress} />;
   }
 
   if (activeEnrollment) {
@@ -58,9 +65,7 @@ export default function StudentProgressPage() {
       </div>
 
       {enrollments.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-12 text-center">
-          <p className="text-zinc-500 dark:text-zinc-400">Anda belum terdaftar di kelas manapun.</p>
-        </div>
+        <EmptyState title="Belum Ada Kelas" description="Anda belum terdaftar di kelas manapun." />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {enrollments.map(enr => (
@@ -167,7 +172,7 @@ function EnrollmentCard({ enrollment }) {
         {activeTab === 'meetings' && (
           <div className="space-y-4">
             {meetingAttendances.length === 0 ? (
-              <p className="text-zinc-500 text-center py-8">Belum ada riwayat pertemuan.</p>
+              <EmptyState title="Belum Ada Pertemuan" description="Belum ada riwayat pertemuan untuk kelas ini." />
             ) : (
               <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <table className="w-full text-sm text-left">

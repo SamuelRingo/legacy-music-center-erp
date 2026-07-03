@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import { Users, Calendar, Receipt } from 'lucide-react';
+import MetricCard from '../../components/shared/MetricCard';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function StaffHome() {
   const [stats, setStats] = useState({
@@ -9,18 +12,23 @@ export default function StaffHome() {
     unpaidInvoices: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await api.get('/staff/dashboard-stats');
+      setStats(res.data);
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await api.get('/staff/dashboard-stats');
-        setStats(res.data);
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchStats();
   }, []);
 
@@ -52,28 +60,24 @@ export default function StaffHome() {
         <p className="text-zinc-500 dark:text-zinc-400">Selamat datang kembali! Berikut ringkasan operasional hari ini.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {statCards.map((card, idx) => {
-          const Icon = card.icon;
-          return (
-            <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${card.color}`}>
-                  <Icon size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{card.title}</p>
-                  {loading ? (
-                    <div className="h-8 w-16 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{card.value}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {loading ? (
+        <LoadingSkeleton type="card" rows={3} />
+      ) : error ? (
+        <ErrorState onRetry={fetchStats} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {statCards.map((card, idx) => (
+            <MetricCard
+              key={idx}
+              title={card.title}
+              value={card.value}
+              icon={card.icon}
+              colorClass={card.color.split(' ')[0]}
+              bgClass={card.color}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -11,9 +11,14 @@ import { toast } from 'sonner';
 import { Plus, KeyRound, Shield, Upload, Edit2, Trash2 } from 'lucide-react';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { ActionMenu } from '../../components/shared/ActionMenu';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorState from '../../components/shared/ErrorState';
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [currentUser, setCurrentUser] = useState(null); // the logged in user
   const [activeTab, setActiveTab] = useState('siswa');
   
@@ -47,11 +52,16 @@ export default function UsersPage() {
   }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
+    setError(false);
     try {
       const res = await api.get('/admin/users');
       setUsers(res.data);
     } catch (err) {
+      setError(true);
       toast.error('Gagal memuat pengguna');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -297,15 +307,25 @@ export default function UsersPage() {
         ))}
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'siswa' && (
-        <DataTable columns={siswaColumns} data={siswaData} searchKey="name" searchPlaceholder="Cari siswa..." actionElement={siswaActionButtons} />
-      )}
-      {activeTab === 'guru' && (
-        <DataTable columns={guruColumns} data={guruData} searchKey="name" searchPlaceholder="Cari guru..." actionElement={guruActionButtons} />
-      )}
-      {activeTab === 'staff' && (
-        <DataTable columns={staffColumns} data={staffData} searchKey="name" searchPlaceholder="Cari staff/admin..." actionElement={staffActionButtons} />
+      {loading ? (
+        <LoadingSkeleton type="table" rows={6} />
+      ) : error ? (
+        <ErrorState onRetry={fetchUsers} />
+      ) : (
+        <>
+          {activeTab === 'siswa' && (
+            siswaData.length === 0 ? <EmptyState title="Belum Ada Siswa" description="Tambahkan siswa baru untuk mulai mengelola." /> :
+            <DataTable columns={siswaColumns} data={siswaData} searchKey="name" searchPlaceholder="Cari siswa..." actionElement={siswaActionButtons} />
+          )}
+          {activeTab === 'guru' && (
+            guruData.length === 0 ? <EmptyState title="Belum Ada Guru" description="Tambahkan guru baru." /> :
+            <DataTable columns={guruColumns} data={guruData} searchKey="name" searchPlaceholder="Cari guru..." actionElement={guruActionButtons} />
+          )}
+          {activeTab === 'staff' && (
+            staffData.length === 0 ? <EmptyState title="Belum Ada Staff" description="Tambahkan staff baru." /> :
+            <DataTable columns={staffColumns} data={staffData} searchKey="name" searchPlaceholder="Cari staff/admin..." actionElement={staffActionButtons} />
+          )}
+        </>
       )}
 
       {/* Edit User Modal */}
