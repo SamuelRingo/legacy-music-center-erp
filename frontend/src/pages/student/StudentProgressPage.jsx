@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckSquare, FileText, Calendar, Clock, Printer, User, Music, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
@@ -175,16 +176,16 @@ function EnrollmentCard({ enrollment }) {
               <EmptyState title="Belum Ada Pertemuan" description="Belum ada riwayat pertemuan untuk kelas ini." />
             ) : (
               <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-medium border-b border-zinc-200 dark:border-zinc-800">
-                    <tr>
-                      <th className="px-4 py-3">Pertemuan</th>
-                      <th className="px-4 py-3 w-32 md:w-40">Tanggal</th>
-                      <th className="px-4 py-3 w-28 text-center">Kehadiran</th>
-                      <th className="px-4 py-3 w-16 text-center"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                <Table>
+                  <TableHeader className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400">
+                    <TableRow>
+                      <TableHead className="font-semibold">Pertemuan</TableHead>
+                      <TableHead className="font-semibold w-32 md:w-40">Tanggal</TableHead>
+                      <TableHead className="font-semibold w-28 text-center">Kehadiran</TableHead>
+                      <TableHead className="font-semibold w-16 text-center"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {meetingAttendances.map((att) => {
                       const meeting = att.meeting;
                       const isExpanded = expandedRows[att.id];
@@ -197,28 +198,28 @@ function EnrollmentCard({ enrollment }) {
 
                       return (
                         <React.Fragment key={att.id}>
-                          <tr 
-                            className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/30 cursor-pointer transition-colors ${isExpanded ? 'bg-zinc-50 dark:bg-zinc-800/30' : ''}`}
+                          <TableRow 
+                            className={`cursor-pointer transition-colors ${isExpanded ? 'bg-zinc-50 dark:bg-zinc-800/30 hover:bg-zinc-50 dark:hover:bg-zinc-800/30' : ''}`}
                             onClick={() => toggleRow(att.id)}
                           >
-                            <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{meeting.title}</td>
-                            <td className="px-4 py-3">{new Date(meeting.meetingDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                            <td className="px-4 py-3 text-center">
+                            <TableCell className="font-medium text-zinc-900 dark:text-white">{meeting.title}</TableCell>
+                            <TableCell>{new Date(meeting.meetingDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                            <TableCell className="text-center">
                               <span className={`px-2 py-1 rounded-md text-xs font-bold border inline-block ${statusColors}`}>
                                 {att.status}
                               </span>
-                            </td>
-                            <td className="px-4 py-3 text-center">
+                            </TableCell>
+                            <TableCell className="text-center">
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 pointer-events-none">
                                 {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                               </Button>
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                           
                           {/* Expanded Content */}
                           {isExpanded && (
-                            <tr className="bg-zinc-50/50 dark:bg-zinc-800/10">
-                              <td colSpan="4" className="px-4 py-4">
+                            <TableRow className="bg-zinc-50/50 dark:bg-zinc-800/10 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/10">
+                              <TableCell colSpan={4} className="p-4">
                                 <div className="animate-in fade-in slide-in-from-top-2 duration-200 bg-white dark:bg-zinc-900 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-5">
                                   {/* Journal */}
                                   <div>
@@ -242,14 +243,14 @@ function EnrollmentCard({ enrollment }) {
                                     </p>
                                   </div>
                                 </div>
-                              </td>
-                            </tr>
+                              </TableCell>
+                            </TableRow>
                           )}
                         </React.Fragment>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </div>

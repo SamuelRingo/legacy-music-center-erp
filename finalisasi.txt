@@ -1,0 +1,243 @@
+Ini adalah fase TERAKHIR sebelum project dinyatakan selesai. Kerjakan semua
+item di bawah secara berurutan. Jangan skip. Laporkan hasil setiap item.
+
+---
+
+### 1. CEK API — APAKAH SEMUA ENDPOINT DIGUNAKAN?
+
+1. List SEMUA endpoint yang terdaftar di backend (routes/auth.js, routes/admin.js,
+   routes/staff.js, routes/teacher.js, routes/student.js, routes/public.js).
+2. Cek apakah setiap endpoint dipanggil di frontend (cari dengan grep atau
+   telusuri semua file .jsx/.js di frontend/src).
+3. Buat tabel:
+
+| Endpoint | Dipanggil di Frontend? | File Pemanggil |
+|---|---|---|
+| GET /api/auth/me | ✅ | useAuth.js |
+| POST /api/admin/import-csv | ❌ | TIDAK ADA |
+
+4. Untuk endpoint yang TIDAK digunakan:
+   - Jika memang tidak dibutuhkan → catat sebagai "unused, bisa dihapus nanti".
+   - Jika dibutuhkan tapi belum ada UI → catat sebagai "missing UI, perlu dibuat".
+
+---
+
+### 2. CEK MENU YANG TERLANTAR
+
+1. Login sebagai setiap role (Super Admin, Staff, Teacher, Student).
+2. Untuk SETIAP role, cek sidebar menu:
+   - Apakah setiap menu mengarah ke halaman yang berfungsi?
+   - Apakah ada menu yang hanya placeholder ("Coming Soon", "Phase X")?
+   - Apakah ada halaman yang sudah dibuat tapi TIDAK ada di sidebar?
+3. Buat tabel:
+
+| Role | Menu di Sidebar | Route | Status | Masalah |
+|---|---|---|---|---|
+| Teacher | Rekap Presensi | /teacher/reports | ❌ Placeholder | Harus dihapus/diganti |
+| Staff | Laporan | /staff/reports | ✅ Berfungsi | - |
+
+4. Perbaiki semua masalah yang ditemukan:
+   - Placeholder → hapus dari sidebar atau buat halaman minimal.
+   - Halaman tanpa menu → tambahkan ke sidebar.
+   - Menu salah arah → perbaiki route.
+
+---
+
+### 3. UI CONSISTENCY CHECK
+
+1. Buka SETIAP halaman di aplikasi (dashboard, tabel, form, landing page).
+2. Cek konsistensi:
+
+   a. **Warna:**
+      - Dashboard pages: white/gray background, blue accent.
+      - Landing page: gold + dark (zinc-900/950).
+      - Tidak boleh ada warna yang menyimpang dari palette.
+
+   b. **Typography:**
+      - Semua halaman pakai font Inter (atau font stack yang sama).
+      - Ukuran heading konsisten: H1 (text-3xl), H2 (text-2xl), H3 (text-lg).
+      - Body text: text-sm atau text-base.
+
+   c. **Spacing:**
+      - Container utama: p-6.
+      - Gap antar card: gap-4 atau gap-6.
+      - Margin antar section: mb-6 atau space-y-6.
+
+   d. **Komponen:**
+      - Semua tombol aksi di tabel pakai <ActionMenu> (hamburger).
+      - Semua dialog konfirmasi pakai <ConfirmDialog>.
+      - Semua tabel pakai <DataTable>.
+      - Semua metric card pakai <MetricCard>.
+      - Semua form pakai <Input>, <Textarea>, <Label> dari shadcn.
+
+   e. **States:**
+      - Loading: <LoadingSkeleton> (bukan <div>Loading...</div>).
+      - Empty: <EmptyState> (bukan teks biasa).
+      - Error: <ErrorState> dengan tombol "Coba Lagi".
+
+3. Buat tabel checklist UI per halaman (seperti tabel audit sebelumnya).
+4. Perbaiki inkonsistensi yang ditemukan.
+
+---
+
+### 4. PERFORMANCE CHECK
+
+1. **Frontend:**
+   - Jalankan `npm run build` di frontend. Apakah build sukses tanpa error/warning?
+   - Catat ukuran bundle (dist/ folder size).
+   - Cek apakah ada import yang tidak digunakan (unused imports).
+   - Cek apakah ada library besar yang bisa di-lazy-load (recharts, browser-image-compression).
+
+2. **Backend:**
+   - Cek apakah setiap route punya try/catch error handling.
+   - Cek apakah query database efisien (tidak ada N+1 query).
+   - Cek apakah ada endpoint yang lambat (beri rekomendasi indexing jika perlu).
+
+3. **Image Optimization:**
+   - Cek gambar di landing page (Jumbotron, Admin, Facility) — apakah ukurannya
+     besar (>500KB)? Kalau ya, rekomendasikan kompresi.
+
+4. Buat laporan singkat dengan rekomendasi.
+
+---
+
+### 5. BASIC SECURITY CHECK
+
+1. **Authentication:**
+   - Cek SETIAP endpoint protected — apakah ada middleware `authenticate`?
+   - Coba akses endpoint protected TANPA token → harus return 401.
+   - Coba akses endpoint dengan token kadaluarsa → harus return 401.
+
+2. **Authorization (RBAC):**
+   - Cek SETIAP endpoint — apakah ada middleware `authorize` dengan role yang benar?
+   - Coba akses endpoint Admin sebagai Staff → harus return 403.
+   - Coba akses endpoint Teacher sebagai Student → harus return 403.
+
+3. **API Key Exposure:**
+   - Cek SELURUH frontend code — tidak boleh ada API key hardcode.
+   - Cek SELURUH frontend code — tidak boleh ada Supabase key.
+   - Cek SELURUH frontend code — tidak boleh ada Gemini key.
+   - Semua key HARUS di backend (.env).
+
+4. **Input Validation:**
+   - Cek form register: apakah email divalidasi formatnya?
+   - Cek form create user: apakah password minimal 6 karakter?
+   - Cek form grading: apakah skor hanya 0-100?
+
+5. **Password Security:**
+   - Cek apakah password di-hash dengan bcrypt (bukan plain text).
+   - Cek apakah endpoint change-password memverifikasi oldPassword.
+
+6. Buat laporan keamanan dengan temuan dan rekomendasi.
+
+---
+
+### 6. PACKAGE VULNERABILITY CHECK
+
+1. Jalankan `npm audit` di folder backend.
+2. Jalankan `npm audit` di folder frontend.
+3. Catat:
+   - Jumlah vulnerabilities (low, medium, high, critical).
+   - Untuk high/critical: apakah bisa di-fix dengan `npm audit fix`?
+   - Jika tidak bisa di-fix: apa risikonya untuk MVP?
+4. Buat rekomendasi: mana yang harus di-fix sekarang, mana yang bisa nanti.
+
+---
+
+### 7. FIXED DOCUMENTATION (FULL)
+
+Buat atau update file-file dokumentasi berikut dalam format Markdown:
+
+1. **README.md** (root project):
+   - Judul proyek: Legacy Musik School ERP
+   - Deskripsi singkat
+   - Tech stack
+   - Cara install & run (backend + frontend)
+   - Environment variables yang dibutuhkan
+   - Akun demo (4 role)
+   - Struktur folder
+
+2. **SRS_FINAL.md** (atau update yang sudah ada):
+   - Fitur lengkap per role
+   - RBAC matrix (14 baris)
+   - API endpoints
+   - Database schema (ringkasan)
+   - User flows
+   - Deployment instructions
+
+3. **USER_MANUAL.md**:
+   - Panduan singkat per role:
+     * Super Admin: cara kelola user, course, classroom, import CSV
+     * Staff: cara approval siswa, atur jadwal, generate invoice, tandai lunas
+     * Teacher: cara buat meeting, isi absensi, jurnal, beri nilai
+     * Student: cara lihat jadwal, tagihan, progres, rapor
+   - Screenshot/diagram jika memungkinkan
+
+4. **USER_FLOWS.md**:
+   - Diagram atau list step-by-step:
+     * Flow 1: Pendaftaran Siswa → Approval → Aktif
+     * Flow 2: Staff Generate Tagihan → Tandai Lunas
+     * Flow 3: Teacher Buat Meeting → Absensi → Jurnal → Nilai
+     * Flow 4: Student Lihat Progres → Rapor
+
+5. **TESTING_RESULTS.md**:
+   - Hasil test E2E (dari test-e2e.js atau manual)
+   - Daftar bug yang ditemukan dan sudah diperbaiki
+   - Daftar known issues (jika ada)
+   - Catatan: fitur yang belum sempurna
+
+---
+
+### 8. CATATAN UNTUK MASA DEPAN (POST-MVP)
+
+Buat file `POST_MVP_ROADMAP.md` berisi:
+
+1. **Fitur yang Disarankan untuk Phase 2:**
+   - Multiple Enrollment (satu siswa bisa daftar beberapa kelas)
+   - Sub-Penilaian (multi-kriteria grading per course)
+   - Foto Profil (upload avatar untuk user)
+   - Notifikasi WhatsApp (konfirmasi pendaftaran, tagihan)
+   - Parent Portal (orang tua bisa pantau progres anak)
+   - Dark Mode toggle untuk dashboard
+   - Refresh Token (JWT security improvement)
+   - Rate Limiting (API protection)
+
+2. **Technical Debt yang Harus Dibereskan:**
+   - Tailwind v4 compatibility issues di shadcn components
+   - Unused API endpoints (dari hasil cek #1)
+   - Unused components/imports
+   - CSS cleanup (hapus file CSS yang tidak dipakai)
+   - Console warnings (React warnings, key props, dll)
+
+3. **Infrastructure Improvements:**
+   - Docker containerization
+   - CI/CD pipeline (GitHub Actions)
+   - Automated testing (unit + integration)
+   - Database backup strategy
+   - Monitoring & logging
+
+---
+
+### OUTPUT
+
+Setelah semua 8 item selesai, tampilkan RINGKASAN EKSEKUTIF:
+
+| # | Item | Status | Temuan Utama |
+|---|---|---|---|
+| 1 | Cek API | ✅ / ⚠️ / ❌ | ... |
+| 2 | Menu Terlantar | ... | ... |
+| 3 | UI Consistency | ... | ... |
+| 4 | Performance | ... | ... |
+| 5 | Security | ... | ... |
+| 6 | Package Vuln | ... | ... |
+| 7 | Dokumentasi | ... | ... |
+| 8 | Post-MVP Notes | ... | ... |
+
+---
+
+### ATURAN:
+- Kerjakan berurutan dari 1 sampai 8.
+- JANGAN skip item.
+- Laporkan progress SETIAP item selesai.
+- Jika ada masalah yang tidak bisa diperbaiki, catat di "Known Issues".
+- Semua dokumentasi disimpan dalam folder `docs/` di root project.

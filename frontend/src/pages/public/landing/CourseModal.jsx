@@ -11,8 +11,7 @@ export default function CourseModal({ course, open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="bg-zinc-900 border-none text-zinc-100 !w-[90vw] md:!w-[900px] !max-w-[95vw] md:!max-w-[900px] max-h-[85vh] md:max-h-[500px] p-0 overflow-hidden rounded-2xl outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 [&>button]:text-zinc-400 [&>button:hover]:text-white [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:ring-offset-0"
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="bg-zinc-900 border-none text-zinc-100 !w-[90vw] md:!w-[900px] !max-w-[95vw] md:!max-w-[900px] max-h-[85vh] md:max-h-[500px] p-0 overflow-hidden rounded-2xl outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 ring-0 ring-offset-0 [&>button]:text-zinc-400 [&>button:hover]:text-white [&>button]:focus:outline-none [&>button]:focus:ring-0 [&>button]:ring-offset-0"
       >
         <DialogTitle className="sr-only">Detail Kursus {course.name}</DialogTitle>
         <DialogDescription className="sr-only">Informasi lengkap mengenai kursus {course.name}</DialogDescription>
@@ -33,7 +32,7 @@ export default function CourseModal({ course, open, onOpenChange }) {
           </div>
 
           {/* Kolom Kanan: TEKS 40% */}
-          <div className="w-[40%] h-full bg-zinc-900 p-4 md:p-6 flex flex-col relative z-10 shrink-0 overflow-y-auto">
+          <div className="w-[40%] h-full bg-zinc-900 p-4 md:p-6 flex flex-col relative z-10 shrink-0 overflow-y-auto outline-none focus:outline-none focus-visible:outline-none ring-0 border-none">
             
             <div className="flex flex-col gap-2 mb-4 mt-2">
               <div className="flex items-center gap-2 text-zinc-300 bg-zinc-800/80 px-3 py-2 rounded-lg text-[10px] md:text-xs">

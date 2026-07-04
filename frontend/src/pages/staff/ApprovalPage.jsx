@@ -100,12 +100,12 @@ export default function ApprovalPage() {
       // Then approve (activate) the account
       await api.post(`/staff/approve/${selectedStudent.id}`);
       
-      setMessage({ text: 'Siswa berhasil diaktifkan & Tagihan pertama dibuat', type: 'success' });
+      toast.success('Siswa berhasil diaktifkan');
+      setConfirmApprove(false);
+      setIsDialogOpen(false);
       fetchData();
-      
-      // Close dialog after short delay
-      setTimeout(() => setIsDialogOpen(false), 1500);
     } catch (error) {
+      toast.error('Gagal memproses aktivasi siswa');
       setMessage({ text: 'Gagal memproses aktivasi siswa', type: 'error' });
     } finally {
       setIsActivating(false);

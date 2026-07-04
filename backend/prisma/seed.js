@@ -8,6 +8,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10);
   const staffPassword = await bcrypt.hash('staff123', 10);
   const studentPassword = await bcrypt.hash('student123', 10);
+  const teacherPassword = await bcrypt.hash('teacher123', 10);
 
   // Super Admin
   await prisma.user.upsert({
@@ -46,6 +47,20 @@ async function main() {
       role: 'STUDENT',
       status: 'ACTIVE',
       studentProfile: { create: { parentPhone: '08123456789', address: 'Tasikmalaya' } }
+    }
+  });
+
+  // Demo Teacher
+  await prisma.user.upsert({
+    where: { email: 'teacher@legacymusik.sch.id' },
+    update: {},
+    create: {
+      name: 'Guru Demo',
+      email: 'teacher@legacymusik.sch.id',
+      password: teacherPassword,
+      role: 'TEACHER',
+      status: 'ACTIVE',
+      teacherProfile: { create: { specialization: 'Umum' } }
     }
   });
 

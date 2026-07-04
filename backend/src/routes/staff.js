@@ -342,6 +342,12 @@ router.post('/enroll', async (req, res, next) => {
     });
     if (!student) return res.status(404).json({ message: 'Student profile not found' });
 
+    // Cek apakah enrollment SUDAH ADA
+    const existing = await prisma.enrollment.findUnique({
+      where: { studentId_scheduleId: { studentId: student.id, scheduleId } }
+    });
+    if (existing) return res.status(409).json({ message: "Siswa sudah terdaftar di kelas ini" });
+
     // Create enrollment
     const enrollment = await prisma.enrollment.create({
       data: {

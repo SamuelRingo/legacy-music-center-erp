@@ -1,0 +1,62 @@
+frontend/src/components/shared/ProfilePage.jsx:35:      const res = await api.put('/auth/change-password', { oldPassword, newPassword });
+frontend/src/pages/student/StudentProgressPage.jsx:25:      const res = await api.get('/student/progress');
+frontend/src/pages/student/InvoicePage.jsx:18:      const res = await api.get('/student/invoices');
+frontend/src/pages/student/StudentHome.jsx:17:      const res = await api.get('/student/dashboard');
+frontend/src/pages/staff/SchedulingPage.jsx:65:        api.get('/staff/schedules'),
+frontend/src/pages/staff/SchedulingPage.jsx:66:        api.get('/staff/courses'),
+frontend/src/pages/staff/SchedulingPage.jsx:67:        api.get('/staff/teachers'),
+frontend/src/pages/staff/SchedulingPage.jsx:68:        api.get('/staff/classrooms'),
+frontend/src/pages/staff/SchedulingPage.jsx:125:      await api.delete(`/staff/schedules/${scheduleToDelete.id}`);
+frontend/src/pages/staff/SchedulingPage.jsx:143:        await api.put(`/staff/schedules/${formData.id}`, formData);
+frontend/src/pages/staff/SchedulingPage.jsx:146:        await api.post('/staff/schedules', formData);
+frontend/src/pages/staff/LandingCmsPage.jsx:34:      const res = await api.get('/staff/landing-content?section=all');
+frontend/src/pages/staff/LandingCmsPage.jsx:68:      const res = await api.put('/staff/landing-content', {
+frontend/src/pages/staff/LandingCmsPage.jsx:120:        return api.put('/staff/landing-content', { section, key, value });
+frontend/src/pages/staff/InvoicePage.jsx:32:      const res = await api.get('/staff/invoices');
+frontend/src/pages/staff/InvoicePage.jsx:50:      const res = await api.post('/staff/invoices/generate');
+frontend/src/pages/staff/InvoicePage.jsx:65:      await api.post(`/staff/invoices/${payDialogState.invoiceId}/pay`);
+frontend/src/pages/staff/InvoicePage.jsx:80:      await api.delete(`/staff/invoices/${deleteDialogState.invoiceId}`);
+frontend/src/pages/staff/EventsPage.jsx:36:      const res = await api.get('/staff/events');
+frontend/src/pages/staff/EventsPage.jsx:103:        await api.put(`/staff/events/${form.id}`, payload);
+frontend/src/pages/staff/EventsPage.jsx:106:        await api.post('/staff/events', payload);
+frontend/src/pages/staff/EventsPage.jsx:123:      await api.delete(`/staff/events/${deleteDialog.id}`);
+frontend/src/pages/staff/ApprovalPage.jsx:49:        api.get('/staff/pending'),
+frontend/src/pages/staff/ApprovalPage.jsx:50:        api.get('/staff/schedules')
+frontend/src/pages/staff/ApprovalPage.jsx:78:      await api.post('/staff/enroll', {
+frontend/src/pages/staff/ApprovalPage.jsx:96:      await api.post('/staff/invoices/generate', {
+frontend/src/pages/staff/ApprovalPage.jsx:101:      await api.post(`/staff/approve/${selectedStudent.id}`);
+frontend/src/pages/staff/StaffHome.jsx:21:      const res = await api.get('/staff/dashboard-stats');
+frontend/src/pages/staff/ReportsPage.jsx:26:        api.get('/staff/reports/finance'),
+frontend/src/pages/staff/ReportsPage.jsx:27:        api.get('/staff/reports/academic')
+frontend/src/pages/public/LoginPage.jsx:24:      const response = await api.post('/auth/login', { email, password });
+frontend/src/pages/public/RegisterPage.jsx:33:      await api.post('/auth/register', formData);
+frontend/src/pages/public/landing/ChatBotWidget.jsx:28:      const res = await api.post('/public/chatbot', { message: userMessage });
+frontend/src/pages/public/landing/Courses.jsx:16:        const res = await api.get('/public/courses');
+frontend/src/pages/public/landing/EventPopup.jsx:16:        const res = await api.get('/public/events');
+frontend/src/pages/public/LandingPage.backup.jsx:19:        const res = await api.get('/public/events');
+frontend/src/pages/public/LandingPage.backup.jsx:112:                api.get('/public/events').then(res => setEvents(res.data)).catch(() => setErrorEvents(true)).finally(() => setLoadingEvents(false));
+frontend/src/pages/teacher/ClassDetailPage.jsx:57:        api.get(`/teacher/schedules/${scheduleId}/students`),
+frontend/src/pages/teacher/ClassDetailPage.jsx:58:        api.get(`/teacher/schedules/${scheduleId}/meetings`)
+frontend/src/pages/teacher/ClassDetailPage.jsx:75:      const res = await api.post(`/teacher/schedules/${scheduleId}/meetings`, {
+frontend/src/pages/teacher/ClassDetailPage.jsx:91:      await api.delete(`/teacher/meetings/${meetingToDelete.id}`);
+frontend/src/pages/teacher/ClassDetailPage.jsx:106:      await api.post('/teacher/grades', {
+frontend/src/pages/teacher/TeacherHome.jsx:20:      const res = await api.get('/teacher/schedules');
+frontend/src/pages/teacher/MeetingDetailPage.jsx:62:      const res = await api.get(`/teacher/meetings/${meetingId}`);
+frontend/src/pages/teacher/MeetingDetailPage.jsx:107:      await api.put(`/teacher/meetings/${meetingId}/journal`, { journal });
+frontend/src/pages/teacher/MeetingDetailPage.jsx:119:      await api.post(`/teacher/meetings/${meetingId}/attendance`, payload);
+frontend/src/pages/admin/AdminHome.jsx:22:    api.get('/admin/dashboard-stats')
+frontend/src/pages/admin/CoursesPage.jsx:35:      const res = await api.get('/admin/courses');
+frontend/src/pages/admin/CoursesPage.jsx:58:        await api.post('/admin/courses', payload);
+frontend/src/pages/admin/CoursesPage.jsx:61:        await api.put(`/admin/courses/${modal.data.id}`, payload);
+frontend/src/pages/admin/CoursesPage.jsx:76:      await api.delete(`/admin/courses/${deleteConfirm.id}`);
+frontend/src/pages/admin/UsersPage.jsx:58:      const res = await api.get('/admin/users');
+frontend/src/pages/admin/UsersPage.jsx:79:      await api.post('/admin/users', createForm);
+frontend/src/pages/admin/UsersPage.jsx:107:      await api.put(`/admin/users/${editModal.user.id}`, editForm);
+frontend/src/pages/admin/UsersPage.jsx:123:      await api.delete(`/admin/users/${deleteModal.user.id}`);
+frontend/src/pages/admin/UsersPage.jsx:137:      await api.put(`/admin/users/${roleModal.user.id}/role`, { role: newRole });
+frontend/src/pages/admin/UsersPage.jsx:152:      await api.post(`/admin/users/${passwordModal.user.id}/reset-password`, { newPassword });
+frontend/src/pages/admin/UsersPage.jsx:172:        const res = await api.post('/admin/import-csv', { csvData });
+frontend/src/pages/admin/ClassroomsPage.jsx:34:      const res = await api.get('/admin/classrooms');
+frontend/src/pages/admin/ClassroomsPage.jsx:57:        await api.post('/admin/classrooms', payload);
+frontend/src/pages/admin/ClassroomsPage.jsx:60:        await api.put(`/admin/classrooms/${modal.data.id}`, payload);
+frontend/src/pages/admin/ClassroomsPage.jsx:75:      await api.delete(`/admin/classrooms/${deleteConfirm.id}`);
