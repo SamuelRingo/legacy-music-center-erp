@@ -4,199 +4,307 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('password123', 10);
+  console.log('Cleaning up database...');
+  // Delete in reverse order of foreign keys
+  await prisma.landingContent.deleteMany();
+  await prisma.eventBanner.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.finalGrade.deleteMany();
+  await prisma.meetingAttendance.deleteMany();
+  await prisma.meeting.deleteMany();
+  await prisma.enrollment.deleteMany();
+  await prisma.schedule.deleteMany();
+  await prisma.classroom.deleteMany();
+  await prisma.course.deleteMany();
+  await prisma.studentProfile.deleteMany();
+  await prisma.teacherProfile.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log('Database cleaned. Seeding new data...');
+
+  const passwordHash = await bcrypt.hash('password123', 10);
   const adminPassword = await bcrypt.hash('admin123', 10);
   const staffPassword = await bcrypt.hash('staff123', 10);
   const studentPassword = await bcrypt.hash('student123', 10);
-  const teacherPassword = await bcrypt.hash('teacher123', 10);
 
-  // Super Admin
-  await prisma.user.upsert({
-    where: { email: 'admin@legacymusik.sch.id' },
-    update: {},
-    create: {
-      name: 'Super Admin',
+  // 1. COURSES
+  console.log('Seeding Courses...');
+  const coursesData = [
+    { name: 'Piano', description: 'Pelajari teknik dasar hingga mahir bermain piano klasik dan pop.' },
+    { name: 'Gitar', description: 'Kuasai berbagai teknik petikan dan chord gitar akustik maupun elektrik.' },
+    { name: 'Drums', description: 'Tingkatkan kemampuan ritme dan koordinasi dengan kursus drum intensif.' },
+    { name: 'Saxophone', description: 'Belajar meniup saxophone dengan teknik pernapasan yang benar.' },
+    { name: 'Violin', description: 'Eksplorasi keindahan nada biola dengan metode pengajaran terbaik.' },
+    { name: 'Vocal', description: 'Latih vokal Anda untuk mencapai jangkauan nada yang lebih luas dan stabil.' },
+    { name: 'Combo Class', description: 'Kelas bermain dalam format band untuk melatih kerja sama tim.' },
+    { name: 'Cello', description: 'Rasakan kedalaman suara instrumen string dari cello.' },
+    { name: 'Music Production', description: 'Belajar merekam, mixing, dan mastering musik digital.' },
+  ];
+  
+  const createdCourses = {};
+  for (const c of coursesData) {
+    createdCourses[c.name] = await prisma.course.create({ data: c });
+  }
+
+  // 2. CLASSROOMS
+  console.log('Seeding Classrooms...');
+  const roomsData = ['Studio A', 'Studio B', 'Studio C', 'Studio D', 'Studio E'];
+  const createdRooms = {};
+  for (const name of roomsData) {
+    createdRooms[name] = await prisma.classroom.create({ data: { name, capacity: 8 } });
+  }
+
+  // 3. USERS
+  console.log('Seeding Users...');
+  
+  // a. Super Admin
+  await prisma.user.create({
+    data: {
       email: 'admin@legacymusik.sch.id',
       password: adminPassword,
+      name: 'Super Admin',
       role: 'SUPER_ADMIN',
       status: 'ACTIVE'
     }
   });
 
-  // Demo Staff
-  await prisma.user.upsert({
-    where: { email: 'staff@legacymusik.sch.id' },
-    update: {},
-    create: {
-      name: 'Staff Resepsionis',
+  // b. Staff
+  await prisma.user.create({
+    data: {
       email: 'staff@legacymusik.sch.id',
       password: staffPassword,
+      name: 'Staff Resepsionis',
       role: 'STAFF',
       status: 'ACTIVE'
     }
   });
 
-  // Demo Student
-  await prisma.user.upsert({
-    where: { email: 'student@legacymusik.sch.id' },
-    update: {},
-    create: {
-      name: 'Ani Siswa',
-      email: 'student@legacymusik.sch.id',
-      password: studentPassword,
-      role: 'STUDENT',
-      status: 'ACTIVE',
-      studentProfile: { create: { parentPhone: '08123456789', address: 'Tasikmalaya' } }
-    }
-  });
-
-  // Demo Teacher
-  await prisma.user.upsert({
-    where: { email: 'teacher@legacymusik.sch.id' },
-    update: {},
-    create: {
-      name: 'Guru Demo',
-      email: 'teacher@legacymusik.sch.id',
-      password: teacherPassword,
-      role: 'TEACHER',
-      status: 'ACTIVE',
-      teacherProfile: { create: { specialization: 'Umum' } }
-    }
-  });
-
-  // Demo Classrooms
-  const rooms = ['Ruang 101', 'Ruang 102', 'Ruang 103', 'Studio A', 'Studio B', 'Ruang Beethoven', 'Ruang Mozart', 'Studio Band Utama'];
-  for (const name of rooms) {
-    const existing = await prisma.classroom.findFirst({ where: { name } });
-    if (!existing) {
-      await prisma.classroom.create({ data: { name, capacity: 10 } });
-    }
-  }
-
-  // Demo Event Banners
-  const existingEvent = await prisma.eventBanner.findFirst({ where: { title: 'Grand Concert 2026' } });
-  if (!existingEvent) {
-    await prisma.eventBanner.create({
-      data: {
-        title: 'Grand Concert 2026',
-        description: 'Join us for our annual showcase featuring top students and faculty.',
-        imageUrl: '/auth-bg.png'
-      }
-    });
-  }
-
-  // ==========================================
-  // LANDING PAGE SEED DATA (Courses & Teachers)
-  // ==========================================
-
-  const teacherData = [
-    { name: 'Stefan', photo: '/Stefan.webp' },
-    { name: 'Rizky', photo: '/Rizky.webp' },
-    { name: 'Afif', photo: '/Afif.webp' },
-    { name: 'Budi', photo: '/Budi.webp' },
-    { name: 'Umae', photo: '/Umae.webp' },
-    { name: 'Egi', photo: '/Egi.webp' },
-    { name: 'Iwan', photo: '/Iwan.webp' },
-    { name: 'Angel', photo: '/Angel.webp' },
-    { name: 'Betha', photo: '/Betha.webp' }
+  // c. Teachers
+  const teachers = [
+    { email: 'stefan@legacymusik.sch.id', name: 'Stefan', specialization: 'Piano' },
+    { email: 'rina@legacymusik.sch.id', name: 'Rina Maulina', specialization: 'Vocal' },
+    { email: 'budi@legacymusik.sch.id', name: 'Budi Pratama', specialization: 'Drums' }
   ];
-
-  // Upsert Teachers
-  for (const t of teacherData) {
-    const email = `${t.name.toLowerCase()}@legacymusik.sch.id`;
-    await prisma.user.upsert({
-      where: { email },
-      update: {},
-      create: {
+  const createdTeachers = {};
+  for (const t of teachers) {
+    const user = await prisma.user.create({
+      data: {
+        email: t.email,
+        password: passwordHash,
         name: t.name,
-        email: email,
-        password: hashedPassword,
         role: 'TEACHER',
         status: 'ACTIVE',
-        teacherProfile: { create: { specialization: 'Music' } }
-      }
-    });
-  }
-
-  const landingCourses = [
-    { name: 'Piano', teachers: ['Stefan', 'Rizky'] },
-    { name: 'Gitar', teachers: ['Afif'] },
-    { name: 'Drums', teachers: ['Budi', 'Umae'] },
-    { name: 'Saxophone', teachers: ['Egi'] },
-    { name: 'Violin', teachers: ['Iwan'] },
-    { name: 'Vocal', teachers: ['Egi', 'Angel', 'Betha', 'Rizky'] },
-    { name: 'Combo Class', teachers: [] },
-    { name: 'Cello', teachers: ['Stefan'] },
-    { name: 'Music Production', teachers: [] }
-  ];
-
-  const defaultClassroom = await prisma.classroom.findFirst();
-
-  for (const c of landingCourses) {
-    let course = await prisma.course.findFirst({ where: { name: c.name } });
-    if (!course) {
-      course = await prisma.course.create({
-        data: { name: c.name, description: `Kursus ${c.name} di Legacy Music Center.` }
-      });
-    }
-
-    for (const tName of c.teachers) {
-      const email = `${tName.toLowerCase()}@legacymusik.sch.id`;
-      const teacher = await prisma.user.findUnique({ where: { email } });
-      if (teacher && defaultClassroom) {
-        const existingSchedule = await prisma.schedule.findFirst({
-          where: { courseId: course.id, teacherId: teacher.id }
-        });
-
-        if (!existingSchedule) {
-          await prisma.schedule.create({
-            data: {
-              courseId: course.id,
-              teacherId: teacher.id,
-              classroomId: defaultClassroom.id,
-              day: 'SENIN',
-              startTime: '08:00',
-              endTime: '09:00'
-            }
-          });
+        teacherProfile: {
+          create: { specialization: t.specialization }
         }
       }
-    }
+    });
+    createdTeachers[t.name] = user;
   }
 
-  // Pending Students
-  const pendingData = [
-    { name: 'Andi Pratama', email: 'andi.pending@student.com', parentPhone: '081111111' },
-    { name: 'Rina Kusuma', email: 'rina.pending@student.com', parentPhone: '082222222' }
+  // d. Students
+  const students = [
+    { email: 'student1@legacymusik.sch.id', name: 'Ani Lestari', status: 'ACTIVE' },
+    { email: 'student2@legacymusik.sch.id', name: 'Budi Santoso', status: 'ACTIVE' },
+    { email: 'student3@legacymusik.sch.id', name: 'Cici Rahmawati', status: 'ACTIVE' },
+    { email: 'student4@legacymusik.sch.id', name: 'Dodi Hermawan', status: 'PENDING' },
+    { email: 'student5@legacymusik.sch.id', name: 'Eka Putri', status: 'ACTIVE' },
   ];
-
-  for (const p of pendingData) {
-    await prisma.user.upsert({
-      where: { email: p.email },
-      update: {},
-      create: {
-        email: p.email,
-        name: p.name,
-        password: hashedPassword,
+  const createdStudents = {};
+  for (const s of students) {
+    const user = await prisma.user.create({
+      data: {
+        email: s.email,
+        password: studentPassword,
+        name: s.name,
         role: 'STUDENT',
-        status: 'PENDING',
+        status: s.status,
         studentProfile: {
-          create: {
-            parentPhone: p.parentPhone,
-            address: 'Jl. Merdeka'
-          }
+          create: { parentPhone: '08123456789', address: 'Jl. Merdeka No. 10, Jakarta' }
         }
+      },
+      include: { studentProfile: true }
+    });
+    createdStudents[s.name] = user;
+  }
+
+  // 4. SCHEDULES
+  console.log('Seeding Schedules...');
+  const schedulesData = [
+    { courseName: 'Piano', teacherName: 'Stefan', roomName: 'Studio A', day: 'SENIN', startTime: '14:00', endTime: '15:00' },
+    { courseName: 'Vocal', teacherName: 'Rina Maulina', roomName: 'Studio B', day: 'RABU', startTime: '15:00', endTime: '16:00' },
+    { courseName: 'Drums', teacherName: 'Budi Pratama', roomName: 'Studio C', day: 'JUMAT', startTime: '13:00', endTime: '14:00' },
+    { courseName: 'Piano', teacherName: 'Stefan', roomName: 'Studio A', day: 'KAMIS', startTime: '16:00', endTime: '17:00' },
+    { courseName: 'Vocal', teacherName: 'Rina Maulina', roomName: 'Studio B', day: 'SABTU', startTime: '10:00', endTime: '11:00' },
+    { courseName: 'Drums', teacherName: 'Budi Pratama', roomName: 'Studio C', day: 'MINGGU', startTime: '14:00', endTime: '15:00' },
+  ];
+  
+  const createdSchedules = {};
+  for (const [index, sd] of schedulesData.entries()) {
+    const course = createdCourses[sd.courseName];
+    const teacher = createdTeachers[sd.teacherName];
+    const room = createdRooms[sd.roomName];
+    
+    createdSchedules[`sch_${index}`] = await prisma.schedule.create({
+      data: {
+        courseId: course.id,
+        teacherId: teacher.id,
+        classroomId: room.id,
+        day: sd.day,
+        startTime: sd.startTime,
+        endTime: sd.endTime
       }
     });
   }
 
-  console.log('Landing page courses and schedules seeded! 🎵');
+  // 5. ENROLLMENTS
+  console.log('Seeding Enrollments...');
+  const enrollmentsData = [
+    { studentName: 'Ani Lestari', schKey: 'sch_0' }, // Piano SENIN
+    { studentName: 'Ani Lestari', schKey: 'sch_1' }, // Vocal RABU
+    { studentName: 'Budi Santoso', schKey: 'sch_2' }, // Drums JUMAT
+    { studentName: 'Cici Rahmawati', schKey: 'sch_0' }, // Piano SENIN
+    { studentName: 'Eka Putri', schKey: 'sch_2' }, // Drums JUMAT
+  ];
 
-  // ==========================================
-  // LANDING CONTENT SEED DATA
-  // ==========================================
-  const defaultLandingContent = [
-    // HERO
+  const createdEnrollments = {};
+  for (const [index, ed] of enrollmentsData.entries()) {
+    const student = createdStudents[ed.studentName];
+    const schedule = createdSchedules[ed.schKey];
+    
+    createdEnrollments[`enr_${index}`] = await prisma.enrollment.create({
+      data: {
+        studentId: student.studentProfile.id,
+        scheduleId: schedule.id
+      }
+    });
+  }
+
+  // 6. MEETINGS & ATTENDANCES
+  console.log('Seeding Meetings & Attendances...');
+  
+  // Piano Class (sch_0) -> Ani & Cici
+  const meeting1 = await prisma.meeting.create({
+    data: {
+      scheduleId: createdSchedules['sch_0'].id,
+      title: 'Pertemuan ke-1',
+      meetingDate: new Date('2026-07-05T00:00:00Z'),
+      journal: 'Hari ini belajar tangga nada dasar C dan G.'
+    }
+  });
+  await prisma.meetingAttendance.create({ data: { meetingId: meeting1.id, enrollmentId: createdEnrollments['enr_0'].id, status: 'HADIR' }}); // Ani
+  await prisma.meetingAttendance.create({ data: { meetingId: meeting1.id, enrollmentId: createdEnrollments['enr_3'].id, status: 'HADIR' }}); // Cici
+
+  const meeting2 = await prisma.meeting.create({
+    data: {
+      scheduleId: createdSchedules['sch_0'].id,
+      title: 'Pertemuan ke-2',
+      meetingDate: new Date('2026-07-12T00:00:00Z'),
+      journal: 'Latihan fingering dan sight reading.'
+    }
+  });
+  await prisma.meetingAttendance.create({ data: { meetingId: meeting2.id, enrollmentId: createdEnrollments['enr_0'].id, status: 'HADIR' }}); // Ani
+  await prisma.meetingAttendance.create({ data: { meetingId: meeting2.id, enrollmentId: createdEnrollments['enr_3'].id, status: 'ABSEN' }}); // Cici
+
+  const meeting3 = await prisma.meeting.create({
+    data: {
+      scheduleId: createdSchedules['sch_0'].id,
+      title: 'Pertemuan ke-3',
+      meetingDate: new Date('2026-07-19T00:00:00Z'),
+      journal: 'Review minggu lalu dan pengenalan chord dasar.'
+    }
+  });
+  await prisma.meetingAttendance.create({ data: { meetingId: meeting3.id, enrollmentId: createdEnrollments['enr_0'].id, status: 'HADIR' }}); // Ani
+  await prisma.meetingAttendance.create({ data: { meetingId: meeting3.id, enrollmentId: createdEnrollments['enr_3'].id, status: 'HADIR' }}); // Cici
+
+  // Vocal Class (sch_1) -> Ani
+  const meetingVocal = await prisma.meeting.create({
+    data: {
+      scheduleId: createdSchedules['sch_1'].id,
+      title: 'Pertemuan ke-1',
+      meetingDate: new Date('2026-07-08T00:00:00Z'),
+      journal: 'Latihan pernapasan diafragma.'
+    }
+  });
+  await prisma.meetingAttendance.create({ data: { meetingId: meetingVocal.id, enrollmentId: createdEnrollments['enr_1'].id, status: 'HADIR' }}); // Ani
+
+  // Drums Class (sch_2) -> Budi & Eka
+  const meetingDrums = await prisma.meeting.create({
+    data: {
+      scheduleId: createdSchedules['sch_2'].id,
+      title: 'Pertemuan ke-1',
+      meetingDate: new Date('2026-07-10T00:00:00Z'),
+      journal: 'Pengenalan pola ritme dasar 4/4.'
+    }
+  });
+  await prisma.meetingAttendance.create({ data: { meetingId: meetingDrums.id, enrollmentId: createdEnrollments['enr_2'].id, status: 'HADIR' }}); // Budi
+  await prisma.meetingAttendance.create({ data: { meetingId: meetingDrums.id, enrollmentId: createdEnrollments['enr_4'].id, status: 'HADIR' }}); // Eka
+
+  // 7. INVOICES
+  console.log('Seeding Invoices...');
+  const invoicesData = [
+    { studentName: 'Ani Lestari', month: 6, year: 2026, status: 'PAID', paidAt: new Date('2026-06-05T00:00:00Z') },
+    { studentName: 'Ani Lestari', month: 7, year: 2026, status: 'UNPAID', paidAt: null },
+    { studentName: 'Budi Santoso', month: 6, year: 2026, status: 'PAID', paidAt: new Date('2026-06-05T00:00:00Z') },
+    { studentName: 'Budi Santoso', month: 7, year: 2026, status: 'PAID', paidAt: new Date('2026-07-05T00:00:00Z') },
+    { studentName: 'Cici Rahmawati', month: 6, year: 2026, status: 'UNPAID', paidAt: null },
+    { studentName: 'Cici Rahmawati', month: 7, year: 2026, status: 'UNPAID', paidAt: null },
+    { studentName: 'Eka Putri', month: 6, year: 2026, status: 'PAID', paidAt: new Date('2026-06-05T00:00:00Z') },
+    { studentName: 'Eka Putri', month: 7, year: 2026, status: 'UNPAID', paidAt: null },
+  ];
+
+  for (const inv of invoicesData) {
+    const student = createdStudents[inv.studentName];
+    await prisma.invoice.create({
+      data: {
+        studentId: student.studentProfile.id,
+        month: inv.month,
+        year: inv.year,
+        amount: 300000,
+        status: inv.status,
+        paidAt: inv.paidAt
+      }
+    });
+  }
+
+  // 8. FINAL GRADES
+  console.log('Seeding Final Grades...');
+  await prisma.finalGrade.create({
+    data: {
+      enrollmentId: createdEnrollments['enr_0'].id, // Ani -> Piano
+      score: 85,
+      evaluation: 'Progres sangat baik, terus latihan tangga nada.'
+    }
+  });
+
+  await prisma.finalGrade.create({
+    data: {
+      enrollmentId: createdEnrollments['enr_2'].id, // Budi -> Drums
+      score: 78,
+      evaluation: 'Cukup baik, perlu lebih banyak latihan ritme.'
+    }
+  });
+
+  // 9. EVENT BANNERS
+  console.log('Seeding Event Banners...');
+  await prisma.eventBanner.create({
+    data: {
+      title: 'Konser Akhir Tahun 2026',
+      description: 'Pentas seni akhir tahun seluruh siswa.',
+      imageUrl: 'https://images.unsplash.com/photo-1501612780327-45045538702b?q=80&w=2070&auto=format&fit=crop'
+    }
+  });
+  await prisma.eventBanner.create({
+    data: {
+      title: 'Workshop Piano Jazz',
+      description: 'Belajar improvisasi jazz bersama instruktur tamu.',
+      imageUrl: 'https://images.unsplash.com/photo-1552422535-c45813c61732?q=80&w=2070&auto=format&fit=crop'
+    }
+  });
+
+  // 10. LANDING CONTENT
+  console.log('Seeding Landing Content...');
+  const landingContents = [
     { section: 'hero', key: 'slider_1', value: '/Jumbotron1.webp' },
     { section: 'hero', key: 'slider_2', value: '/Jumbotron2.webp' },
     { section: 'hero', key: 'slider_3', value: '/Jumbotron3.webp' },
@@ -207,74 +315,35 @@ async function main() {
     { section: 'hero', key: 'slider_8', value: '/Jumbotron8.webp' },
     { section: 'hero', key: 'slider_9', value: '/Jumbotron9.webp' },
     
-    // ABOUT
-    { section: 'about', key: 'title', value: 'Tempat Di Mana Musik Hidup' },
-    { section: 'about', key: 'description', value: 'Legacy Music Center bukan sekadar tempat kursus, melainkan rumah bagi kreativitas dan ekspresi musikal.' },
-    { section: 'about', key: 'stat_courses', value: '9+' },
-    { section: 'about', key: 'stat_grades', value: '5' },
-    { section: 'about', key: 'stat_teachers', value: '10+' },
-    { section: 'about', key: 'image_1', value: '/Jumbotron8.webp' },
-    { section: 'about', key: 'image_2', value: '/Admin1.webp' },
-    { section: 'about', key: 'image_3', value: '/Admin2.webp' },
+    { section: 'about', key: 'about_text', value: 'Legacy Music Center adalah institusi pendidikan musik terkemuka yang telah berdiri sejak tahun 2010. Kami berkomitmen untuk mencetak musisi-musisi berbakat dengan standar kurikulum internasional.' },
+    { section: 'about', key: 'stats_students', value: '1500+' },
+    { section: 'about', key: 'stats_teachers', value: '50+' },
+    { section: 'about', key: 'stats_awards', value: '25+' },
     
-    // FACILITY
-    { section: 'facility', key: 'f1_title', value: 'Piano Lounge' },
-    { section: 'facility', key: 'f1_desc', value: 'Ruangan akustik premium dengan Grand Piano.' },
-    { section: 'facility', key: 'f1_img', value: '/Piano1.jpg' },
-    { section: 'facility', key: 'f2_title', value: 'Violin Studio' },
-    { section: 'facility', key: 'f2_desc', value: 'Ruang kedap suara khusus gesek.' },
-    { section: 'facility', key: 'f2_img', value: '/Violin1.jpg' },
-    { section: 'facility', key: 'f3_title', value: 'Vocal Room' },
-    { section: 'facility', key: 'f3_desc', value: 'Fasilitas recording standar industri.' },
-    { section: 'facility', key: 'f3_img', value: '/Vocal1.jpg' },
-    { section: 'facility', key: 'f4_title', value: 'Guitar Station' },
-    { section: 'facility', key: 'f4_desc', value: 'Koleksi ampli dan instrumen lengkap.' },
-    { section: 'facility', key: 'f4_img', value: '/Gitar1.jpg' },
-    { section: 'facility', key: 'f5_title', value: 'Drum Area' },
-    { section: 'facility', key: 'f5_desc', value: 'Drum akustik & elektrik untuk sesi intens.' },
-    { section: 'facility', key: 'f5_img', value: '/Drums1.jpg' },
-    { section: 'facility', key: 'f6_title', value: 'Waiting Area' },
-    { section: 'facility', key: 'f6_desc', value: 'Sofa nyaman untuk orang tua dan siswa.' },
-    { section: 'facility', key: 'f6_img', value: '/Sofa.webp' },
+    { section: 'facility', key: 'facility_1_title', value: 'Ruang Kelas Kedap Suara' },
+    { section: 'facility', key: 'facility_1_desc', value: 'Fokus penuh dengan ruang kedap suara.' },
+    { section: 'facility', key: 'facility_2_title', value: 'Alat Musik Premium' },
+    { section: 'facility', key: 'facility_2_desc', value: 'Gunakan alat terbaik selama sesi latihan.' },
+    { section: 'facility', key: 'facility_3_title', value: 'Studio Rekaman' },
+    { section: 'facility', key: 'facility_3_desc', value: 'Rekam karyamu dengan standar industri.' },
     
-    // FOOTER
-    { section: 'footer', key: 'email', value: 'info@legacymusik.sch.id' },
-    { section: 'footer', key: 'hours', value: 'Senin - Sabtu <br/> 09.00 - 20.00 WIB' },
-    { section: 'footer', key: 'phone', value: '(+62) 812-xxxx-xxxx' },
-    { section: 'footer', key: 'address', value: 'Jl. Dr. Setiabudi No.31-29, Kesambi, <br/>Kec. Kesambi, Kota Cirebon, <br/>Jawa Barat 45134' },
-    { section: 'footer', key: 'maps_url', value: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3962.339591456561!2d108.552994775042!3d-6.728286993268153!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6ee268c17ec703%3A0xc3b8a1c97034b0bd!2sLegacy%20Music%20Center!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid' },
-    { section: 'footer', key: 'instagram', value: 'https://www.instagram.com/legacy_music_center' },
-    { section: 'footer', key: 'youtube', value: 'https://youtube.com/@LegacyMusicCenter' },
-    { section: 'footer', key: 'whatsapp', value: 'https://api.whatsapp.com/send/?phone=62812xxxxxxxx' },
-
-    // CHATBOT
-    { section: 'chatbot', key: 'system_prompt', value: 'Kamu adalah asisten Legacy Musik School Tasikmalaya. Jawab pertanyaan calon siswa dengan ramah, singkat, dan persuasif tentang kursus musik yang tersedia. Jika ditanya di luar topik, arahkan kembali ke topik sekolah musik.' }
+    { section: 'footer', key: 'contact_address', value: 'Jl. Musik Harmoni No. 123, Jakarta Selatan' },
+    { section: 'footer', key: 'contact_phone', value: '+62 21 555 1234' },
+    { section: 'footer', key: 'contact_email', value: 'info@legacymusik.sch.id' },
+    
+    { section: 'chatbot', key: 'greeting', value: 'Halo! Selamat datang di Legacy Music Center. Ada yang bisa kami bantu?' }
   ];
 
-  for (const content of defaultLandingContent) {
-    await prisma.landingContent.upsert({
-      where: {
-        section_key: {
-          section: content.section,
-          key: content.key
-        }
-      },
-      update: {}, // Don't override if user already edited
-      create: {
-        section: content.section,
-        key: content.key,
-        value: content.value
-      }
-    });
+  for (const content of landingContents) {
+    await prisma.landingContent.create({ data: content });
   }
 
-  console.log('Landing Content seeded! 🎨');
-  console.log('Database has been completely seeded! 🌱');
+  console.log('✅ Seed data successfully generated!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('Error seeding database:', e);
     process.exit(1);
   })
   .finally(async () => {
