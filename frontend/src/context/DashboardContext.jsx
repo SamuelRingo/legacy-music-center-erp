@@ -42,3 +42,54 @@ export function DashboardProvider({ children }) {
 export function useDashboardCache() {
   return useContext(DashboardContext);
 }
+
+export function useDashboardQuery(role, fetchFn, expireMs = 300000) {
+  const { getCachedData, setCachedData, clearDashboardCache } = useContext(DashboardContext);
+  
+  // Baca cache saat inisialisasi agar terhindar dari flash skeleton
+  const cachedInitial = getCachedData(role, expireMs);
+  const [data, setData] = useState(cachedInitial || null);
+  const [loading, setLoading] = useState(!cachedInitial);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (cachedInitial) return; // Jika sudah ada cache, jangan fetch on mount
+
+    let isMounted = true;
+    setLoading(true);
+    setError(false);
+    
+    fetchFn()
+      .then(res => {
+        if (!isMounted) return;
+        setData(res);
+        setCachedData(role, res);
+        setLoading(false);
+      })
+      .catch(err => {
+        if (!isMounted) return;
+        console.error('Dashboard fetch error:', err);
+        setError(true);
+        setLoading(false);
+      });
+      
+    return () => { isMounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role]); 
+
+  const refetch = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await fetchFn();
+      setData(res);
+      setCachedData(role, res);
+    } catch(err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { data, loading, error, refetch };
+}

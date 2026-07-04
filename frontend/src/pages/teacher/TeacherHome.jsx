@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
-import { useDashboardCache } from '../../context/DashboardContext';
+import { useDashboardQuery } from '../../context/DashboardContext';
 import { Calendar, Clock, MapPin, Users, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
@@ -9,44 +9,22 @@ import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 
 export default function TeacherHome() {
-  const { getCachedData, setCachedData } = useDashboardCache();
-  const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
-  const fetchSchedules = async () => {
-    const cached = getCachedData('teacher');
-    if (cached) {
-      setSchedules(cached);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/teacher/schedules');
-      setSchedules(res.data);
-      setCachedData('teacher', res.data);
-    } catch (error) {
-      console.error('Failed to fetch schedules', error);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSchedules();
+  const fetchSchedules = useCallback(async () => {
+    const res = await api.get('/teacher/schedules');
+    return res.data;
   }, []);
+
+  const { data: schedules, loading, error, refetch } = useDashboardQuery('teacher', fetchSchedules);
+  const safeSchedules = schedules || [];
 
   if (loading) {
     return <LoadingSkeleton type="card" rows={3} />;
   }
 
   if (error) {
-    return <ErrorState onRetry={fetchSchedules} />;
+    return <ErrorState onRetry={refetch} />;
   }
 
   return (
@@ -59,11 +37,11 @@ export default function TeacherHome() {
         </div>
       </div>
 
-      {schedules.length === 0 ? (
+      {safeSchedules.length === 0 ? (
         <EmptyState title="Belum Ada Jadwal" description="Anda belum memiliki jadwal mengajar." />
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {schedules.map((schedule) => (
+          {safeSchedules.map((schedule) => (
             <div 
               key={schedule.id} 
               className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all flex flex-col"
