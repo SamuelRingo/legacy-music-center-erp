@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,11 +14,15 @@ import { ActionMenu } from '../../components/shared/ActionMenu';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function EventsPage() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const fetchEventsFn = useCallback(async () => {
+    const res = await api.get('/staff/events');
+    return res.data;
+  }, []);
+  const { data: eventsData, loading, error, refetch: fetchEvents } = useCachedQuery('staff_events', fetchEventsFn);
+  const events = eventsData || [];
   const [modalOpen, setModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
@@ -28,24 +32,6 @@ export default function EventsPage() {
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const fetchEvents = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/staff/events');
-      setEvents(res.data);
-    } catch (err) {
-      toast.error('Gagal memuat event');
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -107,6 +93,7 @@ export default function EventsPage() {
         toast.success('Event banner berhasil ditambahkan');
       }
 
+      clearCache('staff_events');
       setModalOpen(false);
       fetchEvents();
     } catch (err) {
@@ -121,6 +108,7 @@ export default function EventsPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/staff/events/${deleteDialog.id}`);
+      clearCache('staff_events');
       toast.success('Event banner dihapus');
       setDeleteDialog({ open: false, id: null });
       fetchEvents();

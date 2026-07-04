@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
@@ -18,19 +18,31 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function ClassDetailPage() {
   const { id: scheduleId } = useParams();
   const navigate = useNavigate();
   const { clearDashboardCache } = useDashboardCache();
   const [activeTab, setActiveTab] = useState('meetings'); // 'meetings' or 'students'
-  
-  const [scheduleData, setScheduleData] = useState(null);
-  const [enrollments, setEnrollments] = useState([]);
-  const [meetings, setMeetings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' = terlama ke terbaru, 'desc' = terbaru ke terlama
+
+  const fetchClassFn = useCallback(async () => {
+    const [studentsRes, meetingsRes] = await Promise.all([
+      api.get(`/teacher/schedules/${scheduleId}/students`),
+      api.get(`/teacher/schedules/${scheduleId}/meetings`)
+    ]);
+    return {
+      scheduleData: studentsRes.data.schedule,
+      enrollments: studentsRes.data.enrollments,
+      meetings: meetingsRes.data
+    };
+  }, [scheduleId]);
+
+  const { data: classData, loading, error, refetch: fetchData } = useCachedQuery(`teacher_class_${scheduleId}`, fetchClassFn);
+  const scheduleData = classData?.scheduleData || null;
+  const enrollments = classData?.enrollments || [];
+  const meetings = classData?.meetings || [];
 
   // New Meeting Modal
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
@@ -47,36 +59,13 @@ export default function ClassDetailPage() {
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
   const [editGradeConfirm, setEditGradeConfirm] = useState({ open: false, row: null, finalGrade: null });
 
-  useEffect(() => {
-    fetchData();
-  }, [scheduleId]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const [studentsRes, meetingsRes] = await Promise.all([
-        api.get(`/teacher/schedules/${scheduleId}/students`),
-        api.get(`/teacher/schedules/${scheduleId}/meetings`)
-      ]);
-      setScheduleData(studentsRes.data.schedule);
-      setEnrollments(studentsRes.data.enrollments);
-      setMeetings(meetingsRes.data);
-    } catch (error) {
-      setError(true);
-      toast.error('Gagal memuat data kelas');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const createMeeting = async () => {
     setIsSubmittingMeeting(true);
     try {
       const res = await api.post(`/teacher/schedules/${scheduleId}/meetings`, {
         meetingDate: newMeetingDate
       });
+      clearCache(`teacher_class_${scheduleId}`);
       toast.success('Pertemuan berhasil dibuat');
       setIsMeetingOpen(false);
       navigate(`/teacher/meetings/${res.data.id}`);
@@ -91,6 +80,7 @@ export default function ClassDetailPage() {
     setIsDeletingMeeting(true);
     try {
       await api.delete(`/teacher/meetings/${meetingToDelete.id}`);
+      clearCache(`teacher_class_${scheduleId}`);
       toast.success('Pertemuan berhasil dihapus');
       setMeetingToDelete(null);
       fetchData(); // Refresh list
@@ -111,6 +101,7 @@ export default function ClassDetailPage() {
         evaluation: gradeForm.evaluation
       });
       clearDashboardCache('teacher');
+      clearCache(`teacher_class_${scheduleId}`);
       toast.success('Nilai akhir berhasil disimpan');
       setGradeModal({ open: false, enrollmentId: null, studentName: '' });
       setGradeForm({ score: '', evaluation: '' });

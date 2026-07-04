@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -25,13 +25,22 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function ApprovalPage() {
   const { clearDashboardCache } = useDashboardCache();
-  const [pendingStudents, setPendingStudents] = useState([]);
-  const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  
+  const fetchApprovalFn = useCallback(async () => {
+    const [pendingRes, schedRes] = await Promise.all([
+      api.get('/staff/pending'),
+      api.get('/staff/schedules')
+    ]);
+    return { pending: pendingRes.data, schedules: schedRes.data };
+  }, []);
+
+  const { data: approvalData, loading, error, refetch: fetchData } = useCachedQuery('staff_approval', fetchApprovalFn);
+  const pendingStudents = approvalData?.pending || [];
+  const schedules = approvalData?.schedules || [];
   
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,28 +51,6 @@ export default function ApprovalPage() {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const [pendingRes, schedRes] = await Promise.all([
-        api.get('/staff/pending'),
-        api.get('/staff/schedules')
-      ]);
-      setPendingStudents(pendingRes.data);
-      setSchedules(schedRes.data);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleRowClick = (studentUser) => {
     setSelectedStudent(studentUser);
@@ -81,6 +68,7 @@ export default function ApprovalPage() {
         studentUserId: selectedStudent.id,
         scheduleId: selectedScheduleId
       });
+      clearCache('staff_approval');
       setMessage({ text: 'Jadwal berhasil ditambahkan', type: 'success' });
       fetchData(); // refresh to show enrollment
     } catch (error) {
@@ -104,6 +92,7 @@ export default function ApprovalPage() {
       
       clearDashboardCache('staff');
       clearDashboardCache('admin');
+      clearCache('staff_approval');
       toast.success('Siswa berhasil diaktifkan');
       setConfirmApprove(false);
       setIsDialogOpen(false);

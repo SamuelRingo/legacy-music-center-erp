@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -21,18 +21,27 @@ import {
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 const DAYS = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
 
 export default function SchedulingPage() {
-  const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const fetchSchedulesFn = useCallback(async () => {
+    const [schedRes, courseRes, teacherRes, roomRes] = await Promise.all([
+      api.get('/staff/schedules'),
+      api.get('/staff/courses'),
+      api.get('/staff/teachers'),
+      api.get('/staff/classrooms'),
+    ]);
+    return { schedules: schedRes.data, courses: courseRes.data, teachers: teacherRes.data, classrooms: roomRes.data };
+  }, []);
 
-  // Lookups
-  const [courses, setCourses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [classrooms, setClassrooms] = useState([]);
+  const { data: masterData, loading, error, refetch: fetchData } = useCachedQuery('staff_schedules_master', fetchSchedulesFn);
+  
+  const schedules = masterData?.schedules || [];
+  const courses = masterData?.courses || [];
+  const teachers = masterData?.teachers || [];
+  const classrooms = masterData?.classrooms || [];
 
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -57,31 +66,7 @@ export default function SchedulingPage() {
     endTime: ''
   });
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const [schedRes, courseRes, teacherRes, roomRes] = await Promise.all([
-        api.get('/staff/schedules'),
-        api.get('/staff/courses'),
-        api.get('/staff/teachers'),
-        api.get('/staff/classrooms'),
-      ]);
-      setSchedules(schedRes.data);
-      setCourses(courseRes.data);
-      setTeachers(teacherRes.data);
-      setClassrooms(roomRes.data);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -123,6 +108,7 @@ export default function SchedulingPage() {
     setDeleteError('');
     try {
       await api.delete(`/staff/schedules/${scheduleToDelete.id}`);
+      clearCache('staff_schedules_master');
       fetchData();
       setIsDeleteDialogOpen(false);
       setScheduleToDelete(null);
@@ -146,6 +132,7 @@ export default function SchedulingPage() {
         await api.post('/staff/schedules', formData);
         setMessage({ text: 'Jadwal berhasil ditambahkan', type: 'success' });
       }
+      clearCache('staff_schedules_master');
       fetchData();
       setTimeout(() => setIsDialogOpen(false), 1000);
     } catch (error) {

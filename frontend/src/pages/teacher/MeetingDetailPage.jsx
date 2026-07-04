@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
@@ -8,20 +8,25 @@ import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams();
   const navigate = useNavigate();
   const { clearDashboardCache } = useDashboardCache();
   
-  const [meeting, setMeeting] = useState(null);
+  const fetchMeetingFn = useCallback(async () => {
+    const res = await api.get(`/teacher/meetings/${meetingId}`);
+    return res.data;
+  }, [meetingId]);
+
+  const { data: meeting, loading, error, refetch: fetchMeeting } = useCachedQuery(`teacher_meeting_${meetingId}`, fetchMeetingFn);
+  
   const [journal, setJournal] = useState('');
   const [attendanceState, setAttendanceState] = useState({});
   const [initialJournal, setInitialJournal] = useState('');
   const [initialAttendanceState, setInitialAttendanceState] = useState({});
   
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Unsaved changes handling
@@ -54,43 +59,26 @@ export default function MeetingDetailPage() {
   };
 
   useEffect(() => {
-    fetchMeeting();
-  }, [meetingId]);
-
-  const fetchMeeting = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get(`/teacher/meetings/${meetingId}`);
-      const m = res.data;
-      setMeeting(m);
-      setJournal(m.journal || '');
+    if (meeting) {
+      setJournal(meeting.journal || '');
       
-      // Build attendance state from master enrollments list
       const stateMap = {};
-      const enrollments = m.schedule?.enrollments || [];
-      const recordedAttendances = m.attendances || [];
+      const enrollments = meeting.schedule?.enrollments || [];
+      const recordedAttendances = meeting.attendances || [];
 
       enrollments.forEach(enr => {
-        // find if already recorded
         const rec = recordedAttendances.find(a => a.enrollmentId === enr.id);
         if (rec) {
           stateMap[enr.id] = { status: rec.status, note: rec.note || '' };
         } else {
-          stateMap[enr.id] = { status: null, note: '' }; // default: no status
+          stateMap[enr.id] = { status: null, note: '' };
         }
       });
       setAttendanceState(stateMap);
-      setInitialJournal(m.journal || '');
+      setInitialJournal(meeting.journal || '');
       setInitialAttendanceState(JSON.parse(JSON.stringify(stateMap)));
-    } catch (error) {
-      setError(true);
-      toast.error('Gagal memuat detail pertemuan');
-      console.error(error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [meeting]);
 
   const handleAttendanceChange = (enrollmentId, field, value) => {
     setAttendanceState(prev => ({
@@ -125,6 +113,7 @@ export default function MeetingDetailPage() {
       setInitialAttendanceState(JSON.parse(JSON.stringify(attendanceState)));
       
       clearDashboardCache('teacher');
+      clearCache(`teacher_meeting_${meetingId}`);
       toast.success('Pertemuan berhasil disimpan');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Gagal menyimpan pertemuan');

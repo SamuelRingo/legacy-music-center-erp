@@ -1,33 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { CheckCircle, Clock, Receipt } from 'lucide-react';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery } from '../../lib/cache';
 
 export default function StudentInvoicePage() {
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/student/invoices');
-      setInvoices(res.data);
-    } catch (error) {
-      console.error('Failed to fetch invoices:', error);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
+  const fetchInvoicesFn = useCallback(async () => {
+    const res = await api.get('/student/invoices');
+    return res.data;
   }, []);
+
+  const { data: invoicesData, loading, error, refetch: fetchData } = useCachedQuery('student_invoices', fetchInvoicesFn, 60000);
+  const invoices = invoicesData || [];
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);

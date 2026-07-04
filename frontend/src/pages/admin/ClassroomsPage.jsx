@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -12,34 +12,20 @@ import { ActionMenu } from '../../components/shared/ActionMenu';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function ClassroomsPage() {
-  const [classrooms, setClassrooms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const fetchClassroomsFn = useCallback(async () => {
+    const res = await api.get('/admin/classrooms');
+    return res.data;
+  }, []);
+  const { data: classroomsData, loading, error, refetch: fetchClassrooms } = useCachedQuery('admin_classrooms', fetchClassroomsFn);
+  const classrooms = classroomsData || [];
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null });
   const [formData, setFormData] = useState({ name: '', capacity: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
-
-  useEffect(() => {
-    fetchClassrooms();
-  }, []);
-
-  const fetchClassrooms = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/admin/classrooms');
-      setClassrooms(res.data);
-    } catch (err) {
-      setError(true);
-      toast.error('Gagal memuat ruang kelas');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const openModal = (mode, data = null) => {
     setModal({ open: true, mode, data });
@@ -60,6 +46,7 @@ export default function ClassroomsPage() {
         await api.put(`/admin/classrooms/${modal.data.id}`, payload);
         toast.success('Ruang kelas berhasil diperbarui');
       }
+      clearCache('admin_classrooms');
       closeModal();
       fetchClassrooms();
     } catch (err) {
@@ -73,6 +60,7 @@ export default function ClassroomsPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/admin/classrooms/${deleteConfirm.id}`);
+      clearCache('admin_classrooms');
       toast.success('Ruang kelas dihapus');
       fetchClassrooms();
     } catch (err) {

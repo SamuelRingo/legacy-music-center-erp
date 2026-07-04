@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -13,34 +13,20 @@ import { ActionMenu } from '../../components/shared/ActionMenu';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const fetchCoursesFn = useCallback(async () => {
+    const res = await api.get('/admin/courses');
+    return res.data;
+  }, []);
+  const { data: coursesData, loading, error, refetch: fetchCourses } = useCachedQuery('admin_courses', fetchCoursesFn);
+  const courses = coursesData || [];
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null });
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
-
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
-  const fetchCourses = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/admin/courses');
-      setCourses(res.data);
-    } catch (err) {
-      setError(true);
-      toast.error('Gagal memuat kursus');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const openModal = (mode, data = null) => {
     setModal({ open: true, mode, data });
@@ -61,6 +47,7 @@ export default function CoursesPage() {
         await api.put(`/admin/courses/${modal.data.id}`, payload);
         toast.success('Kursus berhasil diperbarui');
       }
+      clearCache('admin_courses');
       closeModal();
       fetchCourses();
     } catch (err) {
@@ -74,6 +61,7 @@ export default function CoursesPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/admin/courses/${deleteConfirm.id}`);
+      clearCache('admin_courses');
       toast.success('Kursus dihapus');
       fetchCourses();
     } catch (err) {

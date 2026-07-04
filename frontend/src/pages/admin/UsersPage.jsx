@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,16 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function UsersPage() {
   const { clearDashboardCache } = useDashboardCache();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const fetchUsersFn = useCallback(async () => {
+    const res = await api.get('/admin/users');
+    return res.data;
+  }, []);
+  const { data: usersData, loading, error, refetch: fetchUsers } = useCachedQuery('admin_users', fetchUsersFn);
+  const users = usersData || [];
   const [currentUser, setCurrentUser] = useState(null); // the logged in user
   const [activeTab, setActiveTab] = useState('siswa');
   
@@ -49,23 +53,8 @@ export default function UsersPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    fetchUsers();
     setCurrentUser(JSON.parse(localStorage.getItem('user')));
   }, []);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/admin/users');
-      setUsers(res.data);
-    } catch (err) {
-      setError(true);
-      toast.error('Gagal memuat pengguna');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
@@ -81,6 +70,7 @@ export default function UsersPage() {
       await api.post('/admin/users', createForm);
       clearDashboardCache('admin');
       clearDashboardCache('staff');
+      clearCache('admin_users');
       toast.success('Pengguna baru berhasil dibuat');
       setCreateModal(false);
       setCreateForm({ name: '', email: '', password: '', role: 'STUDENT', status: 'ACTIVE', parentPhone: '', address: '', specialization: '' });
@@ -109,6 +99,7 @@ export default function UsersPage() {
     setIsEditing(true);
     try {
       await api.put(`/admin/users/${editModal.user.id}`, editForm);
+      clearCache('admin_users');
       toast.success('Data pengguna diperbarui');
       setEditModal({ open: false, user: null });
       fetchUsers();
@@ -127,6 +118,7 @@ export default function UsersPage() {
       await api.delete(`/admin/users/${deleteModal.user.id}`);
       clearDashboardCache('admin');
       clearDashboardCache('staff');
+      clearCache('admin_users');
       toast.success('User berhasil dihapus');
       fetchUsers();
       setDeleteModal({ open: false, user: null });
@@ -142,6 +134,7 @@ export default function UsersPage() {
     try {
       await api.put(`/admin/users/${roleModal.user.id}/role`, { role: newRole });
       clearDashboardCache('admin');
+      clearCache('admin_users');
       toast.success('Role pengguna berhasil diubah');
       setRoleModal({ open: false, user: null });
       fetchUsers();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
@@ -8,31 +8,18 @@ import { toast } from 'sonner';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery } from '../../lib/cache';
 
 export default function StudentProgressPage() {
-  const [enrollments, setEnrollments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [activeEnrollment, setActiveEnrollment] = useState(null);
 
-  useEffect(() => {
-    fetchProgress();
+  const fetchProgressFn = useCallback(async () => {
+    const res = await api.get('/student/progress');
+    return res.data;
   }, []);
 
-  const fetchProgress = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/student/progress');
-      setEnrollments(res.data);
-    } catch (error) {
-      setError(true);
-      toast.error('Gagal memuat progress belajar');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: enrollmentsData, loading, error, refetch: fetchProgress } = useCachedQuery('student_progress', fetchProgressFn, 60000);
+  const enrollments = enrollmentsData || [];
 
   if (loading) {
     return <LoadingSkeleton type="card" rows={3} />;

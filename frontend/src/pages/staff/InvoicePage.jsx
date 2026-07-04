@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
@@ -10,12 +10,16 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 
 export default function InvoicePage() {
   const { clearDashboardCache } = useDashboardCache();
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const fetchInvoicesFn = useCallback(async () => {
+    const res = await api.get('/staff/invoices');
+    return res.data;
+  }, []);
+  const { data: invoicesData, loading, error, refetch: fetchData } = useCachedQuery('staff_invoices', fetchInvoicesFn);
+  const invoices = invoicesData || [];
   
   // Modal States
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -27,31 +31,13 @@ export default function InvoicePage() {
   const [deleteDialogState, setDeleteDialogState] = useState({ open: false, invoiceId: null });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await api.get('/staff/invoices');
-      setInvoices(res.data);
-    } catch (error) {
-      setError(true);
-      toast.error('Gagal memuat daftar tagihan');
-      console.error('Failed to fetch invoices:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
       const res = await api.post('/staff/invoices/generate');
       clearDashboardCache('staff');
       clearDashboardCache('admin');
+      clearCache('staff_invoices');
       toast.success(res.data.message);
       fetchData();
       setIsGenerateOpen(false);
@@ -69,6 +55,7 @@ export default function InvoicePage() {
       await api.post(`/staff/invoices/${payDialogState.invoiceId}/pay`);
       clearDashboardCache('staff');
       clearDashboardCache('admin');
+      clearCache('staff_invoices');
       toast.success('Tagihan berhasil ditandai lunas!');
       fetchData();
       setPayDialogState({ open: false, invoiceId: null });
@@ -84,6 +71,7 @@ export default function InvoicePage() {
     setIsDeleting(true);
     try {
       await api.delete(`/staff/invoices/${deleteDialogState.invoiceId}`);
+      clearCache('staff_invoices');
       toast.success('Tagihan berhasil dihapus!');
       fetchData();
       setDeleteDialogState({ open: false, invoiceId: null });

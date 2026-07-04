@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import api from '../../lib/api';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,36 +10,24 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
+import { useCachedQuery } from '../../lib/cache';
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('finance');
-  const [financeData, setFinanceData] = useState(null);
-  const [academicData, setAcademicData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const printRef = useRef();
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const [finRes, acadRes] = await Promise.all([
-        api.get('/staff/reports/finance'),
-        api.get('/staff/reports/academic')
-      ]);
-      setFinanceData(finRes.data);
-      setAcademicData(acadRes.data);
-    } catch (err) {
-      setError(true);
-      toast.error('Gagal memuat data laporan');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
+  
+  const fetchReportsFn = useCallback(async () => {
+    const [finRes, acadRes] = await Promise.all([
+      api.get('/staff/reports/finance'),
+      api.get('/staff/reports/academic')
+    ]);
+    return { finance: finRes.data, academic: acadRes.data };
   }, []);
+
+  const { data: reportsData, loading, error, refetch: fetchData } = useCachedQuery('staff_reports', fetchReportsFn);
+  
+  const financeData = reportsData?.finance;
+  const academicData = reportsData?.academic;
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
