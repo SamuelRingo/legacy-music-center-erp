@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../../../lib/api';
 
 export function useLandingContent(section, fallbackData = {}) {
   const [data, setData] = useState(fallbackData);
@@ -10,9 +11,8 @@ export function useLandingContent(section, fallbackData = {}) {
     
     async function fetchData() {
       try {
-        const response = await fetch(`http://localhost:3001/api/public/landing-content?section=${section}`);
-        if (!response.ok) throw new Error('API Error');
-        const result = await response.json();
+        const response = await api.get('/public/landing-content', { params: { section } });
+        const result = response.data;
         
         if (isMounted) {
           // If the DB has data, override the fallback
