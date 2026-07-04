@@ -16,8 +16,8 @@ router.get('/schedules', async (req, res, next) => {
       include: {
         course: true,
         classroom: true,
-        enrollments: {
-          include: { student: { include: { user: { select: { name: true } } } } }
+        _count: {
+          select: { enrollments: true }
         }
       },
       orderBy: [{ day: 'asc' }, { startTime: 'asc' }]

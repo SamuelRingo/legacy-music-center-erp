@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { useDashboardCache } from '../../context/DashboardContext';
 import { Users, GraduationCap, Calendar, Clock } from 'lucide-react';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
 
 export default function AdminHome() {
+  const { getCachedData, setCachedData } = useDashboardCache();
+  
   const [stats, setStats] = useState({
     activeStudents: 0,
     totalTeachers: 0,
@@ -17,10 +20,20 @@ export default function AdminHome() {
   const [error, setError] = useState(false);
 
   const fetchStats = () => {
+    const cached = getCachedData('admin');
+    if (cached) {
+      setStats(cached);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(false);
     api.get('/admin/dashboard-stats')
-      .then(res => setStats(res.data))
+      .then(res => {
+        setStats(res.data);
+        setCachedData('admin', res.data);
+      })
       .catch(err => {
         console.error('Error fetching admin stats:', err);
         setError(true);

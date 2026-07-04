@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
+import { useDashboardCache } from '../../context/DashboardContext';
 import { Calendar, Clock, MapPin, Users, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
@@ -8,17 +9,26 @@ import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 
 export default function TeacherHome() {
+  const { getCachedData, setCachedData } = useDashboardCache();
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   const fetchSchedules = async () => {
+    const cached = getCachedData('teacher');
+    if (cached) {
+      setSchedules(cached);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(false);
     try {
       const res = await api.get('/teacher/schedules');
       setSchedules(res.data);
+      setCachedData('teacher', res.data);
     } catch (error) {
       console.error('Failed to fetch schedules', error);
       setError(true);
@@ -79,7 +89,7 @@ export default function TeacherHome() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Users size={16} className="text-amber-500" />
-                    <span>{schedule.enrollments?.length || 0} Siswa Terdaftar</span>
+                    <span>{schedule._count?.enrollments || 0} Siswa Terdaftar</span>
                   </div>
                 </div>
               </div>

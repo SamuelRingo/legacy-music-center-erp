@@ -24,8 +24,10 @@ import { Eye } from 'lucide-react';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useDashboardCache } from '../../context/DashboardContext';
 
 export default function ApprovalPage() {
+  const { clearDashboardCache } = useDashboardCache();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +102,8 @@ export default function ApprovalPage() {
       // Then approve (activate) the account
       await api.post(`/staff/approve/${selectedStudent.id}`);
       
+      clearDashboardCache('staff');
+      clearDashboardCache('admin');
       toast.success('Siswa berhasil diaktifkan');
       setConfirmApprove(false);
       setIsDialogOpen(false);

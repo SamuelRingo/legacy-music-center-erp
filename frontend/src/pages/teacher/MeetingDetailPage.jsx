@@ -7,10 +7,12 @@ import { toast } from 'sonner';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
+import { useDashboardCache } from '../../context/DashboardContext';
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams();
   const navigate = useNavigate();
+  const { clearDashboardCache } = useDashboardCache();
   
   const [meeting, setMeeting] = useState(null);
   const [journal, setJournal] = useState('');
@@ -122,6 +124,7 @@ export default function MeetingDetailPage() {
       setInitialJournal(journal);
       setInitialAttendanceState(JSON.parse(JSON.stringify(attendanceState)));
       
+      clearDashboardCache('teacher');
       toast.success('Pertemuan berhasil disimpan');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Gagal menyimpan pertemuan');

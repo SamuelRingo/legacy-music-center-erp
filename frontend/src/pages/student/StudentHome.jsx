@@ -1,21 +1,31 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { useDashboardCache } from '../../context/DashboardContext';
 import { BookOpen, Calendar, Clock, MapPin, Receipt, CheckCircle } from 'lucide-react';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 
 export default function StudentHome() {
+  const { getCachedData, setCachedData } = useDashboardCache();
   const [data, setData] = useState({ enrollments: [], user: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const fetchData = async () => {
+    const cached = getCachedData('student', 60000); // 1 menit cache
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(false);
     try {
       const res = await api.get('/student/dashboard');
       setData(res.data);
+      setCachedData('student', res.data);
     } catch (error) {
       console.error('Failed to fetch dashboard', error);
       setError(true);

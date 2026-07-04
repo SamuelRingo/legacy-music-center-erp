@@ -9,8 +9,10 @@ import { toast } from 'sonner';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useDashboardCache } from '../../context/DashboardContext';
 
 export default function InvoicePage() {
+  const { clearDashboardCache } = useDashboardCache();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -48,6 +50,8 @@ export default function InvoicePage() {
     setIsGenerating(true);
     try {
       const res = await api.post('/staff/invoices/generate');
+      clearDashboardCache('staff');
+      clearDashboardCache('admin');
       toast.success(res.data.message);
       fetchData();
       setIsGenerateOpen(false);
@@ -63,6 +67,8 @@ export default function InvoicePage() {
     setIsPaying(true);
     try {
       await api.post(`/staff/invoices/${payDialogState.invoiceId}/pay`);
+      clearDashboardCache('staff');
+      clearDashboardCache('admin');
       toast.success('Tagihan berhasil ditandai lunas!');
       fetchData();
       setPayDialogState({ open: false, invoiceId: null });

@@ -9,11 +9,13 @@ import TeacherDashboard from './pages/teacher/Dashboard';
 import StudentDashboard from './pages/student/Dashboard';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
+import { DashboardProvider } from './context/DashboardContext';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Toaster position="bottom-right" richColors />
+    <DashboardProvider>
+      <BrowserRouter>
+        <Toaster position="bottom-right" richColors />
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
@@ -51,6 +53,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </DashboardProvider>
   );
 }

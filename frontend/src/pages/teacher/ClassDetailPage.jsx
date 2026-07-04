@@ -17,10 +17,12 @@ import {
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useDashboardCache } from '../../context/DashboardContext';
 
 export default function ClassDetailPage() {
   const { id: scheduleId } = useParams();
   const navigate = useNavigate();
+  const { clearDashboardCache } = useDashboardCache();
   const [activeTab, setActiveTab] = useState('meetings'); // 'meetings' or 'students'
   
   const [scheduleData, setScheduleData] = useState(null);
@@ -108,6 +110,7 @@ export default function ClassDetailPage() {
         score: parseInt(gradeForm.score),
         evaluation: gradeForm.evaluation
       });
+      clearDashboardCache('teacher');
       toast.success('Nilai akhir berhasil disimpan');
       setGradeModal({ open: false, enrollmentId: null, studentName: '' });
       setGradeForm({ score: '', evaluation: '' });

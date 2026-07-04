@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { useDashboardCache } from '../../context/DashboardContext';
 import { Users, Calendar, Receipt } from 'lucide-react';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
 
 export default function StaffHome() {
+  const { getCachedData, setCachedData } = useDashboardCache();
+  
   const [stats, setStats] = useState({
     pendingCount: 0,
     todaySchedules: 0,
@@ -15,11 +18,19 @@ export default function StaffHome() {
   const [error, setError] = useState(false);
 
   const fetchStats = async () => {
+    const cached = getCachedData('staff');
+    if (cached) {
+      setStats(cached);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(false);
     try {
       const res = await api.get('/staff/dashboard-stats');
       setStats(res.data);
+      setCachedData('staff', res.data);
     } catch (err) {
       console.error('Failed to fetch stats:', err);
       setError(true);

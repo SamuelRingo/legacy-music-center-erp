@@ -14,8 +14,10 @@ import { ActionMenu } from '../../components/shared/ActionMenu';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { useDashboardCache } from '../../context/DashboardContext';
 
 export default function UsersPage() {
+  const { clearDashboardCache } = useDashboardCache();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -77,6 +79,8 @@ export default function UsersPage() {
     setIsCreating(true);
     try {
       await api.post('/admin/users', createForm);
+      clearDashboardCache('admin');
+      clearDashboardCache('staff');
       toast.success('Pengguna baru berhasil dibuat');
       setCreateModal(false);
       setCreateForm({ name: '', email: '', password: '', role: 'STUDENT', status: 'ACTIVE', parentPhone: '', address: '', specialization: '' });
@@ -121,6 +125,8 @@ export default function UsersPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/admin/users/${deleteModal.user.id}`);
+      clearDashboardCache('admin');
+      clearDashboardCache('staff');
       toast.success('User berhasil dihapus');
       fetchUsers();
       setDeleteModal({ open: false, user: null });
@@ -135,6 +141,7 @@ export default function UsersPage() {
     setIsUpdatingRole(true);
     try {
       await api.put(`/admin/users/${roleModal.user.id}/role`, { role: newRole });
+      clearDashboardCache('admin');
       toast.success('Role pengguna berhasil diubah');
       setRoleModal({ open: false, user: null });
       fetchUsers();
