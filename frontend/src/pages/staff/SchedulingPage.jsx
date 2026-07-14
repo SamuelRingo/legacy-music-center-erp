@@ -176,15 +176,20 @@ export default function SchedulingPage() {
   };
 
   const columns = [
-    { header: 'Program Kursus', cell: (row) => row.course?.name },
-    { header: 'Guru', cell: (row) => row.teacher?.name },
-    { header: 'Ruangan', cell: (row) => row.classroom?.name },
-    { header: 'Hari', accessorKey: 'day' },
-    { header: 'Waktu', cell: (row) => `${row.startTime} - ${row.endTime}` },
-    { header: 'Terisi', cell: (row) => `${row.enrollments?.length || 0} / ${row.classroom?.capacity || 0}` },
+    { 
+      header: 'Program Kursus', 
+      cell: (row) => row.isSeparator ? (
+        <div className="font-bold uppercase text-zinc-900 dark:text-zinc-100 text-sm tracking-wider w-max">{row.day}</div>
+      ) : row.course?.name 
+    },
+    { header: 'Guru', cell: (row) => row.isSeparator ? null : row.teacher?.name },
+    { header: 'Ruangan', cell: (row) => row.isSeparator ? null : row.classroom?.name },
+    { header: 'Hari', accessorKey: 'day', cell: (row) => row.isSeparator ? null : row.day },
+    { header: 'Waktu', cell: (row) => row.isSeparator ? null : `${row.startTime} - ${row.endTime}` },
+    { header: 'Terisi', cell: (row) => row.isSeparator ? null : `${row.enrollments?.length || 0} / ${row.classroom?.capacity || 0}` },
     {
       header: 'Aksi',
-      cell: (row) => (
+      cell: (row) => row.isSeparator ? null : (
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => handleOpenEdit(row)} className="h-8 w-8 p-0">
             <Edit2 size={14} />
@@ -196,6 +201,28 @@ export default function SchedulingPage() {
       )
     }
   ];
+
+  // Susun dan sisipkan baris pemisah
+  const sortedAndGroupedSchedules = (() => {
+    // Sort schedules berdasarkan hari dan waktu mulai
+    const sorted = [...schedules].sort((a, b) => {
+      const dayDiff = DAYS.indexOf(a.day) - DAYS.indexOf(b.day);
+      if (dayDiff !== 0) return dayDiff;
+      return a.startTime.localeCompare(b.startTime);
+    });
+
+    const result = [];
+    let currentDay = null;
+
+    sorted.forEach((sched) => {
+      if (sched.day !== currentDay) {
+        currentDay = sched.day;
+        result.push({ isSeparator: true, day: currentDay, id: `sep-${currentDay}` });
+      }
+      result.push(sched);
+    });
+    return result;
+  })();
 
   return (
     <div className="space-y-6">
@@ -214,28 +241,15 @@ export default function SchedulingPage() {
         <LoadingSkeleton type="table" rows={6} />
       ) : error ? (
         <ErrorState onRetry={fetchData} />
-      ) : schedules.length === 0 ? (
+      ) : sortedAndGroupedSchedules.length === 0 ? (
         <EmptyState title="Belum Ada Jadwal" description="Silakan buat jadwal kelas pertama Anda." />
       ) : (
-        <div className="space-y-8">
-          {DAYS.map(day => {
-            const daySchedules = schedules.filter(s => s.day === day);
-            if (daySchedules.length === 0) return null;
-            return (
-              <div key={day} className="space-y-3">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                  {day}
-                </h3>
-                <DataTable 
-                  columns={columns} 
-                  data={daySchedules} 
-                  searchKey="course.name" 
-                  searchPlaceholder={`Cari kelas hari ${day}...`} 
-                />
-              </div>
-            );
-          })}
-        </div>
+        <DataTable 
+          columns={columns} 
+          data={sortedAndGroupedSchedules} 
+          searchKey="course.name" 
+          searchPlaceholder="Cari program kursus..." 
+        />
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
