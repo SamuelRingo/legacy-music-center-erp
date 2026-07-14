@@ -86,7 +86,7 @@ router.post('/chatbot', async (req, res, next) => {
       console.warn('Failed to fetch chatbot prompt from DB, using fallback');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const prompt = `${systemPrompt}\nPertanyaan: ${message}`;
     
     const result = await model.generateContent(prompt);
