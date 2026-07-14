@@ -20,6 +20,7 @@ export default function Navbar() {
     { name: 'Event', href: '/events', external: true },
     { name: 'About', href: '/#about' },
     { name: 'Courses', href: '/#courses' },
+    { name: 'Grade', href: '/#grades' },
     { name: 'Facility', href: '/#facility' },
     { name: 'Contact', href: '/#contact' }
   ];
