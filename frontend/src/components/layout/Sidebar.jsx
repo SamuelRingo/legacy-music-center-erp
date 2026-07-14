@@ -1,11 +1,42 @@
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Menu, X, LogOut, User as UserIcon, 
   Home, Users, Music, Building, Contact, 
-  Calendar, Receipt, FileText, CheckSquare, Image as ImageIcon
+  Calendar, Receipt, FileText, CheckSquare, Image as ImageIcon,
+  GraduationCap, DollarSign, Palette, Settings, Clipboard, CreditCard, ChevronDown
 } from 'lucide-react';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 
 export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsMobileOpen, handleLogout }) {
+  const location = useLocation();
+  const [openCategories, setOpenCategories] = useState({});
+
+  useEffect(() => {
+    if (user?.role) {
+      const storageKey = `sidebar_categories_${user.role.toLowerCase()}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          setOpenCategories(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse sidebar categories", e);
+        }
+      }
+    }
+  }, [user?.role]);
+
+  const toggleCategory = (categoryId) => {
+    setOpenCategories(prev => {
+      const newState = { ...prev, [categoryId]: !prev[categoryId] };
+      if (user?.role) {
+        const storageKey = `sidebar_categories_${user.role.toLowerCase()}`;
+        localStorage.setItem(storageKey, JSON.stringify(newState));
+      }
+      return newState;
+    });
+  };
+
   const getRoleBadgeColor = (role) => {
     switch(role) {
       case 'SUPER_ADMIN': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
@@ -21,42 +52,122 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
     switch (user.role) {
       case 'SUPER_ADMIN':
         return [
-          { label: 'Admin', type: 'heading' },
-          { label: 'Dashboard', href: '/admin', icon: Home },
-          { label: 'Manajemen Pengguna', href: '/admin/users', icon: Users },
-          { label: 'Kursus Musik', href: '/admin/courses', icon: Music },
-          { label: 'Ruang Kelas', href: '/admin/classrooms', icon: Building },
-          
-          { label: 'Panel Staff', type: 'heading' },
-          { label: 'Approval Pendaftaran', href: '/staff/approvals', icon: Users },
-          { label: 'Jadwal & Kelas', href: '/staff/schedules', icon: Calendar },
-          { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
-          { label: 'Laporan', href: '/staff/reports', icon: FileText },
-          { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
-          { label: 'Konten Landing Page', href: '/staff/landing-cms', icon: ImageIcon },
+          { label: 'Dashboard Utama', href: '/admin', icon: Home, type: 'link' },
+          {
+            label: 'Akademik',
+            icon: GraduationCap,
+            type: 'category',
+            id: 'akademik',
+            items: [
+              { label: 'Approval Pendaftaran', href: '/staff/approvals' },
+              { label: 'Jadwal & Kelas', href: '/staff/schedules' },
+              { label: 'Data Siswa', href: '/admin/users' },
+              { label: 'Kursus Musik', href: '/admin/courses' },
+              { label: 'Ruang Kelas', href: '/admin/classrooms' },
+            ]
+          },
+          {
+            label: 'Keuangan',
+            icon: DollarSign,
+            type: 'category',
+            id: 'keuangan',
+            items: [
+              { label: 'Tagihan & Pembayaran', href: '/staff/invoices' },
+              { label: 'Laporan Keuangan', href: '/staff/reports' },
+            ]
+          },
+          {
+            label: 'Inventaris',
+            icon: Clipboard,
+            type: 'category',
+            id: 'inventaris',
+            items: [
+              { label: 'Manajemen Barang', href: '/staff/inventory' },
+            ]
+          },
+          {
+            label: 'CMS',
+            icon: Palette,
+            type: 'category',
+            id: 'cms',
+            items: [
+              { label: 'Konten Landing Page', href: '/staff/landing-cms' },
+              { label: 'CMS Event Banner', href: '/staff/events' },
+            ]
+          },
+          {
+            label: 'Pengaturan',
+            icon: Settings,
+            type: 'category',
+            id: 'pengaturan',
+            items: [
+              { label: 'Profil Saya', href: '/staff/profile' },
+            ]
+          }
         ];
       case 'STAFF':
         return [
-          { label: 'Dashboard', href: '/staff', icon: Home },
-          { label: 'Persetujuan Siswa', href: '/staff/approvals', icon: Users },
-          { label: 'Jadwal & Kelas', href: '/staff/schedules', icon: Calendar },
-          { label: 'Tagihan & Pembayaran', href: '/staff/invoices', icon: Receipt },
-          { label: 'Laporan', href: '/staff/reports', icon: FileText },
-          { label: 'CMS Event Banner', href: '/staff/events', icon: ImageIcon },
-          { label: 'Konten Landing Page', href: '/staff/landing-cms', icon: ImageIcon },
-          { label: 'Profil Saya', href: '/staff/profile', icon: UserIcon },
+          { label: 'Dashboard Utama', href: '/staff', icon: Home, type: 'link' },
+          {
+            label: 'Akademik',
+            icon: GraduationCap,
+            type: 'category',
+            id: 'akademik',
+            items: [
+              { label: 'Approval Pendaftaran', href: '/staff/approvals' },
+              { label: 'Jadwal & Kelas', href: '/staff/schedules' },
+            ]
+          },
+          {
+            label: 'Keuangan',
+            icon: DollarSign,
+            type: 'category',
+            id: 'keuangan',
+            items: [
+              { label: 'Tagihan & Pembayaran', href: '/staff/invoices' },
+              { label: 'Laporan Keuangan', href: '/staff/reports' },
+            ]
+          },
+          {
+            label: 'Inventaris',
+            icon: Clipboard,
+            type: 'category',
+            id: 'inventaris',
+            items: [
+              { label: 'Manajemen Barang', href: '/staff/inventory' },
+            ]
+          },
+          {
+            label: 'CMS',
+            icon: Palette,
+            type: 'category',
+            id: 'cms',
+            items: [
+              { label: 'Konten Landing Page', href: '/staff/landing-cms' },
+              { label: 'CMS Event Banner', href: '/staff/events' },
+            ]
+          },
+          {
+            label: 'Pengaturan',
+            icon: Settings,
+            type: 'category',
+            id: 'pengaturan',
+            items: [
+              { label: 'Profil Saya', href: '/staff/profile' },
+            ]
+          }
         ];
       case 'TEACHER':
         return [
-          { label: 'Jadwal Mengajar', href: '/teacher', icon: Home },
-          { label: 'Profil Saya', href: '/teacher/profile', icon: UserIcon },
+          { label: 'Jadwal Mengajar', href: '/teacher', icon: Home, type: 'link' },
+          { label: 'Profil Saya', href: '/teacher/profile', icon: UserIcon, type: 'link' },
         ];
       case 'STUDENT':
         return [
-          { label: 'Dashboard', href: '/student', icon: Home },
-          { label: 'Tagihan Saya', href: '/student/invoices', icon: Receipt },
-          { label: 'Progress Belajar', href: '/student/progress', icon: CheckSquare },
-          { label: 'Profil Saya', href: '/student/profile', icon: UserIcon },
+          { label: 'Dashboard', href: '/student', icon: Home, type: 'link' },
+          { label: 'Tagihan Saya', href: '/student/invoices', icon: Receipt, type: 'link' },
+          { label: 'Progress Belajar', href: '/student/progress', icon: CheckSquare, type: 'link' },
+          { label: 'Profil Saya', href: '/student/profile', icon: UserIcon, type: 'link' },
         ];
       default:
         return [];
@@ -117,35 +228,101 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
       {/* Nav Links */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {sidebarLinks.map((link, idx) => {
-          if (link.type === 'heading') {
+          // If it's a category
+          if (link.type === 'category') {
+            const Icon = link.icon;
+            const isOpen = !!openCategories[link.id];
+            // Check if any child is active
+            const isChildActive = link.items.some(item => location.pathname.startsWith(item.href));
+
+            if (isDesktopCollapsed) {
+              return (
+                <div key={idx} className="group relative pt-2">
+                  <div className="flex items-center justify-center py-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                    <Icon size={20} />
+                  </div>
+                  <div className="absolute left-full top-0 ml-2 hidden w-48 rounded-md bg-white dark:bg-zinc-800 p-2 shadow-lg group-hover:block z-50">
+                    <p className="px-3 text-xs font-semibold text-zinc-500 mb-2 uppercase">{link.label}</p>
+                    {link.items.map((item, i) => (
+                      <NavLink
+                        key={i}
+                        to={item.href}
+                        className={({ isActive }) => `
+                          block px-3 py-2 text-sm rounded-md transition-colors
+                          ${isActive ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white font-medium' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'}
+                        `}
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
             return (
-              <div key={idx} className={`pt-4 pb-1 ${isDesktopCollapsed ? 'text-center' : 'px-3'}`}>
-                <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
-                  {isDesktopCollapsed ? '•••' : link.label}
-                </span>
-              </div>
+              <Collapsible
+                key={idx}
+                open={isOpen}
+                onOpenChange={() => toggleCategory(link.id)}
+                className="w-full space-y-1"
+              >
+                <CollapsibleTrigger asChild>
+                  <button className={`
+                    flex items-center justify-between w-full py-2.5 px-3 rounded-xl text-sm font-medium transition-colors outline-none
+                    ${isChildActive ? 'bg-gold-500/10 text-gold-600 dark:text-gold-500' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white'}
+                  `}>
+                    <div className="flex items-center gap-3">
+                      <Icon size={20} className={isChildActive ? 'text-gold-500' : ''} />
+                      <span className="truncate">{link.label}</span>
+                    </div>
+                    <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1 pl-10 pr-2 pb-1 overflow-hidden transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:animate-in data-[state=open]:fade-in">
+                  {link.items.map((item, i) => (
+                    <NavLink
+                      key={i}
+                      to={item.href}
+                      className={({ isActive }) => `
+                        block py-2 px-3 rounded-lg text-sm transition-colors
+                        ${isActive 
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium' 
+                          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}
+                      `}
+                    >
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
             );
           }
 
-          const Icon = link.icon;
-          return (
-            <NavLink
-              key={idx}
-              to={link.href}
-              end={link.href.split('/').length <= 2}
-              title={isDesktopCollapsed ? link.label : undefined}
-              className={({ isActive }) => `
-                flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors
-                ${isDesktopCollapsed ? 'justify-center px-0' : 'px-3'}
-                ${isActive 
-                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' 
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white'}
-              `}
-            >
-              <Icon size={20} className="shrink-0" />
-              {!isDesktopCollapsed && <span className="truncate">{link.label}</span>}
-            </NavLink>
-          );
+          // If it's a simple link (e.g. Dashboard)
+          if (link.type === 'link') {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={idx}
+                to={link.href}
+                end={link.href.split('/').length <= 2}
+                title={isDesktopCollapsed ? link.label : undefined}
+                className={({ isActive }) => `
+                  flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                  ${isDesktopCollapsed ? 'justify-center px-0' : 'px-3'}
+                  ${isActive 
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' 
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white'}
+                `}
+              >
+                <Icon size={20} className="shrink-0" />
+                {!isDesktopCollapsed && <span className="truncate">{link.label}</span>}
+              </NavLink>
+            );
+          }
+          
+          return null;
         })}
       </nav>
 
