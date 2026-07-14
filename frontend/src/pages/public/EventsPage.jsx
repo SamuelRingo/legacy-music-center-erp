@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import EventDetailDialog from './landing/EventDetailDialog';
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     // Scroll to top on load
@@ -63,7 +65,11 @@ export default function EventsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {events.map((event) => (
-              <Card key={event.id} className="bg-zinc-900/40 border-zinc-800 overflow-hidden hover:border-gold-500 transition-all group flex flex-col h-full">
+              <Card 
+                key={event.id} 
+                className="bg-zinc-900/40 border-zinc-800 overflow-hidden hover:border-gold-500 hover:shadow-lg hover:shadow-gold-500/20 transition-all group flex flex-col h-full cursor-pointer"
+                onClick={() => setSelectedEvent(event)}
+              >
                 <div className="h-56 overflow-hidden relative shrink-0">
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10"></div>
                   <img 
@@ -76,7 +82,7 @@ export default function EventsPage() {
                   <CardTitle className="text-white text-xl md:text-2xl">{event.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow">
-                  <p className="text-zinc-400 text-sm whitespace-pre-wrap">
+                  <p className="text-zinc-400 text-sm whitespace-pre-wrap line-clamp-4">
                     {event.description}
                   </p>
                 </CardContent>
@@ -87,6 +93,12 @@ export default function EventsPage() {
       </main>
 
       <Footer />
+
+      <EventDetailDialog 
+        event={selectedEvent} 
+        open={!!selectedEvent} 
+        onOpenChange={(open) => !open && setSelectedEvent(null)} 
+      />
     </div>
   );
 }

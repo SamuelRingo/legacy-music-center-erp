@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { CalendarDays, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import EventDetailDialog from './EventDetailDialog';
 
 export default function EventSection() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -59,7 +61,11 @@ export default function EventSection() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {events.map((event) => (
-              <Card key={event.id} className="bg-zinc-950 border-zinc-800 overflow-hidden hover:border-gold-500/50 transition-all group">
+              <Card 
+                key={event.id} 
+                className="bg-zinc-950 border-zinc-800 overflow-hidden hover:border-gold-500/50 hover:shadow-lg hover:shadow-gold-500/20 transition-all group cursor-pointer"
+                onClick={() => setSelectedEvent(event)}
+              >
                 <div className="h-48 overflow-hidden relative">
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10"></div>
                   <img 
@@ -81,6 +87,12 @@ export default function EventSection() {
           </div>
         )}
       </div>
+
+      <EventDetailDialog 
+        event={selectedEvent} 
+        open={!!selectedEvent} 
+        onOpenChange={(open) => !open && setSelectedEvent(null)} 
+      />
     </section>
   );
 }
