@@ -4,23 +4,26 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Cleaning up database...');
-  // Delete in reverse order of foreign keys
-  await prisma.landingContent.deleteMany();
-  await prisma.eventBanner.deleteMany();
-  await prisma.invoice.deleteMany();
-  await prisma.finalGrade.deleteMany();
-  await prisma.meetingAttendance.deleteMany();
-  await prisma.meeting.deleteMany();
-  await prisma.enrollment.deleteMany();
-  await prisma.schedule.deleteMany();
-  await prisma.classroom.deleteMany();
-  await prisma.course.deleteMany();
-  await prisma.studentProfile.deleteMany();
-  await prisma.teacherProfile.deleteMany();
-  await prisma.user.deleteMany();
+  const userCount = await prisma.user.count();
 
-  console.log('Database cleaned. Seeding new data...');
+  if (userCount === 0) {
+    console.log('Cleaning up database...');
+    // Delete in reverse order of foreign keys
+    await prisma.landingContent.deleteMany();
+    await prisma.eventBanner.deleteMany();
+    await prisma.invoice.deleteMany();
+    await prisma.finalGrade.deleteMany();
+    await prisma.meetingAttendance.deleteMany();
+    await prisma.meeting.deleteMany();
+    await prisma.enrollment.deleteMany();
+    await prisma.schedule.deleteMany();
+    await prisma.classroom.deleteMany();
+    await prisma.course.deleteMany();
+    await prisma.studentProfile.deleteMany();
+    await prisma.teacherProfile.deleteMany();
+    await prisma.user.deleteMany();
+
+    console.log('Database cleaned. Seeding Phase 1 data...');
 
   const passwordHash = await bcrypt.hash('password123', 10);
   const adminPassword = await bcrypt.hash('admin123', 10);
@@ -336,6 +339,104 @@ async function main() {
 
   for (const content of landingContents) {
     await prisma.landingContent.create({ data: content });
+  }
+  
+  } else {
+    console.log('Phase 1 data already exists. Skipping Phase 1 seed.');
+  }
+
+  // ==================== PHASE 2 SEEDING ====================
+  console.log('Seeding Phase 2 Models...');
+  await prisma.transaction.deleteMany();
+  await prisma.inventoryItem.deleteMany();
+  await prisma.studentAchievement.deleteMany();
+  await prisma.staffAttendance.deleteMany();
+  await prisma.staffSalary.deleteMany();
+
+  // 1. TRANSACTIONS
+  await prisma.transaction.create({
+    data: {
+      type: 'INCOME',
+      amount: 600000,
+      category: 'SPP',
+      description: 'Pembayaran SPP Bulan Juli Ani & Budi',
+      date: new Date()
+    }
+  });
+  await prisma.transaction.create({
+    data: {
+      type: 'EXPENSE',
+      amount: 150000,
+      category: 'OPERATIONAL',
+      description: 'Pembayaran Listrik Studio',
+      date: new Date()
+    }
+  });
+
+  // 2. INVENTORY ITEMS
+  await prisma.inventoryItem.create({
+    data: {
+      name: 'Yamaha C3X Grand Piano',
+      category: 'INSTRUMENT',
+      status: 'AVAILABLE',
+      quantity: 1,
+      description: 'Piano utama di Studio A'
+    }
+  });
+  await prisma.inventoryItem.create({
+    data: {
+      name: 'Fender Stratocaster',
+      category: 'INSTRUMENT',
+      status: 'AVAILABLE',
+      quantity: 2
+    }
+  });
+  await prisma.inventoryItem.create({
+    data: {
+      name: 'Marshall Amplifier 50W',
+      category: 'EQUIPMENT',
+      status: 'DAMAGED',
+      quantity: 1,
+      description: 'Kabel power putus'
+    }
+  });
+
+  // 3. STUDENT ACHIEVEMENT & ENROLLMENT UPDATE (Ani)
+  const aniUser = await prisma.user.findFirst({
+    where: { email: 'student1@legacymusik.sch.id' },
+    include: {
+      studentProfile: {
+        include: {
+          enrollments: {
+            include: { schedule: { include: { course: true } } }
+          }
+        }
+      }
+    }
+  });
+
+  if (aniUser && aniUser.studentProfile) {
+    const profile = aniUser.studentProfile;
+    
+    // Achievement
+    await prisma.studentAchievement.create({
+      data: {
+        studentId: profile.id,
+        title: 'Juara 1 Lomba Piano Tingkat Kota',
+        description: 'Berhasil membawakan Sonata Mozart dengan sempurna pada Festival Musik 2026.',
+        date: new Date('2026-05-15T00:00:00Z')
+      }
+    });
+
+    // Update Enrollment Grade
+    const pianoEnr = profile.enrollments.find(e => e.schedule.course.name === 'Piano');
+    if (pianoEnr) {
+      await prisma.enrollment.update({
+        where: { id: pianoEnr.id },
+        data: { gradeLevel: 2, currentMonth: 2 }
+      });
+      console.log('Updated Ani Piano enrollment with gradeLevel 2, currentMonth 2');
+    }
   }
 
   console.log('✅ Seed data successfully generated!');
