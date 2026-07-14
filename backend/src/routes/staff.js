@@ -180,6 +180,22 @@ router.post('/schedules', async (req, res, next) => {
       });
     }
 
+    const teacherConflict = await prisma.schedule.findFirst({
+      where: {
+        teacherId,
+        day,
+        AND: [
+          { startTime: { lt: endTime } },
+          { endTime: { gt: startTime } }
+        ]
+      }
+    });
+    if (teacherConflict) {
+      return res.status(409).json({
+        message: `Guru sudah memiliki jadwal di hari ${day} jam ${teacherConflict.startTime}-${teacherConflict.endTime}`
+      });
+    }
+
     const schedule = await prisma.schedule.create({
       data: { courseId, teacherId, classroomId, day, startTime, endTime }
     });

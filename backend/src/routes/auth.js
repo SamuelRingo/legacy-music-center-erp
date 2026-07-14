@@ -18,6 +18,11 @@ router.post('/register', async (req, res, next) => {
       return res.status(400).json({ message: 'Email sudah terdaftar' });
     }
 
+    // Check phone number format
+    if (parentPhone && !/^[0-9]+$/.test(parentPhone)) {
+      return res.status(400).json({ message: "Nomor HP hanya boleh berisi angka" });
+    }
+
     // Check schedule availability (Room conflict only)
     if (scheduleId) {
       const schedule = await prisma.schedule.findUnique({

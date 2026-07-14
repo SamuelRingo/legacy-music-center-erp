@@ -8,45 +8,28 @@ export default function AuthLayout({
   badgeColorClass = "bg-cyan-400" 
 }) {
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-zinc-950 font-sans">
-      {/* Left side — Beautiful Image / Branding */}
-      <div className="hidden md:flex md:w-1/2 relative bg-zinc-900 overflow-hidden sticky top-0 h-screen">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="/auth-bg.png" 
-            alt="Legacy Musik Studio" 
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent mix-blend-multiply" />
-        </div>
-        
-        <div className="relative z-10 flex flex-col justify-end p-12 lg:p-24 h-full text-white">
-          <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-medium w-max">
-            <span className={`w-2 h-2 rounded-full animate-pulse ${badgeColorClass}`}></span>
-            {badgeText}
-          </div>
-          <h1 className="text-4xl lg:text-6xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
-            {title}
-          </h1>
-          <p className="text-lg lg:text-xl text-zinc-300 font-light max-w-md leading-relaxed">
-            {subtitle}
-          </p>
-        </div>
-      </div>
-
-      {/* Right side — Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white dark:bg-zinc-950 relative overflow-y-auto">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-amber-500 via-amber-600 to-zinc-900 font-sans">
+      <div className="w-full max-w-md bg-white/95 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/20 dark:border-zinc-800/50 rounded-3xl shadow-2xl p-8 sm:p-10 relative overflow-hidden">
         {/* Back Button */}
-        <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-20">
+        <div className="absolute top-6 left-6 z-20">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors group">
-            <svg className="w-5 h-5 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Kembali
           </Link>
         </div>
 
-        <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700 py-12 mt-8 md:mt-0">
+        <div className="mt-12 mb-8 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 dark:bg-white/10 border border-zinc-200 dark:border-white/20 text-sm font-medium text-zinc-800 dark:text-white mx-auto">
+            <span className={`w-2 h-2 rounded-full animate-pulse ${badgeColorClass}`}></span>
+            {badgeText}
+          </div>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">{title}</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
+        </div>
+        
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
           {children}
         </div>
       </div>
