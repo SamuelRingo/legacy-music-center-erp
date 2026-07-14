@@ -63,7 +63,7 @@ export default function EventSection() {
             {events.map((event) => (
               <Card 
                 key={event.id} 
-                className="bg-zinc-950 border-zinc-800 overflow-hidden hover:border-gold-500/50 hover:shadow-lg hover:shadow-gold-500/20 transition-all group cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+                className="bg-zinc-950 border-zinc-800 overflow-hidden hover:border-gold-500/50 hover:shadow-lg hover:shadow-gold-500/20 transition-all group cursor-pointer outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0"
                 onClick={() => setSelectedEvent(event)}
               >
                 <div className="h-48 overflow-hidden relative">

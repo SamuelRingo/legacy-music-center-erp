@@ -1,5 +1,4 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { CalendarDays } from 'lucide-react';
 
 export default function EventDetailDialog({ event, open, onOpenChange }) {
@@ -40,9 +39,9 @@ export default function EventDetailDialog({ event, open, onOpenChange }) {
 
           <div className="flex justify-end">
             <DialogClose asChild>
-              <Button variant="outline" className="border-zinc-700 hover:bg-zinc-800 text-white">
+              <button className="inline-flex items-center justify-center border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-zinc-950 px-4 py-2 rounded-md font-medium text-sm transition-colors outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none">
                 Tutup
-              </Button>
+              </button>
             </DialogClose>
           </div>
         </div>
