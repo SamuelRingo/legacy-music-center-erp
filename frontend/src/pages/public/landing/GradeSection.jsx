@@ -3,17 +3,17 @@ import { BookOpen, GraduationCap, Medal, Star, Trophy } from 'lucide-react';
 
 export default function GradeSection() {
   const grades = [
-    { level: 1, title: 'Beginner', desc: 'Pengenalan instrumen dasar & notasi.', icon: BookOpen },
-    { level: 2, title: 'Elementary', desc: 'Pemahaman ritme & melodi sederhana.', icon: Star },
-    { level: 3, title: 'Intermediate', desc: 'Teknik lanjutan & dinamika musik.', icon: Medal },
-    { level: 4, title: 'Advanced', desc: 'Improvisasi & aransemen lagu.', icon: Trophy },
-    { level: 5, title: 'Mastery', desc: 'Persiapan performance & ujian sertifikasi.', icon: GraduationCap }
+    { level: 1, title: 'Fase Pengenalan', desc: 'Temukan minatmu. Di fase ini, siswa mencoba berbagai alat musik untuk menemukan yang paling cocok dengan bakat dan passion mereka.', icon: BookOpen },
+    { level: 2, title: 'Fase Pemahaman', desc: 'Mulai mendalami. Siswa fokus pada satu instrumen pilihan, mempelajari teknik dasar, teori musik, dan membangun fondasi yang kuat.', icon: Star },
+    { level: 3, title: 'Fase Pengembangan', desc: 'Kembangkan skill-mu. Teknik lanjutan, eksplorasi genre, dan pengembangan gaya personal mulai diasah di fase ini.', icon: Medal },
+    { level: 4, title: 'Fase Kolaborasi', desc: 'Saatnya bermain bersama! Siswa bergabung dalam band, grup ansambel, atau kolaborasi lintas instrumen untuk membangun kemampuan teamwork musikal.', icon: Trophy },
+    { level: 5, title: 'Fase Improvisasi', desc: 'Puncak kreativitas. Siswa menciptakan, mengimprovisasi, dan mengekspresikan musik mereka sendiri secara mandiri.', icon: GraduationCap }
   ];
 
   const months = [
-    { num: 1, title: 'Bulan 1: Teori & Dasar', desc: 'Membangun fondasi kuat.' },
-    { num: 2, title: 'Bulan 2: Praktik Intensif', desc: 'Latihan rutin & teknik.' },
-    { num: 3, title: 'Bulan 3: Evaluasi Akhir', desc: 'Persiapan naik tingkat.' }
+    { num: 1, title: 'Bulan 1: Repertoir', desc: 'Mempelajari dan menyiapkan repertoar lagu.' },
+    { num: 2, title: 'Bulan 2: Ujian', desc: 'Ujian teori dan praktek untuk menguji pemahaman.' },
+    { num: 3, title: 'Bulan 3: Student Performance', desc: 'Penampilan langsung siswa di depan audiens.' }
   ];
 
   return (
