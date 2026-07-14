@@ -179,9 +179,12 @@ export default function SchedulingPage() {
     { 
       header: 'Program Kursus', 
       cell: (row) => row.isSeparator ? (
-        <div className="day-separator-marker text-amber-800 dark:text-amber-200 font-bold text-sm tracking-wide uppercase">
-          {row.day}
-        </div>
+        <>
+          <div className="opacity-0 h-5">{row.day}</div>
+          <div className="day-separator-marker absolute left-0 right-0 flex justify-center text-amber-800 dark:text-amber-200 font-bold text-sm tracking-wide uppercase mt-[-20px]">
+            {row.day}
+          </div>
+        </>
       ) : row.course?.name 
     },
     { header: 'Guru', cell: (row) => row.isSeparator ? null : row.teacher?.name },
@@ -244,6 +247,9 @@ export default function SchedulingPage() {
           border-top: 2px solid #92400e !important;
           border-bottom: 1px solid #3f3f46 !important;
         }
+        .scheduling-table-container > div > div.rounded-lg {
+          position: relative;
+        }
       `}</style>
 
       <div className="flex justify-between items-end">
@@ -264,13 +270,15 @@ export default function SchedulingPage() {
       ) : sortedAndGroupedSchedules.length === 0 ? (
         <EmptyState title="Belum Ada Jadwal" description="Silakan buat jadwal kelas pertama Anda." />
       ) : (
-        <DataTable 
-          columns={columns} 
-          data={sortedAndGroupedSchedules} 
-          searchKey="course.name" 
-          searchPlaceholder="Cari program kursus..." 
-          pagination={false}
-        />
+        <div className="scheduling-table-container">
+          <DataTable 
+            columns={columns} 
+            data={sortedAndGroupedSchedules} 
+            searchKey="course.name" 
+            searchPlaceholder="Cari program kursus..." 
+            pagination={false}
+          />
+        </div>
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
