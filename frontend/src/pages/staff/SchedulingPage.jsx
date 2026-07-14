@@ -217,13 +217,25 @@ export default function SchedulingPage() {
 
     const result = [];
     let currentDay = null;
+    let currentSeparator = null;
 
     sorted.forEach((sched) => {
       if (sched.day !== currentDay) {
         currentDay = sched.day;
-        result.push({ isSeparator: true, day: currentDay, id: `sep-${currentDay}` });
+        currentSeparator = { 
+          isSeparator: true, 
+          day: currentDay, 
+          id: `sep-${currentDay}`,
+          course: { name: '' }
+        };
+        result.push(currentSeparator);
       }
       result.push(sched);
+      
+      // Kumpulkan nama course agar baris separator lolos filter search
+      if (currentSeparator && sched.course?.name) {
+        currentSeparator.course.name += ` ${sched.course.name} `;
+      }
     });
     return result;
   })();
