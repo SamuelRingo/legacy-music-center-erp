@@ -170,12 +170,13 @@ router.post('/schedules', async (req, res, next) => {
           { startTime: { lt: endTime } },
           { endTime: { gt: startTime } }
         ]
-      }
+      },
+      include: { classroom: true, teacher: true, course: true }
     });
 
     if (conflict) {
       return res.status(409).json({
-        message: `Ruangan bentrok di hari ${day} jam ${startTime}-${endTime}`,
+        message: `Bentrok: Ruangan ${conflict.classroom.name} sudah digunakan oleh Guru ${conflict.teacher.name} untuk kelas ${conflict.course.name} pada hari ${conflict.day}, jam ${conflict.startTime}-${conflict.endTime}. Silakan pilih ruangan atau waktu lain.`,
         conflict
       });
     }
@@ -188,11 +189,12 @@ router.post('/schedules', async (req, res, next) => {
           { startTime: { lt: endTime } },
           { endTime: { gt: startTime } }
         ]
-      }
+      },
+      include: { teacher: true, course: true, classroom: true }
     });
     if (teacherConflict) {
       return res.status(409).json({
-        message: `Guru sudah memiliki jadwal di hari ${day} jam ${teacherConflict.startTime}-${teacherConflict.endTime}`
+        message: `Bentrok: Guru ${teacherConflict.teacher.name} sudah mengajar di ${teacherConflict.course.name} pada hari ${teacherConflict.day}, jam ${teacherConflict.startTime}-${teacherConflict.endTime} di Ruangan ${teacherConflict.classroom.name}. Silakan pilih waktu atau guru lain.`
       });
     }
 
@@ -200,6 +202,40 @@ router.post('/schedules', async (req, res, next) => {
       data: { courseId, teacherId, classroomId, day, startTime, endTime }
     });
     res.status(201).json(schedule);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/staff/schedules/check-conflict
+router.get('/schedules/check-conflict', async (req, res, next) => {
+  try {
+    const { teacherId, day, startTime, endTime, excludeId } = req.query;
+    if (!teacherId || !day || !startTime || !endTime) {
+      return res.json({ available: true });
+    }
+
+    const whereClause = {
+      teacherId,
+      day,
+      AND: [
+        { startTime: { lt: endTime } },
+        { endTime: { gt: startTime } }
+      ]
+    };
+    if (excludeId) whereClause.id = { not: excludeId };
+
+    const teacherConflict = await prisma.schedule.findFirst({
+      where: whereClause,
+      include: { teacher: true, course: true, classroom: true }
+    });
+
+    if (teacherConflict) {
+      return res.status(409).json({
+        message: `Bentrok: Guru ${teacherConflict.teacher.name} sudah mengajar di ${teacherConflict.course.name} pada hari ${teacherConflict.day}, jam ${teacherConflict.startTime}-${teacherConflict.endTime} di Ruangan ${teacherConflict.classroom.name}. Silakan pilih waktu atau guru lain.`
+      });
+    }
+    res.json({ available: true, message: 'Jadwal tersedia.' });
   } catch (error) {
     next(error);
   }
@@ -393,12 +429,32 @@ router.put('/schedules/:id', async (req, res, next) => {
           { startTime: { lt: endTime } },
           { endTime: { gt: startTime } }
         ]
-      }
+      },
+      include: { classroom: true, teacher: true, course: true }
     });
 
     if (conflict) {
       return res.status(409).json({
-        message: `Ruangan bentrok di hari ${day} jam ${startTime}-${endTime}`
+        message: `Bentrok: Ruangan ${conflict.classroom.name} sudah digunakan oleh Guru ${conflict.teacher.name} untuk kelas ${conflict.course.name} pada hari ${conflict.day}, jam ${conflict.startTime}-${conflict.endTime}. Silakan pilih ruangan atau waktu lain.`
+      });
+    }
+
+    const teacherConflict = await prisma.schedule.findFirst({
+      where: {
+        teacherId,
+        day,
+        id: { not: req.params.id },
+        AND: [
+          { startTime: { lt: endTime } },
+          { endTime: { gt: startTime } }
+        ]
+      },
+      include: { teacher: true, course: true, classroom: true }
+    });
+
+    if (teacherConflict) {
+      return res.status(409).json({
+        message: `Bentrok: Guru ${teacherConflict.teacher.name} sudah mengajar di ${teacherConflict.course.name} pada hari ${teacherConflict.day}, jam ${teacherConflict.startTime}-${teacherConflict.endTime} di Ruangan ${teacherConflict.classroom.name}. Silakan pilih waktu atau guru lain.`
       });
     }
 

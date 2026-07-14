@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
@@ -66,6 +66,31 @@ export default function SchedulingPage() {
     startTime: '',
     endTime: ''
   });
+  
+  const [conflictStatus, setConflictStatus] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const { teacherId, day, startTime, endTime, id } = formData;
+    
+    if (teacherId && day && startTime && endTime) {
+      const handler = setTimeout(async () => {
+        try {
+          await api.get('/staff/schedules/check-conflict', {
+            params: { teacherId, day, startTime, endTime, excludeId: id }
+          });
+          if (active) setConflictStatus(false);
+        } catch (error) {
+          if (active && error.response?.status === 409) {
+            setConflictStatus(error.response.data.message);
+          }
+        }
+      }, 500);
+      return () => { active = false; clearTimeout(handler); };
+    } else {
+      setConflictStatus(null);
+    }
+  }, [formData.teacherId, formData.day, formData.startTime, formData.endTime, formData.id]);
 
 
 
@@ -192,12 +217,25 @@ export default function SchedulingPage() {
       ) : schedules.length === 0 ? (
         <EmptyState title="Belum Ada Jadwal" description="Silakan buat jadwal kelas pertama Anda." />
       ) : (
-        <DataTable 
-          columns={columns} 
-          data={schedules} 
-          searchKey="course.name" 
-          searchPlaceholder="Cari program kursus..." 
-        />
+        <div className="space-y-8">
+          {DAYS.map(day => {
+            const daySchedules = schedules.filter(s => s.day === day);
+            if (daySchedules.length === 0) return null;
+            return (
+              <div key={day} className="space-y-3">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-white border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                  {day}
+                </h3>
+                <DataTable 
+                  columns={columns} 
+                  data={daySchedules} 
+                  searchKey="course.name" 
+                  searchPlaceholder={`Cari kelas hari ${day}...`} 
+                />
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -241,7 +279,7 @@ export default function SchedulingPage() {
                     <User size={16} /> Guru / Pengajar
                   </Label>
                   <Select value={formData.teacherId} onValueChange={(val) => setFormData({...formData, teacherId: val})} required>
-                    <SelectTrigger className="bg-white dark:bg-zinc-900 shadow-sm h-10">
+                    <SelectTrigger className={`bg-white dark:bg-zinc-900 shadow-sm h-10 ${conflictStatus ? 'border-red-500' : ''}`}>
                       <SelectValue placeholder="Pilih Guru">
                         {teachers.find(t => t.id === formData.teacherId)?.name || 'Pilih Guru'}
                       </SelectValue>
@@ -273,7 +311,7 @@ export default function SchedulingPage() {
                     <Calendar size={16} /> Hari
                   </Label>
                   <Select value={formData.day} onValueChange={(val) => setFormData({...formData, day: val})} required>
-                    <SelectTrigger className="bg-white dark:bg-zinc-900 shadow-sm h-10">
+                    <SelectTrigger className={`bg-white dark:bg-zinc-900 shadow-sm h-10 ${conflictStatus ? 'border-red-500' : ''}`}>
                       <SelectValue placeholder="Pilih Hari">
                         {formData.day || 'Pilih Hari'}
                       </SelectValue>
@@ -295,13 +333,13 @@ export default function SchedulingPage() {
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 w-full">
+                  <div className={`flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-xl border w-full ${conflictStatus ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'}`}>
                     <Input 
                       type="time" 
                       value={formData.startTime} 
                       onChange={(e) => setFormData({...formData, startTime: e.target.value})} 
                       required 
-                      className="bg-white dark:bg-zinc-900 text-center font-mono shadow-sm flex-1 h-10"
+                      className={`bg-white dark:bg-zinc-900 text-center font-mono shadow-sm flex-1 h-10 ${conflictStatus ? 'border-red-500 text-red-600' : ''}`}
                     />
                     <span className="text-zinc-400 font-medium shrink-0 text-sm px-2">sampai</span>
                     <Input 
@@ -309,7 +347,7 @@ export default function SchedulingPage() {
                       value={formData.endTime} 
                       onChange={(e) => setFormData({...formData, endTime: e.target.value})} 
                       required 
-                      className="bg-white dark:bg-zinc-900 text-center font-mono shadow-sm flex-1 h-10"
+                      className={`bg-white dark:bg-zinc-900 text-center font-mono shadow-sm flex-1 h-10 ${conflictStatus ? 'border-red-500 text-red-600' : ''}`}
                     />
                   </div>
 
@@ -332,6 +370,17 @@ export default function SchedulingPage() {
                       </button>
                     ))}
                   </div>
+
+                  {conflictStatus === false && (
+                    <div className="mt-3 text-sm text-emerald-600 dark:text-emerald-500 font-medium bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded-lg border border-emerald-100 dark:border-emerald-900/50">
+                      ✅ Jadwal tersedia.
+                    </div>
+                  )}
+                  {conflictStatus && typeof conflictStatus === 'string' && (
+                    <div className="mt-3 text-sm text-red-600 dark:text-red-500 font-medium bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
+                      ⚠️ {conflictStatus}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -340,7 +389,7 @@ export default function SchedulingPage() {
               <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="px-6">
                 Batal
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="px-6 bg-zinc-900 hover:bg-zinc-800 text-white">
+              <Button type="submit" disabled={isSubmitting || typeof conflictStatus === 'string'} className="px-6 bg-zinc-900 hover:bg-zinc-800 text-white disabled:opacity-50">
                 {isSubmitting ? 'Menyimpan...' : 'Simpan Jadwal'}
               </Button>
             </div>
