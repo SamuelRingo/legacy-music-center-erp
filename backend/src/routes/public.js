@@ -94,7 +94,7 @@ router.post('/chatbot', async (req, res, next) => {
     res.json({ reply });
   } catch (error) {
     console.error('ChatBot Error:', error);
-    res.status(500).json({ error: 'Failed to process message' });
+    res.status(500).json({ error: error.message || 'Failed to process message', details: error.toString() });
   }
 });
 
