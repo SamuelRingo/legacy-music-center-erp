@@ -20,7 +20,8 @@ export default function DataTable({
   actionElement,
   filterOptions = [],
   isLoading = false,
-  onRowClick
+  onRowClick,
+  pagination = true
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -71,9 +72,10 @@ export default function DataTable({
 
   // Paginate Data
   const paginatedData = useMemo(() => {
+    if (!pagination) return sortedData;
     const start = (page - 1) * pageSize;
     return sortedData.slice(start, start + pageSize);
-  }, [sortedData, page, pageSize]);
+  }, [sortedData, page, pageSize, pagination]);
 
   const totalPages = Math.ceil(sortedData.length / pageSize) || 1;
 
@@ -202,7 +204,7 @@ export default function DataTable({
       </div>
 
       {/* Pagination Controls */}
-      {sortedData.length > 0 && !isLoading && (
+      {sortedData.length > 0 && !isLoading && pagination && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-500">
           <div className="flex items-center gap-2">
             <span>Tampilkan</span>

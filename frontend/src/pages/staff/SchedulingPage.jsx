@@ -249,6 +249,7 @@ export default function SchedulingPage() {
           data={sortedAndGroupedSchedules} 
           searchKey="course.name" 
           searchPlaceholder="Cari program kursus..." 
+          pagination={false}
         />
       )}
 
