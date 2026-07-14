@@ -8,6 +8,8 @@ import StaffDashboard from './pages/staff/Dashboard';
 import LandingCmsPage from './pages/staff/LandingCmsPage';
 import TeacherDashboard from './pages/teacher/Dashboard';
 import StudentDashboard from './pages/student/Dashboard';
+import FinancePage from './pages/shared/FinancePage';
+import InventoryPage from './pages/shared/InventoryPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
 import { DashboardProvider } from './context/DashboardContext';
@@ -37,6 +39,13 @@ export default function App() {
             <StaffDashboard />
           </ProtectedRoute>
         } />
+
+        {/* Phase 7: Shared Finance & Inventory */}
+        <Route path="/admin/finance" element={<ProtectedRoute roles={['SUPER_ADMIN']}><FinancePage /></ProtectedRoute>} />
+        <Route path="/admin/inventory" element={<ProtectedRoute roles={['SUPER_ADMIN']}><InventoryPage /></ProtectedRoute>} />
+        <Route path="/staff/finance" element={<ProtectedRoute roles={['STAFF', 'SUPER_ADMIN']}><FinancePage /></ProtectedRoute>} />
+        <Route path="/staff/inventory" element={<ProtectedRoute roles={['STAFF', 'SUPER_ADMIN']}><InventoryPage /></ProtectedRoute>} />
+
 
         {/* Protected — Teacher */}
         <Route path="/teacher/*" element={

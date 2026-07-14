@@ -73,6 +73,7 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             id: 'keuangan',
             items: [
               { label: 'Tagihan & Pembayaran', href: '/staff/invoices' },
+              { label: 'Transaksi Kas', href: '/staff/finance' },
               { label: 'Laporan Keuangan', href: '/staff/reports' },
             ]
           },
@@ -125,6 +126,7 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             id: 'keuangan',
             items: [
               { label: 'Tagihan & Pembayaran', href: '/staff/invoices' },
+              { label: 'Transaksi Kas', href: '/staff/finance' },
               { label: 'Laporan Keuangan', href: '/staff/reports' },
             ]
           },
