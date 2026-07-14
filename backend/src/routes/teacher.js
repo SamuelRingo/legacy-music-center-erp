@@ -200,4 +200,36 @@ router.post('/grades', async (req, res, next) => {
   }
 });
 
+// PUT /api/teacher/enrollments/:id/grade — Update grade level & current month
+router.put('/enrollments/:id/grade', async (req, res, next) => {
+  try {
+    const { gradeLevel, currentMonth } = req.body;
+    
+    // Verify that this teacher actually teaches this student in this enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { id: req.params.id },
+      include: { schedule: true }
+    });
+
+    if (!enrollment) {
+      return res.status(404).json({ message: 'Enrollment not found' });
+    }
+
+    if (enrollment.schedule.teacherId !== req.user.id) {
+      return res.status(403).json({ message: 'Anda tidak berhak mengubah grade siswa ini' });
+    }
+
+    const updated = await prisma.enrollment.update({
+      where: { id: req.params.id },
+      data: {
+        ...(gradeLevel !== undefined && { gradeLevel: parseInt(gradeLevel) }),
+        ...(currentMonth !== undefined && { currentMonth: parseInt(currentMonth) })
+      }
+    });
+    res.json({ message: 'Grade berhasil diperbarui', enrollment: updated });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

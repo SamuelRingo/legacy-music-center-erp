@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -222,7 +223,14 @@ export default function UsersPage() {
   };
 
   const siswaColumns = [
-    { header: 'Nama', accessorKey: 'name' },
+    { 
+      header: 'Nama', 
+      cell: row => (
+        <Link to={`/admin/users/${row.id}`} className="font-medium text-gold-600 hover:text-gold-700 hover:underline">
+          {row.name}
+        </Link>
+      )
+    },
     { header: 'Email', accessorKey: 'email' },
     { header: 'Status', accessorKey: 'status', cell: row => <StatusBadge status={row.status} /> },
     { header: 'Kelas Terdaftar', cell: row => row.studentProfile?._count?.enrollments || 0 },
@@ -231,7 +239,14 @@ export default function UsersPage() {
   ];
 
   const guruColumns = [
-    { header: 'Nama', accessorKey: 'name' },
+    { 
+      header: 'Nama', 
+      cell: row => (
+        <Link to={`/admin/users/${row.id}`} className="font-medium text-gold-600 hover:text-gold-700 hover:underline">
+          {row.name}
+        </Link>
+      )
+    },
     { header: 'Email', accessorKey: 'email' },
     { header: 'Spesialisasi', cell: row => row.teacherProfile?.specialization || '-' },
     { header: 'Status', accessorKey: 'status', cell: row => <StatusBadge status={row.status} /> },
@@ -240,7 +255,14 @@ export default function UsersPage() {
   ];
 
   const staffColumns = [
-    { header: 'Nama', accessorKey: 'name' },
+    { 
+      header: 'Nama', 
+      cell: row => (
+        <Link to={`/admin/users/${row.id}`} className="font-medium text-gold-600 hover:text-gold-700 hover:underline">
+          {row.name}
+        </Link>
+      )
+    },
     { header: 'Email', accessorKey: 'email' },
     { header: 'Role', accessorKey: 'role', cell: row => <RoleBadge role={row.role} /> },
     { header: 'Status', accessorKey: 'status', cell: row => <StatusBadge status={row.status} /> },

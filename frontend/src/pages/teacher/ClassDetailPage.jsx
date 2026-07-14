@@ -114,7 +114,43 @@ export default function ClassDetailPage() {
   };
 
   const columns = [
-    { header: 'Nama Siswa', cell: (row) => row.student?.user?.name },
+    { 
+      header: 'Nama Siswa', 
+      cell: (row) => (
+        <div className="flex flex-col gap-1">
+          <span className="font-medium">{row.student?.user?.name}</span>
+          <div className="flex items-center gap-2 mt-1">
+            <Select 
+              value={row.gradeLevel ? row.gradeLevel.toString() : ''} 
+              onValueChange={(val) => handleUpdateGrade(row.id, 'gradeLevel', val)}
+            >
+              <SelectTrigger className="h-7 w-24 text-xs">
+                <SelectValue placeholder="Grade" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5].map(g => (
+                  <SelectItem key={g} value={g.toString()}>Grade {g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select 
+              value={row.currentMonth ? row.currentMonth.toString() : ''} 
+              onValueChange={(val) => handleUpdateGrade(row.id, 'currentMonth', val)}
+            >
+              <SelectTrigger className="h-7 w-32 text-xs">
+                <SelectValue placeholder="Bulan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 (Repertoir)</SelectItem>
+                <SelectItem value="2">2 (Ujian)</SelectItem>
+                <SelectItem value="3">3 (Performance)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )
+    },
     { header: 'No. Telp (Wali)', cell: (row) => row.student?.parentPhone || '-' },
     { 
       header: 'Tanggal Daftar', 
@@ -122,11 +158,14 @@ export default function ClassDetailPage() {
     },
     {
       header: 'Nilai Akhir',
-      className: 'w-32 text-center',
+      className: 'w-48 text-center',
       cell: (row) => {
         const finalGrade = row.finalGrades && row.finalGrades.length > 0 ? row.finalGrades[0] : null;
         return finalGrade ? (
-          <span className="font-bold text-emerald-600 dark:text-emerald-400">{finalGrade.score}</span>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">{finalGrade.score}</span>
+            <span className="text-[10px] text-zinc-400">Dinilai: {new Date(finalGrade.gradedAt).toLocaleDateString('id-ID')}</span>
+          </div>
         ) : (
           <span className="text-zinc-400">-</span>
         );

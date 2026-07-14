@@ -8,6 +8,7 @@ import ReportsPage from './ReportsPage';
 import EventsPage from './EventsPage';
 import LandingCmsPage from './LandingCmsPage';
 import ProfilePage from '../../components/shared/ProfilePage';
+import StudentDetailPage from '../shared/StudentDetailPage';
 
 export default function StaffDashboard() {
 
@@ -22,6 +23,7 @@ export default function StaffDashboard() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/landing-cms" element={<LandingCmsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/students/:id" element={<StudentDetailPage />} />
       </Routes>
     </DashboardLayout>
   );

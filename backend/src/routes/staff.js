@@ -690,4 +690,65 @@ router.put('/enrollments/:id/grade', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+
+// GET /api/staff/students/:id - Detail Siswa
+router.get('/students/:id', async (req, res, next) => {
+  try {
+    const student = await prisma.user.findUnique({
+      where: { id: req.params.id, role: 'STUDENT' },
+      include: {
+        studentProfile: {
+          include: {
+            enrollments: {
+              include: {
+                schedule: { include: { course: true, teacher: { select: { name: true } } } },
+                finalGrades: true
+              }
+            },
+            achievements: { orderBy: { date: 'desc' } }
+          }
+        }
+      }
+    });
+    if (!student) return res.status(404).json({ message: 'Siswa tidak ditemukan' });
+    res.json(student);
+  } catch (error) { next(error); }
+});
+
+// POST /api/staff/students/:id/achievements - Tambah Prestasi
+router.post('/students/:id/achievements', async (req, res, next) => {
+  try {
+    const { title, description, date } = req.body;
+    const student = await prisma.user.findUnique({
+      where: { id: req.params.id },
+      include: { studentProfile: true }
+    });
+    
+    if (!student || !student.studentProfile) {
+      return res.status(404).json({ message: 'Siswa tidak ditemukan' });
+    }
+
+    const achievement = await prisma.studentAchievement.create({
+      data: {
+        studentId: student.studentProfile.id,
+        title,
+        description,
+        date: new Date(date)
+      }
+    });
+    res.status(201).json(achievement);
+  } catch (error) { next(error); }
+});
+
+// DELETE /api/staff/achievements/:id - Hapus Prestasi
+router.delete('/achievements/:id', async (req, res, next) => {
+  try {
+    await prisma.studentAchievement.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ message: 'Prestasi berhasil dihapus' });
+  } catch (error) { next(error); }
+});
+
 export default router;
+

@@ -13,7 +13,10 @@ router.use(authorize('STUDENT'));
 router.get('/dashboard', async (req, res, next) => {
   try {
     const profile = await prisma.studentProfile.findUnique({
-      where: { userId: req.user.id }
+      where: { userId: req.user.id },
+      include: {
+        achievements: { orderBy: { date: 'desc' } }
+      }
     });
 
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
@@ -27,7 +30,7 @@ router.get('/dashboard', async (req, res, next) => {
       }
     });
 
-    res.json({ user: req.user, enrollments });
+    res.json({ user: req.user, enrollments, profile });
   } catch (error) {
     next(error);
   }
