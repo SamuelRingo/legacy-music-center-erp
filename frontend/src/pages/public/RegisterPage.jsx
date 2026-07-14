@@ -21,7 +21,11 @@ export default function RegisterPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    if (e.target.name === 'parentPhone') {
+      value = value.replace(/[^0-9]/g, '');
+    }
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e) => {
