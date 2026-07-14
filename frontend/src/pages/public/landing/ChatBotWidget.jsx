@@ -32,9 +32,10 @@ export default function ChatBotWidget() {
         throw new Error('No reply from server');
       }
     } catch (error) {
-      console.error('Chat error:', error);
+      const apiError = error.response?.data?.error;
+      const fallbackError = 'Maaf, chatbot sedang tidak tersedia. Silakan hubungi WA 0812-xxxx-xxxx.';
       setMessages(prev => [...prev, { 
-        text: 'Maaf, sistem chatbot sedang gangguan. Silakan hubungi WA 0812-xxxx-xxxx.', 
+        text: apiError || fallbackError, 
         isBot: true 
       }]);
     } finally {

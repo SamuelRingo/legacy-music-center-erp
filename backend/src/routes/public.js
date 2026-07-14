@@ -1,11 +1,10 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import axios from 'axios';
 
 const router = Router();
 const prisma = new PrismaClient();
 const apiKey = process.env.GEMINI_API_KEY || '';
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 // GET /api/public/events — Event banners for landing page
 router.get('/events', async (req, res, next) => {
@@ -74,7 +73,7 @@ router.post('/chatbot', async (req, res, next) => {
   try {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: 'Message required' });
-    if (!genAI) return res.status(500).json({ error: 'Gemini not configured' });
+    if (!apiKey) return res.status(500).json({ error: 'Gemini not configured' });
 
     let systemPrompt = 'Kamu adalah asisten Legacy Musik School. Jawab pertanyaan dengan ramah.';
     try {
@@ -86,15 +85,36 @@ router.post('/chatbot', async (req, res, next) => {
       console.warn('Failed to fetch chatbot prompt from DB, using fallback');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const prompt = `${systemPrompt}\nPertanyaan: ${message}`;
     
-    const result = await model.generateContent(prompt);
-    const reply = await result.response.text();
+    const response = await axios.post(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+      { contents: [{ parts: [{ text: prompt }] }] },
+      { headers: { 'Content-Type': 'application/json' }, params: { key: apiKey } }
+    );
+    
+    const reply = response.data.candidates[0].content.parts[0].text;
     res.json({ reply });
   } catch (error) {
-    console.error('ChatBot Error:', error);
-    res.status(500).json({ error: error.message || 'Failed to process message', details: error.toString() });
+    console.error('ChatBot Error:', error?.response?.data || error);
+    
+    let userMessage = "Terjadi kesalahan pada server.";
+    const status = error?.response?.status;
+    
+    if (status === 400 || status === 403 || status === 404) {
+      userMessage = "Kunci API tidak valid. Hubungi administrator.";
+    } else if (status === 429) {
+      userMessage = "Maaf, sistem sedang sibuk. Silakan coba lagi nanti.";
+    } else if (error.request && !error.response) {
+      userMessage = "Gagal terhubung ke server AI. Periksa koneksi internet.";
+    } else {
+      userMessage = error.message;
+    }
+    
+    res.status(500).json({ 
+      error: userMessage, 
+      details: error?.response?.data || error.toString() 
+    });
   }
 });
 
