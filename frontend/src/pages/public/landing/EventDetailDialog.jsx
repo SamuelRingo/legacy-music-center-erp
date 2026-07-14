@@ -6,7 +6,10 @@ export default function EventDetailDialog({ event, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl bg-zinc-950 border border-zinc-800 text-white p-0 overflow-hidden">
+      <DialogContent 
+        style={{ outline: 'none' }}
+        className="sm:max-w-xl bg-zinc-950 border border-zinc-800 text-white p-0 overflow-hidden outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+      >
         {/* Gambar Event */}
         <div className="w-full h-48 md:h-64 relative">
           <img 
