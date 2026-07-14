@@ -28,7 +28,7 @@ export default function EventSection() {
   }, []);
 
   return (
-    <section id="events" className="py-24 bg-zinc-900 border-t border-b border-zinc-800">
+    <section id="events" className="py-16 bg-zinc-900 border-t border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div className="max-w-2xl">
@@ -40,7 +40,7 @@ export default function EventSection() {
             </p>
           </div>
           <Link to="/events">
-            <Button variant="outline" className="border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-zinc-950 font-bold rounded-full px-6">
+            <Button variant="outline" className="border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-white font-bold rounded-full px-6">
               Lihat Semua Event <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
