@@ -40,8 +40,15 @@ export default function RegisterPage() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-amber-500 via-amber-600 to-zinc-900 font-sans relative overflow-hidden">
-        {/* Background elements (none) */}
+      <div className="min-h-screen w-full flex items-center justify-center p-4 bg-zinc-950 font-sans relative overflow-hidden">
+        {/* Background elements */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/auth-bg.png" 
+            alt="Legacy Musik Studio" 
+            className="w-full h-full object-cover opacity-30 mix-blend-overlay"
+          />
+        </div>
         
         <div className="relative z-10 max-w-md w-full bg-white/10 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/20 dark:border-zinc-800/50 rounded-3xl shadow-2xl p-8 sm:p-12 text-center animate-in zoom-in-95 duration-500">
           <div className="w-20 h-20 bg-gradient-to-tr from-emerald-400 to-emerald-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-emerald-500/30 ring-4 ring-white/10">
@@ -142,9 +149,8 @@ export default function RegisterPage() {
             <Label htmlFor="parentPhone" className="text-zinc-700 dark:text-zinc-300 font-medium">Parent's Phone (WhatsApp)</Label>
             <Input id="parentPhone" name="parentPhone" type="tel" autoComplete="tel" required
               value={formData.parentPhone} onChange={handleChange} 
-              inputMode="numeric" pattern="[0-9]*"
               className="h-12 px-4 rounded-xl bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 focus:bg-white focus:ring-2 focus:ring-zinc-900 transition-all"
-              placeholder="0812..."
+              placeholder="0812-xxxx-xxxx"
             />
           </div>
 
