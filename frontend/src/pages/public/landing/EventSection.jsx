@@ -38,10 +38,11 @@ export default function EventSection() {
               Jangan lewatkan konser rutin, workshop eksklusif, dan acara spesial dari Legacy Music Center.
             </p>
           </div>
-          <Link to="/events">
-            <button className="inline-flex items-center justify-center border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-white font-bold rounded-full px-6 h-10 transition-colors text-sm cursor-pointer">
-              Lihat Semua Event <ArrowRight className="ml-2 h-4 w-4" />
-            </button>
+          <Link 
+            to="/events" 
+            className="inline-flex items-center justify-center border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-white font-bold rounded-full px-6 h-10 transition-colors text-sm cursor-pointer"
+          >
+            Lihat Semua Event <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </div>
 
@@ -62,7 +63,7 @@ export default function EventSection() {
             {events.map((event) => (
               <Card 
                 key={event.id} 
-                className="bg-zinc-950 border-zinc-800 overflow-hidden hover:border-gold-500/50 hover:shadow-lg hover:shadow-gold-500/20 transition-all group cursor-pointer"
+                className="bg-zinc-950 border-zinc-800 overflow-hidden hover:border-gold-500/50 hover:shadow-lg hover:shadow-gold-500/20 transition-all group cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
                 onClick={() => setSelectedEvent(event)}
               >
                 <div className="h-48 overflow-hidden relative">

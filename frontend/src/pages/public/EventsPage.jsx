@@ -67,7 +67,7 @@ export default function EventsPage() {
             {events.map((event) => (
               <Card 
                 key={event.id} 
-                className="bg-zinc-900/40 border-zinc-800 overflow-hidden hover:border-gold-500 hover:shadow-lg hover:shadow-gold-500/20 transition-all group flex flex-col h-full cursor-pointer"
+                className="bg-zinc-900/40 border-zinc-800 overflow-hidden hover:border-gold-500 hover:shadow-lg hover:shadow-gold-500/20 transition-all group flex flex-col h-full cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
                 onClick={() => setSelectedEvent(event)}
               >
                 <div className="h-56 overflow-hidden relative shrink-0">
