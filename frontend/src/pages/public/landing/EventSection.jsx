@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { CalendarDays, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -40,9 +39,9 @@ export default function EventSection() {
             </p>
           </div>
           <Link to="/events">
-            <Button variant="outline" className="border-gold-500 !text-gold-500 hover:bg-gold-500 hover:!text-white font-bold rounded-full px-6">
+            <button className="inline-flex items-center justify-center border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-white font-bold rounded-full px-6 h-10 transition-colors text-sm cursor-pointer">
               Lihat Semua Event <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            </button>
           </Link>
         </div>
 
