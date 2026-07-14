@@ -103,17 +103,36 @@ ATURAN PENTING:
     );
     
     let replyText = response.data.candidates[0].content.parts[0].text;
+    let reply = "";
     try {
-      const jsonMatch = replyText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        if (parsed.response) replyText = parsed.response;
+      const match = replyText.match(/{"response"\s*:\s*"([^"]+)"}/);
+      if (match) {
+        reply = match[1];
+      } else {
+        // Fallback pencarian kalimat awalan
+        const lines = replyText.split('\n').filter(l => l.trim());
+        const validLine = lines.find(l => l.trim().match(/^(Halo|Selamat|Maaf|Ada)/i));
+        
+        if (validLine) {
+          reply = validLine.trim().replace(/^["']|["']$/g, '');
+        } else if (lines.length > 0) {
+          // Fallback baris terakhir
+          reply = lines[lines.length - 1].replace(/^["']|["']$/g, '');
+        } else {
+          reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx.";
+        }
       }
     } catch (e) {
       console.warn('Gagal parse JSON dari Gemma:', e);
+      reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx.";
     }
     
-    res.json({ reply: replyText });
+    // Fallback jika jawaban masih jelek/kosong
+    if (!reply || reply.includes('*   Role') || reply.includes('Rules:')) {
+      reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx.";
+    }
+
+    res.json({ reply });
   } catch (error) {
     console.error('ChatBot Error:', error?.response?.data || error);
     
