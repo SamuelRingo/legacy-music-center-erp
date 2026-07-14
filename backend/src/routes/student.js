@@ -145,4 +145,24 @@ router.post('/invoices/:id/proof', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// ==================== PHASE 3 ====================
+
+// GET /api/student/achievements
+router.get('/achievements', async (req, res, next) => {
+  try {
+    const profile = await prisma.studentProfile.findUnique({
+      where: { userId: req.user.id }
+    });
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+
+    const achievements = await prisma.studentAchievement.findMany({
+      where: { studentId: profile.id },
+      orderBy: { date: 'desc' }
+    });
+    res.json(achievements);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { parse } from 'csv-parse/sync';
+import { getStudentDetail, getTransactions, createTransaction, getInventory, createInventoryItem, updateInventoryItem } from './shared.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -326,6 +327,112 @@ router.delete('/events/:id', async (req, res, next) => {
   try {
     await prisma.eventBanner.delete({ where: { id: req.params.id } });
     res.json({ message: 'Deleted' });
+  } catch (error) { next(error); }
+});
+
+// ==================== PHASE 3 ====================
+
+// Shared Endpoints
+router.get('/students/:id', getStudentDetail);
+router.get('/transactions', getTransactions);
+router.post('/transactions', createTransaction);
+router.get('/inventory', getInventory);
+router.post('/inventory', createInventoryItem);
+router.put('/inventory/:id', updateInventoryItem);
+
+// Admin specific endpoints
+router.get('/students/:id/achievements', async (req, res, next) => {
+  try {
+    const achievements = await prisma.studentAchievement.findMany({
+      where: { student: { userId: req.params.id } },
+      orderBy: { date: 'desc' }
+    });
+    res.json(achievements);
+  } catch (error) { next(error); }
+});
+
+router.post('/students/:id/achievements', async (req, res, next) => {
+  try {
+    const { title, description, date } = req.body;
+    const profile = await prisma.studentProfile.findUnique({ where: { userId: req.params.id } });
+    if (!profile) return res.status(404).json({ message: 'Profil siswa tidak ditemukan' });
+
+    const achievement = await prisma.studentAchievement.create({
+      data: {
+        studentId: profile.id,
+        title,
+        description,
+        date: date ? new Date(date) : new Date()
+      }
+    });
+    res.status(201).json(achievement);
+  } catch (error) { next(error); }
+});
+
+router.delete('/achievements/:id', async (req, res, next) => {
+  try {
+    await prisma.studentAchievement.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Deleted' });
+  } catch (error) { next(error); }
+});
+
+router.get('/staff-attendance', async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+    let where = {};
+    if (month && year) {
+      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+      where = { date: { gte: startDate, lte: endDate } };
+    }
+    const attendance = await prisma.staffAttendance.findMany({
+      where,
+      include: { user: { select: { name: true, role: true } } },
+      orderBy: { date: 'desc' }
+    });
+    res.json(attendance);
+  } catch (error) { next(error); }
+});
+
+router.post('/staff-attendance', async (req, res, next) => {
+  try {
+    const { userId, date, status, note } = req.body;
+    const attendance = await prisma.staffAttendance.create({
+      data: { userId, date: new Date(date), status, note }
+    });
+    res.status(201).json(attendance);
+  } catch (error) { next(error); }
+});
+
+router.get('/staff-salaries', async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+    let where = {};
+    if (month && year) {
+      where = { month: parseInt(month), year: parseInt(year) };
+    }
+    const salaries = await prisma.staffSalary.findMany({
+      where,
+      include: { user: { select: { name: true, role: true } } },
+      orderBy: [{ year: 'desc' }, { month: 'desc' }]
+    });
+    res.json(salaries);
+  } catch (error) { next(error); }
+});
+
+router.post('/staff-salaries', async (req, res, next) => {
+  try {
+    const { userId, month, year, amount, bonus, note } = req.body;
+    const salary = await prisma.staffSalary.upsert({
+      where: {
+        userId_month_year: {
+          userId, month: parseInt(month), year: parseInt(year)
+        }
+      },
+      update: { amount: parseFloat(amount), bonus: parseFloat(bonus || 0), note },
+      create: { userId, month: parseInt(month), year: parseInt(year), amount: parseFloat(amount), bonus: parseFloat(bonus || 0), note }
+    });
+    res.status(201).json(salary);
   } catch (error) { next(error); }
 });
 

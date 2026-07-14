@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { supabase, getSignedUrl } from '../lib/supabase.js';
 import multer from 'multer';
+import { getStudentDetail, getTransactions, createTransaction, getInventory, createInventoryItem, updateInventoryItem } from './shared.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -662,6 +663,31 @@ router.put('/landing-content', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+// ==================== PHASE 3 ====================
+
+// Shared Endpoints
+router.get('/students/:id', getStudentDetail);
+router.get('/transactions', getTransactions);
+router.post('/transactions', createTransaction);
+router.get('/inventory', getInventory);
+router.post('/inventory', createInventoryItem);
+router.put('/inventory/:id', updateInventoryItem);
+
+// Staff specific endpoints
+router.put('/enrollments/:id/grade', async (req, res, next) => {
+  try {
+    const { gradeLevel, currentMonth } = req.body;
+    const enrollment = await prisma.enrollment.update({
+      where: { id: req.params.id },
+      data: {
+        ...(gradeLevel !== undefined && { gradeLevel: parseInt(gradeLevel) }),
+        ...(currentMonth !== undefined && { currentMonth: parseInt(currentMonth) })
+      }
+    });
+    res.json(enrollment);
+  } catch (error) { next(error); }
 });
 
 export default router;
