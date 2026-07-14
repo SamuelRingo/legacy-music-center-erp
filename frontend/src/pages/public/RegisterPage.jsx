@@ -17,15 +17,37 @@ export default function RegisterPage() {
     address: ''
   });
   
+  const [displayPhone, setDisplayPhone] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
   const [errorMessage, setErrorMessage] = useState('');
+
+  const formatPhoneNumber = (value) => {
+    if (!value) return { display: '', raw: '' };
+    let numbers = value.replace(/\D/g, '');
+    if (numbers.startsWith('62')) {
+      numbers = numbers.substring(2);
+    } else if (numbers.startsWith('0')) {
+      numbers = numbers.substring(1);
+    }
+    if (numbers.length === 0) return { display: '+62 ', raw: '+62' };
+    
+    let formatted = '+62 ';
+    formatted += numbers.substring(0, 3);
+    if (numbers.length > 3) formatted += '-' + numbers.substring(3, 7);
+    if (numbers.length > 7) formatted += '-' + numbers.substring(7, 13);
+    
+    return { display: formatted, raw: '+62' + numbers };
+  };
 
   const handleChange = (e) => {
     let value = e.target.value;
     if (e.target.name === 'parentPhone') {
-      value = value.replace(/[^0-9]/g, '');
+      const { display, raw } = formatPhoneNumber(value);
+      setDisplayPhone(display);
+      setFormData({ ...formData, [e.target.name]: raw });
+    } else {
+      setFormData({ ...formData, [e.target.name]: value });
     }
-    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -147,10 +169,10 @@ export default function RegisterPage() {
           <div className="space-y-2 group">
             <Label htmlFor="parentPhone" className="text-zinc-700 dark:text-zinc-300 font-medium">Parent's Phone (WhatsApp)</Label>
             <Input id="parentPhone" name="parentPhone" type="tel" autoComplete="tel" required
-              value={formData.parentPhone} onChange={handleChange} 
-              inputMode="numeric" pattern="[0-9]*"
+              value={displayPhone} onChange={handleChange} 
+              inputMode="tel"
               className="h-12 px-4 rounded-xl bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 focus:bg-white focus:ring-2 focus:ring-zinc-900 transition-all"
-              placeholder="0812..."
+              placeholder="+62 812-xxxx-xxxx"
             />
           </div>
 

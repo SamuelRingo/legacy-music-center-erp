@@ -19,8 +19,8 @@ router.post('/register', async (req, res, next) => {
     }
 
     // Check phone number format
-    if (parentPhone && !/^[0-9]+$/.test(parentPhone)) {
-      return res.status(400).json({ message: "Nomor HP hanya boleh berisi angka" });
+    if (parentPhone && !/^\+62[0-9]{9,13}$/.test(parentPhone)) {
+      return res.status(400).json({ message: "Format nomor HP tidak valid (harus diawali +62 dan berisi 9-13 angka)" });
     }
 
     // Check schedule availability (Room conflict only)
