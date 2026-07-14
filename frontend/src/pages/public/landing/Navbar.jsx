@@ -16,11 +16,12 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Courses', href: '#courses' },
-    { name: 'Facility', href: '#facility' },
-    { name: 'Contact', href: '#contact' }
+    { name: 'Home', href: '/#home' },
+    { name: 'Event', href: '/events', external: true },
+    { name: 'About', href: '/#about' },
+    { name: 'Courses', href: '/#courses' },
+    { name: 'Facility', href: '/#facility' },
+    { name: 'Contact', href: '/#contact' }
   ];
 
   return (
@@ -34,17 +35,29 @@ export default function Navbar() {
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           {navLinks.map((link) => (
-            <a 
-              key={link.name} 
-              href={link.href} 
-              onClick={(e) => {
-                e.preventDefault();
-                document.querySelector(link.href)?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="text-zinc-300 hover:text-gold-500 transition-colors"
-            >
-              {link.name}
-            </a>
+            link.external ? (
+              <Link 
+                key={link.name} 
+                to={link.href}
+                className="text-zinc-300 hover:text-gold-500 transition-colors"
+              >
+                {link.name}
+              </Link>
+            ) : (
+              <a 
+                key={link.name} 
+                href={link.href} 
+                onClick={(e) => {
+                  if (window.location.pathname === '/') {
+                    e.preventDefault();
+                    document.querySelector(link.href.replace('/', ''))?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="text-zinc-300 hover:text-gold-500 transition-colors"
+              >
+                {link.name}
+              </a>
+            )
           ))}
           <div className="h-6 w-px bg-zinc-700"></div>
           <Link to="/login" className="text-zinc-300 hover:text-white transition-colors">Sign In</Link>
@@ -65,18 +78,31 @@ export default function Navbar() {
       {mobileMenu && (
         <div className="md:hidden absolute top-full left-0 w-full bg-zinc-950 border-t border-zinc-800 shadow-xl py-6 px-6 flex flex-col gap-6">
           {navLinks.map((link) => (
-            <a 
-              key={link.name} 
-              href={link.href} 
-              onClick={(e) => {
-                e.preventDefault();
-                setMobileMenu(false);
-                document.querySelector(link.href)?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="text-zinc-300 text-lg hover:text-gold-500"
-            >
-              {link.name}
-            </a>
+            link.external ? (
+              <Link 
+                key={link.name} 
+                to={link.href}
+                onClick={() => setMobileMenu(false)}
+                className="text-zinc-300 text-lg hover:text-gold-500"
+              >
+                {link.name}
+              </Link>
+            ) : (
+              <a 
+                key={link.name} 
+                href={link.href} 
+                onClick={(e) => {
+                  if (window.location.pathname === '/') {
+                    e.preventDefault();
+                    document.querySelector(link.href.replace('/', ''))?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                  setMobileMenu(false);
+                }}
+                className="text-zinc-300 text-lg hover:text-gold-500"
+              >
+                {link.name}
+              </a>
+            )
           ))}
           <hr className="border-zinc-800" />
           <Link to="/login" onClick={() => setMobileMenu(false)} className="text-zinc-300 text-lg text-center">Sign In</Link>

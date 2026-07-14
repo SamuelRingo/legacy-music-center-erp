@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/public/LandingPage';
 import RegisterPage from './pages/public/RegisterPage';
 import LoginPage from './pages/public/LoginPage';
+import EventsPage from './pages/public/EventsPage';
 import AdminDashboard from './pages/admin/Dashboard';
 import StaffDashboard from './pages/staff/Dashboard';
 import LandingCmsPage from './pages/staff/LandingCmsPage';
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/events" element={<EventsPage />} />
 
         {/* Protected — Admin */}
         <Route path="/admin/*" element={

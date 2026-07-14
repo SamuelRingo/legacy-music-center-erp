@@ -8,6 +8,8 @@ import Facility from './landing/Facility';
 import Footer from './landing/Footer';
 import EventPopup from './landing/EventPopup';
 import ChatBotWidget from './landing/ChatBotWidget';
+import GradeSection from './landing/GradeSection';
+import EventSection from './landing/EventSection';
 
 export default function LandingPage() {
   const [showSplash, setShowSplash] = useState(() => {
@@ -25,8 +27,10 @@ export default function LandingPage() {
         <Navbar />
         <main>
           <Hero />
+          <EventSection />
           <About />
           <Courses />
+          <GradeSection />
           <Facility />
         </main>
         <Footer />
