@@ -88,7 +88,7 @@ router.post('/chatbot', async (req, res, next) => {
     const prompt = `${systemPrompt}\nPertanyaan: ${message}`;
     
     const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent',
       { contents: [{ parts: [{ text: prompt }] }] },
       { headers: { 'Content-Type': 'application/json' }, params: { key: apiKey } }
     );
