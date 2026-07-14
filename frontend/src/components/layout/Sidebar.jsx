@@ -226,99 +226,132 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
       </div>
 
       {/* Nav Links */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-4">
         {sidebarLinks.map((link, idx) => {
           // If it's a category
           if (link.type === 'category') {
             const Icon = link.icon;
-            const isOpen = !!openCategories[link.id];
-            // Check if any child is active
             const isChildActive = link.items.some(item => location.pathname.startsWith(item.href));
+            const isOpen = !!openCategories[link.id] || isChildActive;
 
             if (isDesktopCollapsed) {
               return (
-                <div key={idx} className="group relative pt-2">
-                  <div className="flex items-center justify-center py-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
-                    <Icon size={20} />
+                <div key={idx} className="mb-2">
+                  <div className="group relative">
+                    <div className="flex items-center justify-center py-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                      <Icon size={20} />
+                    </div>
+                    <div className="absolute left-full top-0 ml-2 hidden w-48 rounded-md bg-white dark:bg-zinc-800 p-2 shadow-lg group-hover:block z-50">
+                      <p className="px-3 text-xs font-semibold text-zinc-500 mb-2 uppercase">{link.label}</p>
+                      {link.items.map((item, i) => (
+                        <NavLink
+                          key={i}
+                          to={item.href}
+                          className={({ isActive }) => `
+                            block px-3 py-2 text-sm rounded-md transition-colors
+                            ${isActive ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white font-medium' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'}
+                          `}
+                        >
+                          {item.label}
+                        </NavLink>
+                      ))}
+                    </div>
                   </div>
-                  <div className="absolute left-full top-0 ml-2 hidden w-48 rounded-md bg-white dark:bg-zinc-800 p-2 shadow-lg group-hover:block z-50">
-                    <p className="px-3 text-xs font-semibold text-zinc-500 mb-2 uppercase">{link.label}</p>
-                    {link.items.map((item, i) => (
-                      <NavLink
-                        key={i}
-                        to={item.href}
-                        className={({ isActive }) => `
-                          block px-3 py-2 text-sm rounded-md transition-colors
-                          ${isActive ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white font-medium' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'}
-                        `}
-                      >
-                        {item.label}
-                      </NavLink>
-                    ))}
-                  </div>
+                  {idx < sidebarLinks.length - 1 && (
+                    <hr className="my-2 border-zinc-200 dark:border-zinc-800 mx-4" />
+                  )}
                 </div>
               );
             }
 
             return (
-              <Collapsible
-                key={idx}
-                open={isOpen}
-                onOpenChange={() => toggleCategory(link.id)}
-                className="w-full space-y-1"
-              >
-                <CollapsibleTrigger asChild>
-                  <button className={`
-                    flex items-center justify-between w-full py-2.5 px-3 rounded-xl text-sm font-medium transition-colors outline-none
-                    ${isChildActive ? 'bg-gold-500/10 text-gold-600 dark:text-gold-500' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white'}
-                  `}>
-                    <div className="flex items-center gap-3">
-                      <Icon size={20} className={isChildActive ? 'text-gold-500' : ''} />
-                      <span className="truncate">{link.label}</span>
-                    </div>
-                    <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-1 pl-10 pr-2 pb-1 overflow-hidden transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:animate-in data-[state=open]:fade-in">
-                  {link.items.map((item, i) => (
-                    <NavLink
-                      key={i}
-                      to={item.href}
-                      className={({ isActive }) => `
-                        block py-2 px-3 rounded-lg text-sm transition-colors
-                        ${isActive 
-                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium' 
-                          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}
-                      `}
-                    >
-                      {item.label}
-                    </NavLink>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+              <div key={idx} className="mb-1">
+                <Collapsible
+                  open={isOpen}
+                  onOpenChange={() => toggleCategory(link.id)}
+                  className="w-full"
+                >
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center justify-between w-full px-3 py-2 outline-none group">
+                      <div className="flex items-center gap-2">
+                        <Icon size={16} className="text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
+                          {link.label}
+                        </span>
+                      </div>
+                      <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1 mt-1 overflow-hidden transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:animate-in data-[state=open]:fade-in">
+                    {link.items.map((item, i) => (
+                      <NavLink
+                        key={i}
+                        to={item.href}
+                        className={({ isActive }) => `
+                          block mx-2 pl-9 pr-3 py-2 rounded-md text-sm font-medium transition-colors
+                          ${isActive 
+                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold' 
+                            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
+                        `}
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+                {idx < sidebarLinks.length - 1 && (
+                  <hr className="my-2 border-zinc-200 dark:border-zinc-800 mx-2" />
+                )}
+              </div>
             );
           }
 
-          // If it's a simple link (e.g. Dashboard)
+          // If it's a simple link
           if (link.type === 'link') {
             const Icon = link.icon;
+            
+            if (isDesktopCollapsed) {
+              return (
+                <div key={idx} className="mb-2">
+                  <NavLink
+                    to={link.href}
+                    end={link.href.split('/').length <= 2}
+                    title={link.label}
+                    className={({ isActive }) => `
+                      flex items-center justify-center py-2 rounded-xl text-sm font-medium transition-colors mx-2
+                      ${isActive 
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' 
+                        : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white'}
+                    `}
+                  >
+                    <Icon size={20} className="shrink-0" />
+                  </NavLink>
+                  {idx < sidebarLinks.length - 1 && (
+                    <hr className="my-2 border-zinc-200 dark:border-zinc-800 mx-4" />
+                  )}
+                </div>
+              );
+            }
+
             return (
-              <NavLink
-                key={idx}
-                to={link.href}
-                end={link.href.split('/').length <= 2}
-                title={isDesktopCollapsed ? link.label : undefined}
-                className={({ isActive }) => `
-                  flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-colors
-                  ${isDesktopCollapsed ? 'justify-center px-0' : 'px-3'}
-                  ${isActive 
-                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white' 
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white'}
-                `}
-              >
-                <Icon size={20} className="shrink-0" />
-                {!isDesktopCollapsed && <span className="truncate">{link.label}</span>}
-              </NavLink>
+              <div key={idx} className="mb-1">
+                <NavLink
+                  to={link.href}
+                  end={link.href.split('/').length <= 2}
+                  className={({ isActive }) => `
+                    flex items-center gap-2 py-2 px-3 mx-2 rounded-md text-sm font-medium transition-colors
+                    ${isActive 
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold' 
+                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
+                  `}
+                >
+                  <Icon size={18} className="shrink-0" />
+                  <span className="truncate">{link.label}</span>
+                </NavLink>
+                {idx < sidebarLinks.length - 1 && (
+                  <hr className="my-2 border-zinc-200 dark:border-zinc-800 mx-2" />
+                )}
+              </div>
             );
           }
           
