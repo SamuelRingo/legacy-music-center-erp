@@ -179,7 +179,7 @@ export default function SchedulingPage() {
     { 
       header: 'Program Kursus', 
       cell: (row) => row.isSeparator ? (
-        <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 font-bold text-sm tracking-wide px-4 py-2 border-t-2 border-amber-200 dark:border-amber-800 border-b border-zinc-200 dark:border-zinc-700 -mx-4 -my-3 whitespace-nowrap">
+        <div className="day-separator-marker text-amber-800 dark:text-amber-200 font-bold text-sm tracking-wide uppercase">
           {row.day}
         </div>
       ) : row.course?.name 
@@ -227,6 +227,25 @@ export default function SchedulingPage() {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        tr:has(.day-separator-marker) {
+          background-color: #fffbeb;
+        }
+        .dark tr:has(.day-separator-marker) {
+          background-color: rgba(120, 53, 15, 0.2);
+        }
+        tr:has(.day-separator-marker) td {
+          border-top: 2px solid #fde68a !important;
+          border-bottom: 1px solid #e4e4e7 !important;
+          padding-top: 0.75rem !important;
+          padding-bottom: 0.75rem !important;
+        }
+        .dark tr:has(.day-separator-marker) td {
+          border-top: 2px solid #92400e !important;
+          border-bottom: 1px solid #3f3f46 !important;
+        }
+      `}</style>
+
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Manajemen Jadwal & Kelas</h1>
