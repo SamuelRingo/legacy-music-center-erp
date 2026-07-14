@@ -61,7 +61,7 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             items: [
               { label: 'Approval Pendaftaran', href: '/staff/approvals' },
               { label: 'Jadwal & Kelas', href: '/staff/schedules' },
-              { label: 'Data Siswa', href: '/admin/users' },
+              { label: 'Manajement Akun', href: '/admin/users' },
               { label: 'Kursus Musik', href: '/admin/courses' },
               { label: 'Ruang Kelas', href: '/admin/classrooms' },
             ]
@@ -86,13 +86,13 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             ]
           },
           {
-            label: 'CMS',
+            label: 'Manajemen Konten',
             icon: Palette,
             type: 'category',
             id: 'cms',
             items: [
               { label: 'Konten Landing Page', href: '/staff/landing-cms' },
-              { label: 'CMS Event Banner', href: '/staff/events' },
+              { label: 'Event Post', href: '/staff/events' },
             ]
           },
           {
@@ -138,13 +138,13 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             ]
           },
           {
-            label: 'CMS',
+            label: 'Manajemen Konten',
             icon: Palette,
             type: 'category',
             id: 'cms',
             items: [
               { label: 'Konten Landing Page', href: '/staff/landing-cms' },
-              { label: 'CMS Event Banner', href: '/staff/events' },
+              { label: 'Event Post', href: '/staff/events' },
             ]
           },
           {
