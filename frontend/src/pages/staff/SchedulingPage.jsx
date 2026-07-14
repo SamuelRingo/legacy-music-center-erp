@@ -179,12 +179,13 @@ export default function SchedulingPage() {
     { 
       header: 'Program Kursus', 
       cell: (row) => row.isSeparator ? (
-        <div className="font-bold uppercase text-zinc-900 dark:text-zinc-100 text-sm tracking-wider w-max">{row.day}</div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 font-bold text-sm tracking-wide px-4 py-2 border-t-2 border-amber-200 dark:border-amber-800 border-b border-zinc-200 dark:border-zinc-700 -mx-4 -my-3 whitespace-nowrap">
+          {row.day}
+        </div>
       ) : row.course?.name 
     },
     { header: 'Guru', cell: (row) => row.isSeparator ? null : row.teacher?.name },
     { header: 'Ruangan', cell: (row) => row.isSeparator ? null : row.classroom?.name },
-    { header: 'Hari', accessorKey: 'day', cell: (row) => row.isSeparator ? null : row.day },
     { header: 'Waktu', cell: (row) => row.isSeparator ? null : `${row.startTime} - ${row.endTime}` },
     { header: 'Terisi', cell: (row) => row.isSeparator ? null : `${row.enrollments?.length || 0} / ${row.classroom?.capacity || 0}` },
     {
