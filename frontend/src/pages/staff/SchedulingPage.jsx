@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
@@ -136,10 +137,14 @@ export default function SchedulingPage() {
       fetchData();
       setTimeout(() => setIsDialogOpen(false), 1000);
     } catch (error) {
-      setMessage({ 
-        text: error.response?.data?.message || 'Terjadi kesalahan sistem', 
-        type: 'error' 
-      });
+      if (error.response?.status === 409) {
+        toast.error(error.response.data.message || 'Jadwal bentrok');
+      } else {
+        setMessage({ 
+          text: error.response?.data?.message || 'Terjadi kesalahan sistem', 
+          type: 'error' 
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

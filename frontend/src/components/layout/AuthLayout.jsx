@@ -11,13 +11,7 @@ export default function AuthLayout({
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-zinc-950 font-sans">
       {/* Left side — Beautiful Image / Branding */}
       <div className="hidden md:flex md:w-1/2 relative bg-zinc-900 overflow-hidden sticky top-0 h-screen">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="/auth-bg.png" 
-            alt="Legacy Musik Studio" 
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent mix-blend-multiply" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-amber-500 via-amber-600 to-zinc-900 opacity-60">
         </div>
         
         <div className="relative z-10 flex flex-col justify-end p-12 lg:p-24 h-full text-white">

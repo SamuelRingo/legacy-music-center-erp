@@ -94,9 +94,9 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="current-password" className="text-zinc-700 dark:text-zinc-300 font-medium">Password</Label>
-            <Link to="#" className="text-xs font-semibold text-zinc-900 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors">
-              Forgot password?
-            </Link>
+            <a href="https://wa.me/62812xxxxxx" target="_blank" rel="noopener noreferrer" title="Hubungi WA 0812-xxxx-xxxx" className="text-xs font-semibold text-zinc-900 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors">
+              Lupa password?
+            </a>
           </div>
           <div className="relative">
             <Input
