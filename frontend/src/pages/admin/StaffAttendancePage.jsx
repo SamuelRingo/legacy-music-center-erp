@@ -110,37 +110,12 @@ export default function StaffAttendancePage() {
   const metrics = {
     present: attendanceSheet.filter(a => a.status === 'PRESENT').length,
     late: attendanceSheet.filter(a => a.status === 'LATE').length,
+    leave: attendanceSheet.filter(a => a.status === 'LEAVE').length,
     absent: attendanceSheet.filter(a => a.status === 'ABSENT').length,
   };
 
   if (errorSheet) {
-    const historyColumns = [
-    {
-      header: 'Nama',
-      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</span>
-    },
-    {
-      header: 'Tanggal',
-      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400">{new Date(row.date).toLocaleDateString('en-GB')}</span>
-    },
-    {
-      header: 'Status',
-      cell: (row) => (
-        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
-          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
-        }`}>
-          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
-        </span>
-      )
-    },
-    {
-      header: 'Catatan',
-      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{row.note || '-'}</span>
-    }
-  ];
-
-  return (
+    return (
       <DashboardLayout>
         <ErrorState message="Gagal memuat daftar absensi hari ini." onRetry={fetchSheet} />
       </DashboardLayout>
@@ -161,9 +136,10 @@ export default function StaffAttendancePage() {
       cell: (row) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
           row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
-          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 
+          row.status === 'LEAVE' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'
         }`}>
-          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
+          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Sakit/Izin' : row.status === 'LEAVE' ? 'Cuti' : 'Absen'}
         </span>
       )
     },
@@ -206,9 +182,10 @@ export default function StaffAttendancePage() {
         {/* CONTENT */}
         {activeTab === 'harian' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <MetricCard title="Total Hadir" value={metrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
-              <MetricCard title="Total Terlambat" value={metrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+              <MetricCard title="Sakit / Izin" value={metrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+              <MetricCard title="Total Cuti" value={metrics.leave} icon={Clock} colorClass="text-blue-600" bgClass="bg-blue-100 dark:bg-blue-900/30" />
               <MetricCard title="Total Absen" value={metrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
             </div>
 
@@ -256,42 +233,21 @@ export default function StaffAttendancePage() {
                               </div>
                               
                               <div className="flex gap-2">
-                                {['PRESENT', 'LATE', 'ABSENT'].map(status => {
-                                  const labels = { 'PRESENT': 'Hadir', 'LATE': 'Terlambat', 'ABSENT': 'Absen' };
+                                {['PRESENT', 'LATE', 'LEAVE', 'ABSENT'].map(status => {
+                                  const labels = { 'PRESENT': 'Hadir', 'LATE': 'Sakit/Izin', 'LEAVE': 'Cuti', 'ABSENT': 'Absen' };
                                   const isActive = item.status === status;
-                                  const historyColumns = [
-    {
-      header: 'Nama',
-      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</span>
-    },
-    {
-      header: 'Tanggal',
-      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400">{new Date(row.date).toLocaleDateString('en-GB')}</span>
-    },
-    {
-      header: 'Status',
-      cell: (row) => (
-        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
-          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
-        }`}>
-          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
-        </span>
-      )
-    },
-    {
-      header: 'Catatan',
-      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{row.note || '-'}</span>
-    }
-  ];
+                                  let activeClass = 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:border-amber-500/50 dark:text-amber-300';
+                                  if (status === 'PRESENT') activeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-500/50 dark:text-emerald-300';
+                                  else if (status === 'LEAVE') activeClass = 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:border-blue-500/50 dark:text-blue-300';
+                                  else if (status === 'ABSENT') activeClass = 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-900/30 dark:border-rose-500/50 dark:text-rose-300';
 
-  return (
+                                  return (
                                     <button
                                       key={status}
                                       onClick={() => handleAttendanceChange(item.userId, 'status', status)}
                                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                                         isActive
-                                          ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:border-amber-500/50 dark:text-amber-300'
+                                          ? activeClass
                                           : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800'
                                       }`}
                                     >
