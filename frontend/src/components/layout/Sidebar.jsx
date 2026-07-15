@@ -4,7 +4,7 @@ import {
   Menu, X, LogOut, User as UserIcon, 
   Home, Users, Music, Building, Contact, 
   Calendar, Receipt, FileText, CheckSquare, Image as ImageIcon,
-  GraduationCap, DollarSign, Palette, Settings, Clipboard, CreditCard, ChevronDown
+  GraduationCap, DollarSign, Palette, Settings, Clipboard, CreditCard, ChevronDown, Briefcase
 } from 'lucide-react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 
@@ -87,6 +87,16 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             ]
           },
           {
+            label: 'Kepegawaian',
+            icon: Briefcase,
+            type: 'category',
+            id: 'kepegawaian',
+            items: [
+              { label: 'Absensi Staff', href: '/admin/staff-attendance' },
+              { label: 'Gaji Staff', href: '/admin/staff-salary' },
+            ]
+          },
+          {
             label: 'Manajemen Konten',
             icon: Palette,
             type: 'category',
@@ -137,6 +147,16 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
             id: 'inventaris',
             items: [
               { label: 'Manajemen Barang', href: '/staff/inventory' },
+            ]
+          },
+          {
+            label: 'Kepegawaian',
+            icon: Briefcase,
+            type: 'category',
+            id: 'kepegawaian',
+            items: [
+              { label: 'Absensi Staff', href: '/admin/staff-attendance' },
+              { label: 'Gaji Staff', href: '/admin/staff-salary' },
             ]
           },
           {

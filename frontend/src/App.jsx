@@ -14,6 +14,9 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
 import { DashboardProvider } from './context/DashboardContext';
 
+import StaffAttendancePage from './pages/admin/StaffAttendancePage';
+import StaffSalaryPage from './pages/admin/StaffSalaryPage';
+
 export default function App() {
   return (
     <DashboardProvider>
@@ -46,6 +49,10 @@ export default function App() {
         <Route path="/staff/finance" element={<ProtectedRoute roles={['STAFF', 'SUPER_ADMIN']}><FinancePage /></ProtectedRoute>} />
         <Route path="/staff/inventory" element={<ProtectedRoute roles={['STAFF', 'SUPER_ADMIN']}><InventoryPage /></ProtectedRoute>} />
 
+
+        {/* Phase 8: Manajemen Staff */}
+        <Route path="/admin/staff-attendance" element={<ProtectedRoute roles={['SUPER_ADMIN']}><StaffAttendancePage /></ProtectedRoute>} />
+        <Route path="/admin/staff-salary" element={<ProtectedRoute roles={['SUPER_ADMIN']}><StaffSalaryPage /></ProtectedRoute>} />
 
         {/* Protected — Teacher */}
         <Route path="/teacher/*" element={
