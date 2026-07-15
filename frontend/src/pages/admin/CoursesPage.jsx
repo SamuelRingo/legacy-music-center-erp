@@ -174,7 +174,7 @@ export default function CoursesPage() {
 
       {/* Student List Modal */}
       <Dialog open={studentModal.open} onOpenChange={open => !open && setStudentModal({ open: false, course: null })}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="w-[900px] max-w-[95vw]">
           <DialogHeader>
             <DialogTitle>Daftar Murid: {studentModal.course?.name}</DialogTitle>
             <DialogDescription>
@@ -182,7 +182,7 @@ export default function CoursesPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-4 max-h-[60vh] overflow-auto">
+          <div className="mt-4 max-h-[80vh] overflow-y-auto">
             {loadingStudents ? (
               <LoadingSkeleton type="table" rows={3} columns={4} />
             ) : studentsList.length === 0 ? (
