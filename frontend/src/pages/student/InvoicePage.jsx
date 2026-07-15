@@ -8,10 +8,10 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useCachedQuery } from '../../lib/cache';
-import { useAuth } from '../../context/AuthContext';
 
 export default function StudentInvoicePage() {
-  const { user } = useAuth();
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
   const [invoiceToPrint, setInvoiceToPrint] = useState(null);
   const printRef = useRef();
 
