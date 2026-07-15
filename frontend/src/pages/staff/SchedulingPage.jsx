@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../../lib/api';
@@ -7,7 +7,8 @@ import { ActionMenu } from '../../components/shared/ActionMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Eye, Trash2, BookOpen, User, MapPin, Calendar, Clock } from 'lucide-react';
+import { Plus, Edit2, Eye, Trash2, BookOpen, User, MapPin, Calendar, Clock, Printer } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,11 @@ export default function SchedulingPage() {
   }, []);
 
   const { data: masterData, loading, error, refetch: fetchData } = useCachedQuery('staff_schedules_master', fetchSchedulesFn);
+  
+  const printRef = useRef();
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+  });
   
   const schedules = masterData?.schedules || [];
   const courses = masterData?.courses || [];
@@ -286,10 +292,16 @@ export default function SchedulingPage() {
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Manajemen Jadwal & Kelas</h1>
           <p className="text-zinc-500 dark:text-zinc-400">Atur jadwal mengajar, ruangan, dan program kursus.</p>
         </div>
-        <Button onClick={handleOpenAdd} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg">
-          <Plus size={18} />
-          Tambah Jadwal
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button onClick={handlePrint} variant="outline" className="gap-2 shadow-sm bg-white dark:bg-zinc-900">
+            <Printer size={18} />
+            Cetak Jadwal
+          </Button>
+          <Button onClick={handleOpenAdd} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg">
+            <Plus size={18} />
+            Tambah Jadwal
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -497,6 +509,67 @@ export default function SchedulingPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <div className="hidden print:block" ref={printRef}>
+        <div className="p-8 font-sans text-zinc-900">
+          {/* Header */}
+          <div className="flex items-center gap-4 border-b-2 border-zinc-300 pb-6 mb-6">
+            <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-16 object-contain" />
+            <div>
+              <h1 className="text-2xl font-bold text-zinc-900">Legacy Music Center</h1>
+              <p className="text-sm text-zinc-600">Jl. Pembangunan No. 10, Jakarta • Telp: (021) 1234-5678</p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-xl font-bold uppercase tracking-wider text-zinc-900">Laporan Jadwal Kelas</h2>
+            <p className="text-sm text-zinc-500 mt-1">Dicetak pada: {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+
+          <div className="mt-8">
+            <table className="w-full text-sm border-collapse border border-zinc-300">
+              <thead>
+                <tr className="bg-zinc-100">
+                  <th className="border border-zinc-300 px-3 py-2 text-left font-bold w-24">Hari</th>
+                  <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Kursus</th>
+                  <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Guru</th>
+                  <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Ruangan</th>
+                  <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Waktu</th>
+                  <th className="border border-zinc-300 px-3 py-2 text-center font-bold">Jumlah Murid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedAndGroupedSchedules.map((row, i) => {
+                  if (row.isSeparator) {
+                    return (
+                      <tr key={`print-sep-${i}`} className="bg-zinc-100/50">
+                        <td colSpan={6} className="border border-zinc-300 px-3 py-2 font-bold text-zinc-900">
+                          {row.day}
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return (
+                    <tr key={`print-${row.id}`}>
+                      <td className="border border-zinc-300 px-3 py-2">{row.day}</td>
+                      <td className="border border-zinc-300 px-3 py-2">{row.course?.name}</td>
+                      <td className="border border-zinc-300 px-3 py-2">{row.teacher?.name}</td>
+                      <td className="border border-zinc-300 px-3 py-2">{row.classroom?.name}</td>
+                      <td className="border border-zinc-300 px-3 py-2">{row.startTime} - {row.endTime}</td>
+                      <td className="border border-zinc-300 px-3 py-2 text-center">{row._count?.enrollments || 0}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-16 pt-4 border-t border-zinc-200 text-center text-xs text-zinc-500">
+            Dicetak pada {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })} • © 2026 Legacy Music Center
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
