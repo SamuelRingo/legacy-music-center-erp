@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../../lib/api';
 import { useCachedQuery, clearCache } from '../../lib/cache';
@@ -9,9 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Wallet, TrendingUp, TrendingDown, Edit2 } from 'lucide-react';
+import { Plus, Wallet, TrendingUp, TrendingDown, Edit2, Printer } from 'lucide-react';
 import { ActionMenu } from '../../components/shared/ActionMenu';
 import { formatRupiah } from '../../lib/utils';
+import { useReactToPrint } from 'react-to-print';
 import DataTable from '../../components/shared/DataTable';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
@@ -39,6 +40,12 @@ export default function FinancePage() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+
+  const printRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `Laporan_Transaksi_${monthFilter}_${yearFilter}`,
+  });
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -200,9 +207,14 @@ export default function FinancePage() {
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Transaksi Kas</h1>
             <p className="text-sm text-zinc-500">Pencatatan manual arus kas sekolah</p>
           </div>
-          <Button onClick={() => handleOpenModal()} className="bg-gold-500 hover:bg-gold-600 text-zinc-900">
-            <Plus className="w-4 h-4 mr-2" /> Transaksi Baru
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handlePrint} className="border-zinc-200">
+              <Printer className="w-4 h-4 mr-2" /> Cetak Transaksi
+            </Button>
+            <Button onClick={() => handleOpenModal()} className="bg-gold-500 hover:bg-gold-600 text-zinc-900">
+              <Plus className="w-4 h-4 mr-2" /> Transaksi Baru
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -296,6 +308,83 @@ export default function FinancePage() {
             </form>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Hidden Print Area */}
+      <div className="hidden">
+        <div ref={printRef} className="print:p-0 print:bg-white print:text-black print:text-[12pt] print:w-full print:max-w-full print:overflow-hidden p-8">
+          <style type="text/css" media="print">
+            {`
+              @page { size: A4; margin: 10mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            `}
+          </style>
+          
+          <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
+            <div className="flex items-center gap-4 mb-4">
+              <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
+              <div>
+                <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
+                <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+              </div>
+            </div>
+            <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
+              Laporan Transaksi Kas
+            </h2>
+            <p className="text-center text-[10pt] mt-1 text-black">
+              Periode: {BULAN.find(b => b.value.toString() === monthFilter)?.label} {yearFilter}
+            </p>
+          </div>
+          
+          <div className="hidden print:block">
+            <table className="w-full text-left border-collapse border border-black mb-8">
+              <thead>
+                <tr className="border-b border-black bg-zinc-100 print:bg-zinc-100">
+                  <th className="py-2 px-4 border-r border-black">Tanggal</th>
+                  <th className="py-2 px-4 border-r border-black">Kategori</th>
+                  <th className="py-2 px-4 border-r border-black">Deskripsi</th>
+                  <th className="py-2 px-4 border-r border-black">Jenis</th>
+                  <th className="py-2 px-4 text-right">Nominal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((t, idx) => (
+                  <tr key={t.id || idx} className="border-b border-black">
+                    <td className="py-2 px-4 border-r border-black">{new Date(t.date).toLocaleDateString('id-ID')}</td>
+                    <td className="py-2 px-4 border-r border-black">{t.category}</td>
+                    <td className="py-2 px-4 border-r border-black">{t.description || '-'}</td>
+                    <td className="py-2 px-4 border-r border-black">{t.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}</td>
+                    <td className="py-2 px-4 text-right font-medium">{formatRupiah(t.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-black font-bold">
+                  <td colSpan="4" className="py-2 px-4 border-r border-black text-right">Total Pemasukan</td>
+                  <td className="py-2 px-4 text-right text-green-700 print:text-black">{formatRupiah(metrics.income)}</td>
+                </tr>
+                <tr className="border-t border-black font-bold">
+                  <td colSpan="4" className="py-2 px-4 border-r border-black text-right">Total Pengeluaran</td>
+                  <td className="py-2 px-4 text-right text-red-700 print:text-black">{formatRupiah(metrics.expense)}</td>
+                </tr>
+                <tr className="border-t border-black font-bold">
+                  <td colSpan="4" className="py-2 px-4 border-r border-black text-right">Saldo Akhir</td>
+                  <td className="py-2 px-4 text-right">{formatRupiah(metrics.total)}</td>
+                </tr>
+              </tfoot>
+            </table>
+            
+            <div className="mt-16 text-right text-sm">
+              <p>Jakarta, {new Date().toLocaleDateString('id-ID')}</p>
+              <br/><br/><br/>
+              <p className="font-bold underline">Admin Finance</p>
+            </div>
+            
+            <div className="mt-8 pt-4 border-t border-zinc-300 text-center text-xs text-zinc-500">
+              Dicetak pada {new Date().toLocaleDateString('id-ID')} • © 2026 Legacy Music Center
+            </div>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
