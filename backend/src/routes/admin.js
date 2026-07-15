@@ -467,9 +467,6 @@ router.get('/staff-attendance/history', async (req, res, next) => {
     res.json(attendances);
   } catch (error) { next(error); }
 });
-    res.status(201).json(attendance);
-  } catch (error) { next(error); }
-});
 
 router.get('/staff-salaries', async (req, res, next) => {
   try {

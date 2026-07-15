@@ -293,16 +293,14 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
                   onOpenChange={() => toggleCategory(link.id)}
                   className="w-full"
                 >
-                  <CollapsibleTrigger asChild>
-                    <button className="flex items-center justify-between w-full px-3 py-2 outline-none group">
-                      <div className="flex items-center gap-2">
-                        <Icon size={16} className="text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
-                        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
-                          {link.label}
-                        </span>
-                      </div>
-                      <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
-                    </button>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 outline-none group">
+                    <div className="flex items-center gap-2">
+                      <Icon size={16} className="text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
+                        {link.label}
+                      </span>
+                    </div>
+                    <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-1 mt-1 overflow-hidden transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:animate-in data-[state=open]:fade-in">
                     {link.items.map((item, i) => (
