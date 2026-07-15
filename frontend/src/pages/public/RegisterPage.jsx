@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [displayPhone, setDisplayPhone] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
   const [errorMessage, setErrorMessage] = useState('');
+  const [registeredUserStatus, setRegisteredUserStatus] = useState('PENDING');
 
   const formatPhoneNumber = (value) => {
     if (!value) return { display: '', raw: '' };
@@ -62,6 +63,7 @@ export default function RegisterPage() {
       if (token && user) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
+        setRegisteredUserStatus(user.status || 'PENDING');
       }
       
       setStatus('success');
@@ -86,7 +88,7 @@ export default function RegisterPage() {
           </div>
           <h2 className="text-3xl font-bold text-white mb-3">Berhasil! Pendaftaran selesai.</h2>
           <p className="text-zinc-300 mb-8 leading-relaxed">
-            Akun Anda telah dibuat dan saat ini berstatus <span className="text-emerald-400 font-semibold px-2 py-0.5 bg-emerald-400/10 rounded-md">PENDING</span>.
+            Akun Anda telah dibuat dan saat ini berstatus <span className={`font-semibold px-2 py-0.5 rounded-md ${registeredUserStatus === 'ACTIVE' ? 'text-emerald-400 bg-emerald-400/10' : 'text-amber-400 bg-amber-400/10'}`}>{registeredUserStatus}</span>.
           </p>
           
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 backdrop-blur-sm">

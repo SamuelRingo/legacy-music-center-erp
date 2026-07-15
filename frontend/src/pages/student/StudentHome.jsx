@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../lib/api';
 import { useDashboardQuery } from '../../context/DashboardContext';
-import { BookOpen, Calendar, Clock, MapPin, Receipt, CheckCircle, Award, GraduationCap } from 'lucide-react';
+import { BookOpen, Calendar, Clock, MapPin, Receipt, CheckCircle, Award, GraduationCap, Info, AlertCircle } from 'lucide-react';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function StudentHome() {
   const fetchStudentData = useCallback(async () => {
@@ -105,9 +106,25 @@ export default function StudentHome() {
           </h2>
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Status Pendaftaran</p>
-            <p className="font-bold text-emerald-600 flex items-center gap-2">
-              <CheckCircle size={18} /> Aktif
-            </p>
+            {safeData.user?.status === 'ACTIVE' ? (
+              <p className="font-bold text-emerald-600 flex items-center gap-2">
+                <CheckCircle size={18} /> Aktif
+              </p>
+            ) : (
+              <p className="font-bold text-amber-600 flex items-center gap-2">
+                <AlertCircle size={18} /> {safeData.user?.status === 'INACTIVE' ? 'Nonaktif' : 'Pending'}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="flex items-center justify-center p-1 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                      <Info size={16} className="text-zinc-400 hover:text-zinc-600 cursor-pointer" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Akun Anda perlu diaktifkan oleh Staff. Silakan hubungi WA 0812-xxxx-xxxx.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </p>
+            )}
           </div>
         </div>
 
