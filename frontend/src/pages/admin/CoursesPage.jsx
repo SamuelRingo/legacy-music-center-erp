@@ -174,7 +174,7 @@ export default function CoursesPage() {
 
       {/* Student List Modal */}
       <Dialog open={studentModal.open} onOpenChange={open => !open && setStudentModal({ open: false, course: null })}>
-        <DialogContent className="w-[900px] max-w-[95vw]">
+        <DialogContent className="!w-[900px] !max-w-[95vw] sm:!max-w-[900px]">
           <DialogHeader>
             <DialogTitle>Daftar Murid: {studentModal.course?.name}</DialogTitle>
             <DialogDescription>
