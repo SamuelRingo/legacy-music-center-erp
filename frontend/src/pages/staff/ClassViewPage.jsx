@@ -76,12 +76,12 @@ export default function ClassViewPage() {
         if (!lastAtt) return '-';
         return (
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            lastAtt.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' :
-            lastAtt.status === 'LATE' ? 'bg-amber-100 text-amber-700' :
-            lastAtt.status === 'ABSENT' ? 'bg-rose-100 text-rose-700' :
+            lastAtt.status === 'HADIR' ? 'bg-emerald-100 text-emerald-700' :
+            lastAtt.status === 'SAKIT' || lastAtt.status === 'IZIN' ? 'bg-amber-100 text-amber-700' :
+            lastAtt.status === 'ABSEN' ? 'bg-rose-100 text-rose-700' :
             'bg-zinc-100 text-zinc-700'
           }`}>
-            {lastAtt.status === 'PRESENT' ? 'Hadir' : lastAtt.status === 'LATE' ? 'Terlambat' : lastAtt.status === 'ABSENT' ? 'Absen' : lastAtt.status}
+            {lastAtt.status}
           </span>
         );
       } 

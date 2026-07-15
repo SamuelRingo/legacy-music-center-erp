@@ -288,20 +288,24 @@ router.get('/schedules/:id/students', async (req, res, next) => {
       include: {
         student: {
           include: {
-            user: { select: { name: true, email: true, phone: true } },
-            StudentAttendance: {
-              where: { meeting: { scheduleId: req.params.id } },
-              orderBy: { meeting: { date: 'desc' } },
-              take: 1
-            },
-            grades: {
-              where: { scheduleId: req.params.id }
-            }
+            user: { select: { name: true, email: true, phone: true } }
           }
-        }
+        },
+        meetingAttendances: {
+          orderBy: { meeting: { meetingDate: 'desc' } },
+          take: 1
+        },
+        finalGrades: true
       }
     });
-    res.json(enrollments.map(e => e.student));
+    
+    const data = enrollments.map(e => ({
+      ...e.student,
+      gradeLevel: e.gradeLevel,
+      StudentAttendance: e.meetingAttendances,
+      grades: e.finalGrades
+    }));
+    res.json(data);
   } catch (error) {
     next(error);
   }
@@ -317,12 +321,18 @@ router.get('/schedules/:id/meetings', async (req, res, next) => {
           select: { attendances: true }
         },
         attendances: {
-          where: { status: 'PRESENT' }
+          where: { status: 'HADIR' }
         }
       },
-      orderBy: { date: 'desc' }
+      orderBy: { meetingDate: 'desc' }
     });
-    res.json(meetings);
+    
+    const data = meetings.map(m => ({
+      ...m,
+      date: m.meetingDate,
+      topic: m.title
+    }));
+    res.json(data);
   } catch (error) {
     next(error);
   }
