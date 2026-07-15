@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../../lib/api';
 
 export function useLandingContent(section, fallbackData = {}) {
-  const [data, setData] = useState(fallbackData);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -15,22 +15,20 @@ export function useLandingContent(section, fallbackData = {}) {
         const result = response.data;
         
         if (isMounted) {
-          // If the DB has data, override the fallback
+          const contentMap = {};
           if (result && result.length > 0) {
-            const contentMap = {};
             result.forEach(item => {
               contentMap[item.key] = item.value;
             });
-            // Merge with fallback so we don't have undefined if some keys are missing
-            setData(prev => ({ ...prev, ...contentMap }));
           }
+          setData(contentMap);
           setLoading(false);
         }
       } catch (err) {
         if (isMounted) {
           console.error(`Failed to fetch landing content for ${section}:`, err);
           setError(err);
-          // Keep the fallback data in state
+          setData(fallbackData);
           setLoading(false);
         }
       }

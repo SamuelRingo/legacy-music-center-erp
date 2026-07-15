@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { useLandingContent } from './useLandingContent';
+import LoadingSkeleton from '../../../components/shared/LoadingSkeleton';
 
 const fallbackFacilities = [
   { title: 'Piano', desc: "Dive into the enchanting realm of piano music with our expert instructors...", img: '/Piano.webp' },
@@ -11,7 +12,17 @@ const fallbackFacilities = [
 ];
 
 export default function Facility() {
-  const { data } = useLandingContent('facility');
+  const { data, loading } = useLandingContent('facility');
+
+  if (loading || !data) {
+    return (
+      <section id="facility" className="py-24 bg-zinc-900">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <LoadingSkeleton type="card" count={3} />
+        </div>
+      </section>
+    );
+  }
 
   const facilities = [];
   for (let i = 1; i <= 6; i++) {
@@ -19,14 +30,13 @@ export default function Facility() {
     const descKey = `f${i}_desc`;
     const imgKey = `f${i}_img`;
     
+    // Only add if at least one field exists
     if (data[titleKey] || data[descKey] || data[imgKey]) {
       facilities.push({
-        title: data[titleKey] || fallbackFacilities[i - 1].title,
-        desc: data[descKey] || fallbackFacilities[i - 1].desc,
-        img: data[imgKey] || fallbackFacilities[i - 1].img
+        title: data[titleKey],
+        desc: data[descKey],
+        img: data[imgKey]
       });
-    } else {
-      facilities.push(fallbackFacilities[i - 1]);
     }
   }
 

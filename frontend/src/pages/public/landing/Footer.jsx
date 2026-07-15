@@ -1,22 +1,24 @@
 import { Instagram, Youtube, MessageCircle, MapPin, Mail, Phone, Clock } from 'lucide-react';
 import { useLandingContent } from './useLandingContent';
+import LoadingSkeleton from '../../../components/shared/LoadingSkeleton';
 
 export default function Footer() {
-  const { data } = useLandingContent('footer', {
-    email: 'info@legacymusik.sch.id',
-    hours: 'Senin - Sabtu <br/> 09.00 - 20.00 WIB',
-    phone: '(+62) 812-xxxx-xxxx',
-    address: 'Jl. Dr. Setiabudi No.31-29, Kesambi, <br/>Kec. Kesambi, Kota Cirebon, <br/>Jawa Barat 45134',
-    maps_url: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3962.339591456561!2d108.552994775042!3d-6.728286993268153!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6ee268c17ec703%3A0xc3b8a1c97034b0bd!2sLegacy%20Music%20Center!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid',
-    instagram: 'https://www.instagram.com/legacy_music_center',
-    youtube: 'https://youtube.com/@LegacyMusicCenter',
-    whatsapp: 'https://api.whatsapp.com/send/?phone=62812xxxxxxxx'
-  });
+  const { data, loading } = useLandingContent('footer');
 
   const instagramMock = [
     '/Jumbotron1.webp', '/Jumbotron2.webp', '/Jumbotron3.webp', 
     '/Jumbotron4.webp', '/Jumbotron5.webp', '/Jumbotron6.webp'
   ];
+
+  if (loading || !data) {
+    return (
+      <footer id="contact" className="bg-zinc-950 pt-24 pb-8 border-t border-zinc-900">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 mb-16">
+          <LoadingSkeleton type="card" count={1} />
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer id="contact" className="bg-zinc-950 pt-24 pb-8 border-t border-zinc-900">
@@ -29,18 +31,24 @@ export default function Footer() {
             Informasi Kontak
           </h3>
           <div className="space-y-5 text-zinc-400 text-sm md:text-base">
-            <div className="flex items-start gap-4">
-              <Mail size={18} className="text-gold-500 mt-1 shrink-0" />
-              <span>{data.email}</span>
-            </div>
-            <div className="flex items-start gap-4">
-              <Clock size={18} className="text-gold-500 mt-1 shrink-0" />
-              <span dangerouslySetInnerHTML={{ __html: data.hours }}></span>
-            </div>
-            <div className="flex items-start gap-4">
-              <Phone size={18} className="text-gold-500 mt-1 shrink-0" />
-              <span>{data.phone}</span>
-            </div>
+            {data.email && (
+              <div className="flex items-start gap-4">
+                <Mail size={18} className="text-gold-500 mt-1 shrink-0" />
+                <span>{data.email}</span>
+              </div>
+            )}
+            {data.hours && (
+              <div className="flex items-start gap-4">
+                <Clock size={18} className="text-gold-500 mt-1 shrink-0" />
+                <span dangerouslySetInnerHTML={{ __html: data.hours }}></span>
+              </div>
+            )}
+            {data.phone && (
+              <div className="flex items-start gap-4">
+                <Phone size={18} className="text-gold-500 mt-1 shrink-0" />
+                <span>{data.phone}</span>
+              </div>
+            )}
           </div>
 
           <h3 className="text-lg font-bold text-white mt-10 mb-5">Social Media</h3>

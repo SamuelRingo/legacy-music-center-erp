@@ -1,15 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
 import api from '../../../lib/api';
+import { useLandingContent } from './useLandingContent';
 
 export default function ChatBotWidget() {
+  const { data, loading } = useLandingContent('chatbot', { greeting: 'Halo! Selamat datang di Legacy Music Center. Apakah ada yang bisa saya bantu?' });
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { text: 'Halo! Selamat datang di Legacy Music Center. Apakah ada yang bisa saya bantu?', isBot: true }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!loading && data && data.greeting) {
+      setMessages([{ text: data.greeting, isBot: true }]);
+    }
+  }, [loading, data]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

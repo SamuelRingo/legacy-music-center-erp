@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLandingContent } from './useLandingContent';
+import LoadingSkeleton from '../../../components/shared/LoadingSkeleton';
 
 const fallbackImages = [
   { src: '/Jumbotron8.webp', alt: 'Aktivitas 1' },
@@ -13,7 +14,7 @@ const fallbackImages = [
 export default function About() {
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  const { data } = useLandingContent('about', {
+  const { data, loading } = useLandingContent('about', {
     title: 'Tempat Di Mana Musik Hidup',
     description: 'Legacy Music Center membuka dunia musik melalui bimbingan dari guru yang berpengalaman, paparan program transformatif dan akses ke fasilitas yang modern dan ceria.\n\nFakultas kami mempunyai guru-guru yang berdedikasi dan seniman komunikatif. Mereka telah berkompeten dalam mengajar musik, melatih ansambel, dan memberikan arahan terbaik kepada murid-murid.',
     stat_courses: '9+',
@@ -41,6 +42,16 @@ export default function About() {
   const prev = () => setCurrentIdx((prev) => (prev - 1 + slides.length) % slides.length);
   const next = () => setCurrentIdx((prev) => (prev + 1) % slides.length);
 
+  if (loading || !data) {
+    return (
+      <section id="about" className="py-24 bg-zinc-900 text-zinc-300">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <LoadingSkeleton type="card" count={1} />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="about" className="py-24 bg-zinc-900 text-zinc-300">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -52,24 +63,24 @@ export default function About() {
           {/* Content */}
           <div className="space-y-8">
             <h3 className="text-3xl md:text-4xl font-bold text-white leading-tight">
-              {data.title || 'Tempat Di Mana Musik Hidup'}
+              {data.title}
             </h3>
             <div className="space-y-4 text-lg whitespace-pre-wrap">
-              {data.description || 'Deskripsi Legacy Music Center'}
+              {data.description}
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 pt-8 border-t border-zinc-800">
               <div className="text-center sm:text-left">
-                <p className="text-4xl font-bold text-gold-500 mb-2">{data.stat_courses || '9+'}</p>
+                <p className="text-4xl font-bold text-gold-500 mb-2">{data.stat_courses}</p>
                 <p className="text-sm uppercase tracking-wider font-semibold">Jenis Kursus</p>
               </div>
               <div className="text-center sm:text-left">
-                <p className="text-4xl font-bold text-gold-500 mb-2">{data.stat_grades || '5'}</p>
+                <p className="text-4xl font-bold text-gold-500 mb-2">{data.stat_grades}</p>
                 <p className="text-sm uppercase tracking-wider font-semibold">Grade Level</p>
               </div>
               <div className="text-center sm:text-left">
-                <p className="text-4xl font-bold text-gold-500 mb-2">{data.stat_teachers || '10+'}</p>
+                <p className="text-4xl font-bold text-gold-500 mb-2">{data.stat_teachers}</p>
                 <p className="text-sm uppercase tracking-wider font-semibold">Instruktur</p>
               </div>
             </div>

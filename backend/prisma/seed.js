@@ -9,7 +9,6 @@ async function main() {
   if (userCount === 0) {
     console.log('Cleaning up database...');
     // Delete in reverse order of foreign keys
-    await prisma.landingContent.deleteMany();
     await prisma.eventBanner.deleteMany();
     await prisma.invoice.deleteMany();
     await prisma.finalGrade.deleteMany();
@@ -305,41 +304,7 @@ async function main() {
     }
   });
 
-  // 10. LANDING CONTENT
-  console.log('Seeding Landing Content...');
-  const landingContents = [
-    { section: 'hero', key: 'slider_1', value: '/Jumbotron1.webp' },
-    { section: 'hero', key: 'slider_2', value: '/Jumbotron2.webp' },
-    { section: 'hero', key: 'slider_3', value: '/Jumbotron3.webp' },
-    { section: 'hero', key: 'slider_4', value: '/Jumbotron4.webp' },
-    { section: 'hero', key: 'slider_5', value: '/Jumbotron5.webp' },
-    { section: 'hero', key: 'slider_6', value: '/Jumbotron6.webp' },
-    { section: 'hero', key: 'slider_7', value: '/Jumbotron7.webp' },
-    { section: 'hero', key: 'slider_8', value: '/Jumbotron8.webp' },
-    { section: 'hero', key: 'slider_9', value: '/Jumbotron9.webp' },
-    
-    { section: 'about', key: 'about_text', value: 'Legacy Music Center adalah institusi pendidikan musik terkemuka yang telah berdiri sejak tahun 2010. Kami berkomitmen untuk mencetak musisi-musisi berbakat dengan standar kurikulum internasional.' },
-    { section: 'about', key: 'stats_students', value: '1500+' },
-    { section: 'about', key: 'stats_teachers', value: '50+' },
-    { section: 'about', key: 'stats_awards', value: '25+' },
-    
-    { section: 'facility', key: 'facility_1_title', value: 'Ruang Kelas Kedap Suara' },
-    { section: 'facility', key: 'facility_1_desc', value: 'Fokus penuh dengan ruang kedap suara.' },
-    { section: 'facility', key: 'facility_2_title', value: 'Alat Musik Premium' },
-    { section: 'facility', key: 'facility_2_desc', value: 'Gunakan alat terbaik selama sesi latihan.' },
-    { section: 'facility', key: 'facility_3_title', value: 'Studio Rekaman' },
-    { section: 'facility', key: 'facility_3_desc', value: 'Rekam karyamu dengan standar industri.' },
-    
-    { section: 'footer', key: 'contact_address', value: 'Jl. Musik Harmoni No. 123, Jakarta Selatan' },
-    { section: 'footer', key: 'contact_phone', value: '+62 21 555 1234' },
-    { section: 'footer', key: 'contact_email', value: 'info@legacymusik.sch.id' },
-    
-    { section: 'chatbot', key: 'greeting', value: 'Halo! Selamat datang di Legacy Music Center. Ada yang bisa kami bantu?' }
-  ];
 
-  for (const content of landingContents) {
-    await prisma.landingContent.create({ data: content });
-  }
   
   } else {
     console.log('Phase 1 data already exists. Skipping Phase 1 seed.');
@@ -436,6 +401,69 @@ async function main() {
         data: { gradeLevel: 2, currentMonth: 2 }
       });
       console.log('Updated Ani Piano enrollment with gradeLevel 2, currentMonth 2');
+    }
+  }
+
+  // ==================== PHASE 3 SEEDING ====================
+  // 10. LANDING CONTENT (Always check & seed if missing)
+  console.log('Seeding Landing Content...');
+  const newLandingContents = [
+    { section: 'hero', key: 'slider_1', value: '/Jumbotron1.webp' },
+    { section: 'hero', key: 'slider_2', value: '/Jumbotron2.webp' },
+    { section: 'hero', key: 'slider_3', value: '/Jumbotron3.webp' },
+    { section: 'hero', key: 'slider_4', value: '/Jumbotron4.webp' },
+    { section: 'hero', key: 'slider_5', value: '/Jumbotron5.webp' },
+    { section: 'hero', key: 'slider_6', value: '/Jumbotron6.webp' },
+    { section: 'hero', key: 'slider_7', value: '/Jumbotron7.webp' },
+    { section: 'hero', key: 'slider_8', value: '/Jumbotron8.webp' },
+    { section: 'hero', key: 'slider_9', value: '/Jumbotron9.webp' },
+
+    { section: 'about', key: 'title', value: 'Tempat Di Mana Musik Hidup' },
+    { section: 'about', key: 'description', value: 'Legacy Music Center membuka dunia musik melalui bimbingan dari guru yang berpengalaman, paparan program transformatif dan akses ke fasilitas yang modern dan ceria.\n\nFakultas kami mempunyai guru-guru yang berdedikasi dan seniman komunikatif. Mereka telah berkompeten dalam mengajar musik, melatih ansambel, dan memberikan arahan terbaik kepada murid-murid.' },
+    { section: 'about', key: 'image_1', value: '/Admin1.webp' },
+    { section: 'about', key: 'image_2', value: '/Admin2.webp' },
+    { section: 'about', key: 'image_3', value: '/Admin3.webp' },
+    { section: 'about', key: 'stat_courses', value: '9+' },
+    { section: 'about', key: 'stat_grades', value: '5' },
+    { section: 'about', key: 'stat_teachers', value: '10+' },
+
+    { section: 'facility', key: 'f1_img', value: '/Piano.webp' },
+    { section: 'facility', key: 'f1_title', value: 'Piano' },
+    { section: 'facility', key: 'f1_desc', value: 'Fokus penuh dengan ruang kedap suara.' },
+    { section: 'facility', key: 'f2_img', value: '/Gitar.webp' },
+    { section: 'facility', key: 'f2_title', value: 'Alat Musik Premium' },
+    { section: 'facility', key: 'f2_desc', value: 'Gunakan alat terbaik selama sesi latihan.' },
+    { section: 'facility', key: 'f3_img', value: '/Drums.webp' },
+    { section: 'facility', key: 'f3_title', value: 'Studio Rekaman' },
+    { section: 'facility', key: 'f3_desc', value: 'Rekam karyamu dengan standar industri.' },
+    { section: 'facility', key: 'f4_img', value: '/Saxophone.webp' },
+    { section: 'facility', key: 'f4_title', value: 'Saxophone' },
+    { section: 'facility', key: 'f4_desc', value: 'Belajar meniup saxophone dengan teknik pernapasan yang benar.' },
+    { section: 'facility', key: 'f5_img', value: '/Biola.webp' },
+    { section: 'facility', key: 'f5_title', value: 'Violin' },
+    { section: 'facility', key: 'f5_desc', value: 'Eksplorasi keindahan nada biola dengan metode pengajaran terbaik.' },
+    { section: 'facility', key: 'f6_img', value: '/Vokal.webp' },
+    { section: 'facility', key: 'f6_title', value: 'Vocal' },
+    { section: 'facility', key: 'f6_desc', value: 'Latih vokal Anda untuk mencapai jangkauan nada yang lebih luas dan stabil.' },
+
+    { section: 'footer', key: 'email', value: 'info@legacymusik.sch.id' },
+    { section: 'footer', key: 'phone', value: '0812-xxxx-xxxx' },
+    { section: 'footer', key: 'hours', value: 'Senin - Sabtu, 09:00 - 18:00' },
+    { section: 'footer', key: 'address', value: 'Jl. Dr. Setiabudi No.31-29, Kesambi, Cirebon' },
+    { section: 'footer', key: 'maps_url', value: 'https://maps.google.com/maps?width=100%25&height=600&hl=en&q=Legacy%20Music%20Center+(My%20Business%20Name)&t=&z=14&ie=UTF8&iwloc=B&output=embed' },
+    { section: 'footer', key: 'instagram', value: 'https://instagram.com/legacymusiccenter' },
+    { section: 'footer', key: 'youtube', value: 'https://youtube.com/@legacymusiccenter' },
+    { section: 'footer', key: 'whatsapp', value: 'https://wa.me/6281200000000' },
+
+    { section: 'chatbot', key: 'system_prompt', value: 'Anda adalah AI asisten untuk Legacy Music Center. Jawab pertanyaan pengguna dengan ramah dan informatif menggunakan bahasa Indonesia yang baik dan benar.' }
+  ];
+
+  for (const content of newLandingContents) {
+    const existing = await prisma.landingContent.findFirst({
+      where: { section: content.section, key: content.key }
+    });
+    if (!existing) {
+      await prisma.landingContent.create({ data: content });
     }
   }
 
