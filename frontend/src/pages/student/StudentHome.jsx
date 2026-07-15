@@ -49,6 +49,20 @@ export default function StudentHome() {
         </div>
       </div>
 
+      {safeData.user?.status === 'PENDING' && (
+        <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-5 flex items-start gap-4">
+          <div className="bg-amber-100 dark:bg-amber-900/50 p-2 rounded-full shrink-0">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-amber-800 dark:text-amber-400">Akun Belum Aktif</h3>
+            <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
+              Akun Anda sedang dalam proses verifikasi. Silakan hubungi WA <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-amber-900 dark:hover:text-amber-300 transition-colors">0812-xxxx-xxxx</a> untuk mempercepat aktivasi.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column: Classes */}
         <div className="lg:col-span-2 space-y-6">

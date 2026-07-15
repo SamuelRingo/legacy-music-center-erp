@@ -100,9 +100,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     // Check if PENDING students can login
-    if (user.status === 'PENDING') {
-      return res.status(403).json({ message: 'Akun masih menunggu validasi staff' });
-    }
+    // Pengecekan PENDING dihapus agar murid bisa login dan melihat status mereka di dashboard
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
