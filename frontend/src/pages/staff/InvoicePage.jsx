@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import api from '../../lib/api';
+import { formatRupiah } from '../../lib/utils';
 import DataTable from '../../components/shared/DataTable';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { ActionMenu } from '../../components/shared/ActionMenu';
