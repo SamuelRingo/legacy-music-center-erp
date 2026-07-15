@@ -53,8 +53,12 @@ router.get('/courses/:id/students', async (req, res, next) => {
         teacher: { select: { name: true } },
         enrollments: {
           include: {
-            student: { select: { name: true } },
-            finalGrade: true
+            student: { 
+              include: { 
+                user: { select: { name: true } } 
+              } 
+            },
+            finalGrades: true
           }
         }
       }
@@ -65,10 +69,10 @@ router.get('/courses/:id/students', async (req, res, next) => {
       sched.enrollments.forEach(enr => {
         students.push({
           enrollmentId: enr.id,
-          studentName: enr.student?.name || 'Unknown',
+          studentName: enr.student?.user?.name || 'Unknown',
           scheduleName: sched.name,
           teacherName: sched.teacher?.name || '-',
-          grade: enr.finalGrade ? enr.finalGrade.score : '-'
+          grade: enr.finalGrades && enr.finalGrades.length > 0 ? enr.finalGrades[0].score : '-'
         });
       });
     });
