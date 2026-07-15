@@ -377,30 +377,96 @@ router.delete('/achievements/:id', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// Get attendance by date
 router.get('/staff-attendance', async (req, res, next) => {
   try {
-    const { month, year } = req.query;
-    let where = {};
-    if (month && year) {
-      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-      const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
-      where = { date: { gte: startDate, lte: endDate } };
-    }
-    const attendance = await prisma.staffAttendance.findMany({
-      where,
-      include: { user: { select: { name: true, role: true } } },
-      orderBy: { date: 'desc' }
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ message: 'Date is required' });
+
+    const targetDate = new Date(date);
+    
+    // Get all staff and teachers
+    const users = await prisma.user.findMany({
+      where: { role: { in: ['STAFF', 'TEACHER'] } },
+      select: { id: true, name: true, role: true }
     });
-    res.json(attendance);
+
+    // Get attendance for this date
+    const startOfDay = new Date(targetDate.setHours(0,0,0,0));
+    const endOfDay = new Date(targetDate.setHours(23,59,59,999));
+    
+    const attendances = await prisma.staffAttendance.findMany({
+      where: { date: { gte: startOfDay, lte: endOfDay } }
+    });
+
+    // Merge them
+    const result = users.map(user => {
+      const att = attendances.find(a => a.userId === user.id);
+      return {
+        userId: user.id,
+        name: user.name,
+        role: user.role,
+        status: att ? att.status : 'PRESENT', // default to PRESENT in UI, but return actual from DB
+        dbStatus: att ? att.status : null,
+        note: att ? att.note : ''
+      };
+    });
+
+    res.json(result);
   } catch (error) { next(error); }
 });
 
+// Upsert bulk attendance
 router.post('/staff-attendance', async (req, res, next) => {
   try {
-    const { userId, date, status, note } = req.body;
-    const attendance = await prisma.staffAttendance.create({
-      data: { userId, date: new Date(date), status, note }
+    const attendances = req.body; // Array of { userId, date, status, note }
+    
+    for (const item of attendances) {
+      const targetDate = new Date(item.date);
+      targetDate.setHours(12,0,0,0); // Ensure no timezone date shift issues
+
+      await prisma.staffAttendance.upsert({
+        where: {
+          userId_date: {
+            userId: item.userId,
+            date: targetDate
+          }
+        },
+        update: {
+          status: item.status,
+          note: item.note
+        },
+        create: {
+          userId: item.userId,
+          date: targetDate,
+          status: item.status,
+          note: item.note
+        }
+      });
+    }
+    
+    res.json({ message: 'Success' });
+  } catch (error) { next(error); }
+});
+
+// Get attendance history
+router.get('/staff-attendance/history', async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+    if (!month || !year) return res.status(400).json({ message: 'Month and year required' });
+
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+
+    const attendances = await prisma.staffAttendance.findMany({
+      where: { date: { gte: startDate, lte: endDate } },
+      include: { user: { select: { name: true, role: true } } },
+      orderBy: { date: 'desc' }
     });
+    
+    res.json(attendances);
+  } catch (error) { next(error); }
+});
     res.status(201).json(attendance);
   } catch (error) { next(error); }
 });
