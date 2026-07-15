@@ -149,16 +149,7 @@ export default function Sidebar({ user, isMobileOpen, isDesktopCollapsed, setIsM
               { label: 'Manajemen Barang', href: '/staff/inventory' },
             ]
           },
-          {
-            label: 'Kepegawaian',
-            icon: Briefcase,
-            type: 'category',
-            id: 'kepegawaian',
-            items: [
-              { label: 'Absensi Staff', href: '/admin/staff-attendance' },
-              { label: 'Gaji Staff', href: '/admin/staff-salary' },
-            ]
-          },
+
           {
             label: 'Manajemen Konten',
             icon: Palette,
