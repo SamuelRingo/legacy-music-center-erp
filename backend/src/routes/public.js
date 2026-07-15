@@ -74,30 +74,33 @@ router.post('/chatbot', async (req, res, next) => {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: 'Message required' });
     if (!apiKey) return res.status(500).json({ error: 'Gemini not configured' });
-    let systemPrompt = `Kamu adalah Customer Service Legacy Musik School. TUGAS UTAMA: Jawab pesan pengguna langsung ke intinya.
+    let systemPrompt = `Kamu adalah asisten FAQ (Tanya Jawab) untuk Legacy Music Center,
+sebuah sekolah musik di Cirebon.
 
-ATURAN SUPER KETAT:
-1. JANGAN PERNAH menampilkan proses berpikir, analisis, opsi, persona, tone, atau terjemahan.
-2. LANGSUNG tulis teks balasan akhir yang siap dibaca oleh pengguna.
-3. Maksimal 1-3 kalimat saja.
-4. Gunakan bahasa Indonesia yang ramah.
-5. Jika bertanya tentang kursus/biaya, jawab singkat dan arahkan ke WA 0812-xxxx-xxxx.
-6. DILARANG KERAS menggunakan format bullet points atau awalan seperti "User input", "Option", atau "Tone".`;
-
-    try {
-      const dbPrompt = await prisma.landingContent.findUnique({
-        where: { section_key: { section: 'chatbot', key: 'system_prompt' } }
-      });
-      if (dbPrompt && dbPrompt.value) {
-        systemPrompt = dbPrompt.value + `\n\nATURAN SISTEM (WAJIB DIIKUTI):
-1. JANGAN PERNAH menampilkan proses berpikir, analisis, atau opsi.
-2. LANGSUNG berikan teks balasan akhir.
-3. Maksimal 1-3 kalimat.
-4. DILARANG menggunakan awalan seperti "User input", "Option", atau "Tone".`;
-      }
-    } catch (e) {
-      console.warn('Failed to fetch chatbot prompt from DB, using fallback');
-    }
+ATURAN WAJIB:
+- Jawab HANYA 1-2 kalimat singkat dalam bahasa Indonesia.
+- Jika pengguna menyapa (Halo, Hai, dll), balas dengan sapaan singkat
+  dan tawarkan bantuan.
+- Jika pengguna bertanya tentang kursus yang tersedia, JAWAB:
+  'Kami menyediakan kursus Piano, Gitar, Biola, Vokal, Drum, dan lainnya.
+  Untuk info lengkap, klik menu Kursus di halaman utama.'
+- Jika pengguna bertanya tentang biaya/harga, JAWAB:
+  'Biaya kursus mulai dari Rp 300.000 per bulan. Untuk detailnya,
+  silakan hubungi WA 0812-xxxx-xxxx atau klik Daftar di halaman utama.'
+- Jika pengguna bertanya tentang cara daftar, JAWAB:
+  'Anda bisa mendaftar langsung melalui menu Daftar di website kami.
+  Setelah mendaftar, silakan hubungi WA 0812-xxxx-xxxx untuk konsultasi
+  kelas dan jadwal.'
+- Jika pengguna bertanya tentang jadwal, JAWAB:
+  'Jadwal kelas fleksibel, Senin sampai Sabtu. Silakan hubungi
+  WA 0812-xxxx-xxxx untuk menyesuaikan jadwal Anda.'
+- Jika pertanyaan DI LUAR topik di atas (seperti instrumen dijual,
+  model AI, cuaca, dll), JAWAB:
+  'Maaf, saya hanya bisa membantu seputar kursus musik di Legacy Music
+  Center. Silakan hubungi WA 0812-xxxx-xxxx untuk pertanyaan lainnya.'
+- JANGAN menawarkan produk, instrumen untuk dijual, atau informasi
+  di luar kursus musik.
+- JANGAN menggunakan lebih dari 2 kalimat.`;
 
     const response = await axios.post(
       'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent',
@@ -132,8 +135,6 @@ ATURAN SUPER KETAT:
     // Filter baris yang berisi meta-thinking (chain of thought)
     const lines = reply.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const validLines = lines.filter(line => {
-      if (line.startsWith('*')) return false;
-      
       const lower = line.toLowerCase();
       if (
         lower.includes('option') ||
@@ -145,7 +146,21 @@ ATURAN SUPER KETAT:
         lower.includes('meta-thinking') ||
         lower.includes('persona:') ||
         lower.includes('style:') ||
-        lower.includes('sentences?')
+        lower.includes('target topic:') ||
+        lower.includes('rule for') ||
+        lower.includes('length:') ||
+        lower.includes('language:') ||
+        lower.includes('accuracy:') ||
+        lower.includes('sentences?') ||
+        lower.includes('does it') ||
+        lower.includes('matches') ||
+        lower.includes('instruction') ||
+        lower.includes('rule') ||
+        lower.includes('yes.') ||
+        lower.includes('no.') ||
+        lower.includes('content:') ||
+        lower.includes('greeting') ||
+        lower.includes('offer help')
       ) {
         return false;
       }
@@ -153,8 +168,14 @@ ATURAN SUPER KETAT:
     });
 
     if (validLines.length > 0) {
-      // Ambil baris terakhir yang tersisa dan bersihkan dari tanda kutip awal/akhir jika ada
-      reply = validLines[validLines.length - 1].replace(/^["']|["']$/g, '');
+      // Ambil baris terakhir yang tersisa dan bersihkan dari asterisk, strip, spasi
+      reply = validLines[validLines.length - 1].replace(/^[\*\-\s]+/, '');
+      // Bersihkan catatan di akhir baris seperti "(Short, greets, offers help)."
+      reply = reply.replace(/\s*\([^)]+\)\.?$/, '');
+      // Bersihkan tanda kutip awal/akhir
+      reply = reply.replace(/^["']|["']$/g, '').trim();
+      // Bersihkan tanda kutip tertinggal jika polanya `?" (note)`
+      reply = reply.replace(/["']$/, '').trim();
     } else {
       reply = "";
     }
