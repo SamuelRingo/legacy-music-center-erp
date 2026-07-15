@@ -266,7 +266,7 @@ router.get('/schedules/:id', async (req, res, next) => {
       where: { id: req.params.id },
       include: {
         course: true,
-        teacher: { select: { id: true, name: true, phone: true } },
+        teacher: { select: { id: true, name: true } },
         classroom: true,
         _count: {
           select: { enrollments: true }
@@ -288,7 +288,7 @@ router.get('/schedules/:id/students', async (req, res, next) => {
       include: {
         student: {
           include: {
-            user: { select: { name: true, email: true, phone: true } }
+            user: { select: { name: true, email: true } }
           }
         },
         meetingAttendances: {
