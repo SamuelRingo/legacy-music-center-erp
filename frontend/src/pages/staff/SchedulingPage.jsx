@@ -522,15 +522,14 @@ export default function SchedulingPage() {
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-bold uppercase tracking-wider text-zinc-900">Laporan Jadwal Kelas</h2>
-            <p className="text-sm text-zinc-500 mt-1">Dicetak pada: {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            <h2 className="text-xl font-bold text-center text-zinc-900">Jadwal Kelas</h2>
+            <p className="text-sm text-center text-zinc-500 mb-4">Legacy Music Center</p>
           </div>
 
           <div className="mt-8">
             <table className="w-full text-sm border-collapse border border-zinc-300">
               <thead>
                 <tr className="bg-zinc-100">
-                  <th className="border border-zinc-300 px-3 py-2 text-left font-bold w-24">Hari</th>
                   <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Kursus</th>
                   <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Guru</th>
                   <th className="border border-zinc-300 px-3 py-2 text-left font-bold">Ruangan</th>
@@ -543,7 +542,7 @@ export default function SchedulingPage() {
                   if (row.isSeparator) {
                     return (
                       <tr key={`print-sep-${i}`} className="bg-zinc-100/50">
-                        <td colSpan={6} className="border border-zinc-300 px-3 py-2 font-bold text-zinc-900">
+                        <td colSpan={5} className="border border-zinc-300 px-3 py-2 font-bold text-zinc-900">
                           {row.day}
                         </td>
                       </tr>
@@ -551,12 +550,11 @@ export default function SchedulingPage() {
                   }
                   return (
                     <tr key={`print-${row.id}`}>
-                      <td className="border border-zinc-300 px-3 py-2">{row.day}</td>
                       <td className="border border-zinc-300 px-3 py-2">{row.course?.name}</td>
                       <td className="border border-zinc-300 px-3 py-2">{row.teacher?.name}</td>
                       <td className="border border-zinc-300 px-3 py-2">{row.classroom?.name}</td>
                       <td className="border border-zinc-300 px-3 py-2">{row.startTime} - {row.endTime}</td>
-                      <td className="border border-zinc-300 px-3 py-2 text-center">{row._count?.enrollments || 0}</td>
+                      <td className="border border-zinc-300 px-3 py-2 text-center">{row.enrollments?.length || 0}</td>
                     </tr>
                   );
                 })}
