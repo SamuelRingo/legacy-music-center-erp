@@ -12,12 +12,12 @@ export default function SplashScreen({ onComplete }) {
       return;
     }
 
-    // Play animation for 3 seconds
+    // Play animation for 4 seconds
     const timer = setTimeout(() => {
       setVisible(false);
       sessionStorage.setItem('splash_shown', 'true');
       onComplete?.();
-    }, 3000);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);

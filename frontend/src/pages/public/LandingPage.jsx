@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../../lib/api';
 import SplashScreen from './landing/SplashScreen';
 import Navbar from './landing/Navbar';
 import Hero from './landing/Hero';
@@ -15,14 +16,39 @@ export default function LandingPage() {
   const [showSplash, setShowSplash] = useState(() => {
     return !sessionStorage.getItem('splash_shown');
   });
+  const [dataReady, setDataReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([
+      api.get('/public/landing-content', { params: { section: 'hero' } }),
+      api.get('/public/landing-content', { params: { section: 'about' } }),
+      api.get('/public/landing-content', { params: { section: 'facility' } }),
+      api.get('/public/landing-content', { params: { section: 'footer' } }),
+      api.get('/public/landing-content', { params: { section: 'chatbot' } })
+    ]).finally(() => {
+      if (isMounted) {
+        setDataReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isFullyReady = dataReady && !showSplash;
 
   return (
-    <div className="bg-zinc-950 text-white min-h-screen selection:bg-gold-500 selection:text-zinc-950">
-      <SplashScreen onComplete={() => setShowSplash(false)} />
+    <div className="bg-zinc-950 text-white min-h-screen selection:bg-gold-500 selection:text-zinc-950 relative">
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      
+      {!isFullyReady && (
+        <div className="fixed inset-0 bg-zinc-950 z-40" />
+      )}
       
       <div 
-        className="transition-opacity duration-1000"
-        style={{ opacity: showSplash ? 0 : 1 }}
+        className={`transition-opacity duration-700 ease-in-out ${isFullyReady ? 'opacity-100' : 'opacity-0'}`}
       >
         <Navbar />
         <main>
