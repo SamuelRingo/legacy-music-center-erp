@@ -165,8 +165,6 @@ export default function LandingCmsPage() {
     );
   }
 
-  const isEmpty = Object.keys(data).length === 0;
-
   return (
     <div className="space-y-6 p-6">
       <div>
@@ -182,16 +180,6 @@ export default function LandingCmsPage() {
           <TabsTrigger value="footer" className="rounded-lg"><MapPin className="w-4 h-4 mr-2"/> Footer</TabsTrigger>
           <TabsTrigger value="chatbot" className="rounded-lg"><MessageSquare className="w-4 h-4 mr-2"/> ChatBot</TabsTrigger>
         </TabsList>
-
-        {isEmpty && (
-          <div className="mt-8">
-            <EmptyState 
-              icon={LayoutTemplate} 
-              title="Belum Ada Konten" 
-              description="Data landing page belum tersedia atau belum ter-seeding ke database." 
-            />
-          </div>
-        )}
 
         {/* HERO TAB */}
         <TabsContent value="hero" className="space-y-6">
@@ -295,6 +283,7 @@ export default function LandingCmsPage() {
                       value={data.about?.title || ''} 
                       onChange={(e) => handleChange('about', 'title', e.target.value)} 
                       className="w-full"
+                      placeholder="Tempat Di Mana Musik Hidup"
                     />
                   </div>
                   
@@ -306,6 +295,7 @@ export default function LandingCmsPage() {
                       onChange={(e) => handleChange('about', 'description', e.target.value)} 
                       rows={6} 
                       className="w-full"
+                      placeholder="Legacy Music Center membuka dunia musik melalui bimbingan dari guru yang berpengalaman..."
                     />
                   </div>
                 </div>
@@ -314,15 +304,15 @@ export default function LandingCmsPage() {
                 <div className="space-y-6">
                   <div>
                     <Label className="mb-2 block">Jenis Kursus</Label>
-                    <Input value={data.about?.stat_courses || ''} onChange={(e) => handleChange('about', 'stat_courses', e.target.value)} className="w-full" />
+                    <Input value={data.about?.stat_courses || ''} onChange={(e) => handleChange('about', 'stat_courses', e.target.value)} className="w-full" placeholder="9+" />
                   </div>
                   <div>
                     <Label className="mb-2 block">Grade Level</Label>
-                    <Input value={data.about?.stat_grades || ''} onChange={(e) => handleChange('about', 'stat_grades', e.target.value)} className="w-full" />
+                    <Input value={data.about?.stat_grades || ''} onChange={(e) => handleChange('about', 'stat_grades', e.target.value)} className="w-full" placeholder="5" />
                   </div>
                   <div>
                     <Label className="mb-2 block">Total Instruktur</Label>
-                    <Input value={data.about?.stat_teachers || ''} onChange={(e) => handleChange('about', 'stat_teachers', e.target.value)} className="w-full" />
+                    <Input value={data.about?.stat_teachers || ''} onChange={(e) => handleChange('about', 'stat_teachers', e.target.value)} className="w-full" placeholder="10+" />
                   </div>
                 </div>
                 
@@ -415,11 +405,11 @@ export default function LandingCmsPage() {
                       <div className="flex-1 flex flex-col space-y-4">
                         <div>
                           <Label className="mb-2 block text-xs font-semibold uppercase text-zinc-500">Judul Fasilitas</Label>
-                          <Input value={data.facility?.[titleKey] || ''} onChange={(e) => handleChange('facility', titleKey, e.target.value)} className="w-full" />
+                          <Input value={data.facility?.[titleKey] || ''} onChange={(e) => handleChange('facility', titleKey, e.target.value)} className="w-full" placeholder="Belum ada konten" />
                         </div>
                         <div className="flex-1 flex flex-col">
                           <Label className="mb-2 block text-xs font-semibold uppercase text-zinc-500">Deskripsi</Label>
-                          <Textarea value={data.facility?.[descKey] || ''} onChange={(e) => handleChange('facility', descKey, e.target.value)} className="text-sm flex-1 w-full" rows={3} />
+                          <Textarea value={data.facility?.[descKey] || ''} onChange={(e) => handleChange('facility', descKey, e.target.value)} className="text-sm flex-1 w-full" rows={3} placeholder="Belum ada konten" />
                         </div>
                       </div>
                     </Card>
@@ -447,15 +437,15 @@ export default function LandingCmsPage() {
                 <div className="space-y-6">
                   <div>
                     <Label className="mb-2 block">Email</Label>
-                    <Input value={data.footer?.email || ''} onChange={(e) => handleChange('footer', 'email', e.target.value)} className="w-full" />
+                    <Input value={data.footer?.email || ''} onChange={(e) => handleChange('footer', 'email', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                   </div>
                   <div>
                     <Label className="mb-2 block">Telepon</Label>
-                    <Input value={data.footer?.phone || ''} onChange={(e) => handleChange('footer', 'phone', e.target.value)} className="w-full" />
+                    <Input value={data.footer?.phone || ''} onChange={(e) => handleChange('footer', 'phone', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                   </div>
                   <div>
                     <Label className="mb-2 block">Jam Operasional (Gunakan &lt;br/&gt; untuk baris baru)</Label>
-                    <Input value={data.footer?.hours || ''} onChange={(e) => handleChange('footer', 'hours', e.target.value)} className="w-full" />
+                    <Input value={data.footer?.hours || ''} onChange={(e) => handleChange('footer', 'hours', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                   </div>
                 </div>
 
@@ -463,11 +453,11 @@ export default function LandingCmsPage() {
                 <div className="space-y-6">
                   <div>
                     <Label className="mb-2 block">Alamat Lengkap</Label>
-                    <Textarea value={data.footer?.address || ''} onChange={(e) => handleChange('footer', 'address', e.target.value)} className="w-full" rows={4} />
+                    <Textarea value={data.footer?.address || ''} onChange={(e) => handleChange('footer', 'address', e.target.value)} className="w-full" rows={4} placeholder="Belum ada konten" />
                   </div>
                   <div>
                     <Label className="mb-2 block">URL Google Maps (Iframe Src)</Label>
-                    <Input value={data.footer?.maps_url || ''} onChange={(e) => handleChange('footer', 'maps_url', e.target.value)} className="w-full" />
+                    <Input value={data.footer?.maps_url || ''} onChange={(e) => handleChange('footer', 'maps_url', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                   </div>
                 </div>
               </div>
@@ -478,15 +468,15 @@ export default function LandingCmsPage() {
                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div>
                       <Label className="mb-2 block">Instagram URL</Label>
-                      <Input value={data.footer?.instagram || ''} onChange={(e) => handleChange('footer', 'instagram', e.target.value)} className="w-full" />
+                      <Input value={data.footer?.instagram || ''} onChange={(e) => handleChange('footer', 'instagram', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                     </div>
                     <div>
                       <Label className="mb-2 block">YouTube URL</Label>
-                      <Input value={data.footer?.youtube || ''} onChange={(e) => handleChange('footer', 'youtube', e.target.value)} className="w-full" />
+                      <Input value={data.footer?.youtube || ''} onChange={(e) => handleChange('footer', 'youtube', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                     </div>
                     <div>
                       <Label className="mb-2 block">WhatsApp URL</Label>
-                      <Input value={data.footer?.whatsapp || ''} onChange={(e) => handleChange('footer', 'whatsapp', e.target.value)} className="w-full" />
+                      <Input value={data.footer?.whatsapp || ''} onChange={(e) => handleChange('footer', 'whatsapp', e.target.value)} className="w-full" placeholder="Belum ada konten" />
                     </div>
                  </div>
               </div>
@@ -513,6 +503,7 @@ export default function LandingCmsPage() {
                   value={data.chatbot?.system_prompt || ''} 
                   onChange={(e) => handleChange('chatbot', 'system_prompt', e.target.value)} 
                   className="font-mono text-sm leading-relaxed bg-zinc-50 border-zinc-200 min-h-[300px] w-full" 
+                  placeholder="Belum ada konten"
                 />
               </div>
               
