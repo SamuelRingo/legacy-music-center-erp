@@ -56,7 +56,7 @@ export default function CoursesPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const payload = { name: formData.name, description: formData.description, price: formData.price };
+      const payload = { name: formData.name, description: formData.description, price: parseInt(formData.price) || 0 };
       if (modal.mode === 'create') {
         await api.post('/admin/courses', payload);
         toast.success('Kursus berhasil ditambahkan');
@@ -166,7 +166,16 @@ export default function CoursesPage() {
             </div>
             <div className="space-y-2">
               <Label>Harga (Rp)</Label>
-              <Input required type="number" min="0" step="1000" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="Cth: 300000" />
+              <Input 
+                required 
+                type="text" 
+                value={formData.price ? new Intl.NumberFormat('id-ID').format(formData.price) : ''} 
+                onChange={e => {
+                  const rawValue = e.target.value.replace(/\D/g, '');
+                  setFormData({ ...formData, price: rawValue ? parseInt(rawValue, 10) : '' });
+                }} 
+                placeholder="Cth: 300.000" 
+              />
             </div>
             <div className="space-y-2">
               <Label>Deskripsi</Label>
