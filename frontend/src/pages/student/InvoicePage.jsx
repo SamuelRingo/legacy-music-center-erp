@@ -66,7 +66,7 @@ export default function StudentInvoicePage() {
           onClick={() => onPrintClick(row)}
         >
           <Printer className="w-4 h-4 mr-2" />
-          Cetak Bukti Bayar
+          Cetak Invoice
         </Button>
       ) : '-'
     }
