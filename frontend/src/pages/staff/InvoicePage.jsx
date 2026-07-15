@@ -209,7 +209,7 @@ export default function InvoicePage() {
             <div>
               <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-12 object-contain" />
+                  <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
                   <div>
                     <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
                     <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
@@ -218,6 +218,7 @@ export default function InvoicePage() {
                 <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
                   Bukti Pembayaran
                 </h2>
+                <p className="text-center text-[10pt] mt-1 text-black">No. Referensi: {invoiceToPrint.id}</p>
               </div>
               
               <div className="mb-8 mt-6">
