@@ -53,8 +53,8 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      title="Harmonize Your Education."
-      subtitle="Manage classes, schedules, and progress with our state-of-the-art academy management system."
+      title="Belajar musik, berkembang bersama."
+      subtitle=""
     >
       <div className="mb-10 text-center md:text-left">
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">

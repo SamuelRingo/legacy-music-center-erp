@@ -102,8 +102,8 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout
-      title="Bergabunglah hari ini"
-      subtitle="Create an account to enroll in our world-class music programs and track your progress."
+      title="Langkah pertama menuju panggung musik."
+      subtitle=""
     >
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
