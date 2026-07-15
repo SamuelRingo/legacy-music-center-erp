@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
+import { ActionMenu } from '../../components/shared/ActionMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -196,18 +197,26 @@ export default function SchedulingPage() {
     {
       header: 'Aksi',
       cell: (row) => row.isSeparator ? null : (
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/staff/classes/${row.id}`)} className="h-8 p-0 px-2 text-zinc-600 border-zinc-200">
-            <Eye size={14} className="mr-1" />
-            <span className="text-xs">Lihat</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleOpenEdit(row)} className="h-8 w-8 p-0">
-            <Edit2 size={14} />
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(row)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
-            <Trash2 size={14} />
-          </Button>
-        </div>
+        <ActionMenu 
+          actions={[
+            {
+              label: 'Lihat Kelas',
+              icon: Eye,
+              onClick: () => navigate(`/staff/classes/${row.id}`)
+            },
+            {
+              label: 'Edit Jadwal',
+              icon: Edit2,
+              onClick: () => handleOpenEdit(row)
+            },
+            {
+              label: 'Hapus Jadwal',
+              icon: Trash2,
+              onClick: () => handleDeleteClick(row),
+              isDanger: true
+            }
+          ]}
+        />
       )
     }
   ];
