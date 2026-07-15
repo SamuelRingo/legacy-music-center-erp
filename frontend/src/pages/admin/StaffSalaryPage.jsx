@@ -235,7 +235,7 @@ export default function StaffSalaryPage() {
               <div className="space-y-2">
                 <Label>Pilih Staff/Guru</Label>
                 <Select value={form.userId} onValueChange={(val) => setForm({...form, userId: val})} disabled={!!modal.item}>
-                  <SelectTrigger><SelectValue placeholder="Pilih..." /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Pilih...">{form.userId ? users.find(u => u.id === form.userId)?.name : "Pilih..."}</SelectValue></SelectTrigger>
                   <SelectContent>
                     {users.map(u => (
                       <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
