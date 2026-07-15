@@ -101,12 +101,106 @@ export default function StaffAttendancePage() {
     };
   }, [history]);
 
-  const mappedHistory = useMemo(() => {
-    return history.sort((a, b) => new Date(b.date) - new Date(a.date)).map(h => ({
-      ...h,
-      staffName: h.user?.name || '-'
-    }));
+  const groupedHistory = useMemo(() => {
+    const groups = {};
+    history.forEach(h => {
+      const uid = h.userId;
+      if (!groups[uid]) {
+        groups[uid] = {
+          userId: uid,
+          staffName: h.user?.name || h.name || '-',
+          present: 0,
+          late: 0,
+          absent: 0,
+          total: 0,
+          details: []
+        };
+      }
+      groups[uid].total += 1;
+      if (h.status === 'PRESENT') groups[uid].present += 1;
+      else if (h.status === 'LATE' || h.status === 'LEAVE') groups[uid].late += 1;
+      else if (h.status === 'ABSENT') groups[uid].absent += 1;
+      
+      groups[uid].details.push(h);
+    });
+    
+    Object.values(groups).forEach(g => {
+      g.details.sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+    
+    return Object.values(groups).sort((a, b) => a.staffName.localeCompare(b.staffName));
   }, [history]);
+
+  const filteredGroupedHistory = useMemo(() => {
+    return groupedHistory.filter(g => g.staffName.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [groupedHistory, searchTerm]);
+
+  const StaffRow = ({ group }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+      <Collapsible asChild open={isOpen} onOpenChange={setIsOpen}>
+        <tbody className="border-b border-zinc-200 dark:border-zinc-800 last:border-0">
+          <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+            <TableCell className="font-medium text-zinc-900 dark:text-white">{group.staffName}</TableCell>
+            <TableCell className="text-center"><span className="text-emerald-600 font-bold">{group.present}</span></TableCell>
+            <TableCell className="text-center"><span className="text-amber-600 font-bold">{group.late}</span></TableCell>
+            <TableCell className="text-center"><span className="text-rose-600 font-bold">{group.absent}</span></TableCell>
+            <TableCell>
+              <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 flex overflow-hidden">
+                <div className="bg-emerald-500 h-full" style={{width: `${(group.present/group.total)*100}%`}}></div>
+                <div className="bg-amber-500 h-full" style={{width: `${(group.late/group.total)*100}%`}}></div>
+                <div className="bg-rose-500 h-full" style={{width: `${(group.absent/group.total)*100}%`}}></div>
+              </div>
+            </TableCell>
+            <TableCell className="text-right">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 text-zinc-500 hover:text-zinc-900 dark:hover:text-white" onClick={(e) => e.stopPropagation()}>
+                  Detail <ChevronDown className={`w-4 h-4 ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </TableCell>
+          </TableRow>
+          <CollapsibleContent asChild>
+            <TableRow className="border-0 bg-zinc-50/50 dark:bg-zinc-900/20">
+              <TableCell colSpan={6} className="p-0">
+                <div className="px-6 py-4">
+                  <table className="w-full text-sm text-left">
+                    <thead>
+                      <tr className="text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
+                        <th className="pb-2 font-medium w-32">Tanggal</th>
+                        <th className="pb-2 font-medium w-32">Status</th>
+                        <th className="pb-2 font-medium">Catatan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                      {group.details.map(detail => {
+                        let badgeClass = 'bg-zinc-100 text-zinc-700';
+                        let label = 'Unknown';
+                        if (detail.status === 'PRESENT') { badgeClass = 'bg-emerald-100 text-emerald-700'; label = 'Hadir'; }
+                        else if (detail.status === 'LATE') { badgeClass = 'bg-amber-100 text-amber-700'; label = 'Sakit/Izin'; }
+                        else if (detail.status === 'LEAVE') { badgeClass = 'bg-blue-100 text-blue-700'; label = 'Cuti'; }
+                        else if (detail.status === 'ABSENT') { badgeClass = 'bg-rose-100 text-rose-700'; label = 'Absen'; }
+
+                        return (
+                          <tr key={detail.id}>
+                            <td className="py-2 text-zinc-900 dark:text-zinc-300">{new Date(detail.date).toLocaleDateString('en-GB')}</td>
+                            <td className="py-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}`}>{label}</span>
+                            </td>
+                            <td className="py-2 text-zinc-600 dark:text-zinc-400">{detail.note || '-'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </TableCell>
+            </TableRow>
+          </CollapsibleContent>
+        </tbody>
+      </Collapsible>
+    )
+  };
 
   const handleAttendanceChange = (userId, field, value) => {
     setAttendanceSheet(prev => 
@@ -144,107 +238,11 @@ export default function StaffAttendancePage() {
     return (
       <DashboardLayout>
         <ErrorState message="Gagal memuat daftar absensi hari ini." onRetry={fetchSheet} />
-  
-      {/* Hidden Print Area */}
-      <div className="hidden">
-        <div ref={printRef} className="print:p-0 print:bg-white print:text-black print:text-[12pt] print:w-full print:max-w-full print:overflow-hidden p-8">
-          <style type="text/css" media="print">
-            {`
-              @page { size: A4; margin: 10mm; }
-              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            `}
-          </style>
-          
-          <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
-            <div className="flex items-center gap-4 mb-4">
-              <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
-              <div>
-                <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
-                <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
-              </div>
-            </div>
-            <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
-              Laporan Absensi Staff
-            </h2>
-            <p className="text-center text-[10pt] mt-1 text-black">
-              Bulan {BULAN.find(b => b.value.toString() === monthFilter)?.label} {yearFilter}
-            </p>
-          </div>
-          
-          <div className="hidden print:block">
-            <table className="w-full text-left border-collapse border border-black mb-8">
-              <thead>
-                <tr className="border-b border-black bg-zinc-100 print:bg-zinc-100">
-                  <th className="py-2 px-4 border-r border-black">Nama Staff</th>
-                  <th className="py-2 px-4 border-r border-black">Tanggal</th>
-                  <th className="py-2 px-4 border-r border-black">Status</th>
-                  <th className="py-2 px-4">Catatan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groupedHistory.flatMap(g => g.details.map(d => ({...d, staffName: g.staffName}))).map((h, idx) => {
-                  let statusLabel = 'Unknown';
-                  if (h.status === 'PRESENT') statusLabel = 'Hadir';
-                  else if (h.status === 'LATE') statusLabel = 'Sakit/Izin';
-                  else if (h.status === 'LEAVE') statusLabel = 'Cuti';
-                  else if (h.status === 'ABSENT') statusLabel = 'Absen';
-
-                  return (
-                    <tr key={h.id || idx} className="border-b border-black">
-                      <td className="py-2 px-4 border-r border-black font-medium">{h.staffName}</td>
-                      <td className="py-2 px-4 border-r border-black">{new Date(h.date).toLocaleDateString('en-GB')}</td>
-                      <td className="py-2 px-4 border-r border-black">{statusLabel}</td>
-                      <td className="py-2 px-4">{h.note || '-'}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-            
-            <div className="mt-16 text-right text-sm">
-              <p>Jakarta, {new Date().toLocaleDateString('id-ID')}</p>
-              <br/><br/><br/>
-              <p className="font-bold underline">HR / Admin</p>
-            </div>
-            
-            <div className="mt-8 pt-4 border-t border-zinc-300 text-center text-xs text-zinc-500">
-              Dicetak pada {new Date().toLocaleDateString('id-ID')} • © 2026 Legacy Music Center
-            </div>
-          </div>
-        </div>
-      </div>
-    </DashboardLayout>
-
+      </DashboardLayout>
     );
   }
 
-  const historyColumns = [
-    {
-      header: 'Nama Staff',
-      accessorKey: 'staffName',
-      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.staffName}</span>
-    },
-    {
-      header: 'Tanggal',
-      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400">{new Date(row.date).toLocaleDateString('en-GB')}</span>
-    },
-    {
-      header: 'Status',
-      cell: (row) => {
-        let badgeClass = 'bg-zinc-100 text-zinc-700';
-        let label = 'Unknown';
-        if (row.status === 'PRESENT') { badgeClass = 'bg-emerald-100 text-emerald-700'; label = 'Hadir'; }
-        else if (row.status === 'LATE') { badgeClass = 'bg-amber-100 text-amber-700'; label = 'Sakit/Izin'; }
-        else if (row.status === 'LEAVE') { badgeClass = 'bg-blue-100 text-blue-700'; label = 'Cuti'; }
-        else if (row.status === 'ABSENT') { badgeClass = 'bg-rose-100 text-rose-700'; label = 'Absen'; }
-        return <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${badgeClass}`}>{label}</span>;
-      }
-    },
-    {
-      header: 'Catatan',
-      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{row.note || '-'}</span>
-    }
-  ];
+
 
   return (
     <DashboardLayout>
