@@ -96,7 +96,8 @@ export default function StaffAttendancePage() {
   const historyMetrics = useMemo(() => {
     return {
       present: history.filter(h => h.status === 'PRESENT').length,
-      late: history.filter(h => h.status === 'LATE' || h.status === 'LEAVE').length,
+      late: history.filter(h => h.status === 'LATE').length,
+      leave: history.filter(h => h.status === 'LEAVE').length,
       absent: history.filter(h => h.status === 'ABSENT').length,
     };
   }, [history]);
@@ -384,9 +385,10 @@ export default function StaffAttendancePage() {
           <div className="space-y-6">
             
             {/* Row 1: Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
               <MetricCard title="Total Hadir" value={historyMetrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
-              <MetricCard title="Total Terlambat" value={historyMetrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+              <MetricCard title="Sakit / Izin" value={historyMetrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+              <MetricCard title="Total Cuti" value={historyMetrics.leave} icon={Clock} colorClass="text-blue-600" bgClass="bg-blue-100 dark:bg-blue-900/30" />
               <MetricCard title="Total Absen" value={historyMetrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
             </div>
 
