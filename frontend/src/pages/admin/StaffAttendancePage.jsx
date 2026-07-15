@@ -126,14 +126,20 @@ export default function StaffAttendancePage() {
     <DashboardLayout>
       <div className="space-y-8">
         
-        {/* TOP SECTION: Title */}
+        {/* TOP SECTION: Title and Metrics */}
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6">Absensi Staff</h1>
           
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <MetricCard title="Total Hadir" value={metrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
+            <MetricCard title="Total Terlambat" value={metrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+            <MetricCard title="Total Absen" value={metrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
+          </div>
+          
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* LEFT COLUMN: Date Picker and Metrics */}
-            <div className="lg:col-span-1 space-y-4">
-              <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            {/* LEFT COLUMN: Date Picker */}
+            <div className="lg:col-span-1">
+              <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm sticky top-6">
                 <h3 className="font-bold text-zinc-900 dark:text-white mb-3">Tanggal Absensi</h3>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Pilih tanggal untuk melihat atau mengisi rekap kehadiran hari tersebut.</p>
                 <Input 
@@ -143,16 +149,10 @@ export default function StaffAttendancePage() {
                   className="w-full"
                 />
               </div>
-              
-              <div className="space-y-4">
-                <MetricCard title="Total Hadir" value={metrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
-                <MetricCard title="Total Terlambat" value={metrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
-                <MetricCard title="Total Absen" value={metrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
-              </div>
             </div>
 
             {/* RIGHT COLUMN: Attendance Sheet */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2">
               <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden rounded-2xl">
                 <CardHeader className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 pb-4">
                   <CardTitle>Lembar Absensi</CardTitle>
