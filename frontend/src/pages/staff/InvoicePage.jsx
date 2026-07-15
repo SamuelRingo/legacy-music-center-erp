@@ -197,47 +197,66 @@ export default function InvoicePage() {
       />
 
       {/* HIDDEN PRINT COMPONENT */}
-      <div style={{ display: 'none' }}>
-        <div ref={printRef} className="p-8 text-black bg-white" style={{ width: '800px' }}>
+      <div className="hidden">
+        <div ref={printRef} className="print:p-0 print:bg-white print:text-black print:text-[12pt] print:w-full print:max-w-full print:overflow-hidden p-8">
+          <style type="text/css" media="print">
+            {`
+              @page { size: A4; margin: 10mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            `}
+          </style>
           {invoiceToPrint && (
             <div>
-              <div className="text-center mb-8 border-b-2 border-black pb-4">
-                <h1 className="text-3xl font-bold uppercase tracking-wider mb-2">Legacy Music Center</h1>
-                <h2 className="text-xl text-zinc-600">Bukti Pembayaran</h2>
+              <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-12 object-contain" />
+                  <div>
+                    <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
+                    <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+                  </div>
+                </div>
+                <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
+                  Bukti Pembayaran
+                </h2>
               </div>
               
-              <div className="mb-8">
+              <div className="mb-8 mt-6">
                 <p><strong>Nama Siswa:</strong> {invoiceToPrint.student?.user?.name}</p>
-                <p><strong>Tagihan Untuk:</strong> Bulan {invoiceToPrint.month} Tahun {invoiceToPrint.year}</p>
+                <p><strong>Bulan:</strong> {invoiceToPrint.month}</p>
+                <p><strong>Tahun:</strong> {invoiceToPrint.year}</p>
                 <p><strong>Status:</strong> {invoiceToPrint.status === 'PAID' ? 'LUNAS' : 'BELUM LUNAS'}</p>
                 {invoiceToPrint.paidAt && (
                   <p><strong>Tanggal Lunas:</strong> {new Date(invoiceToPrint.paidAt).toLocaleDateString('id-ID')}</p>
                 )}
               </div>
               
-              <table className="w-full text-left mb-8 border-collapse">
+              <table className="w-full text-left mb-8 border-collapse border border-black">
                 <thead>
-                  <tr className="border-b border-black">
-                    <th className="py-2">Deskripsi</th>
-                    <th className="py-2 text-right">Nominal</th>
+                  <tr className="border-b border-black bg-zinc-100 print:bg-zinc-100">
+                    <th className="py-2 px-4 border-r border-black">Deskripsi</th>
+                    <th className="py-2 px-4 text-right">Nominal</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-zinc-200">
-                    <td className="py-4">Pembayaran Biaya SPP / Kursus Musik</td>
-                    <td className="py-4 text-right font-medium">{formatRupiah(invoiceToPrint.amount)}</td>
+                  <tr className="border-b border-black">
+                    <td className="py-4 px-4 border-r border-black">Pembayaran Biaya SPP / Kursus Musik</td>
+                    <td className="py-4 px-4 text-right font-medium">{formatRupiah(invoiceToPrint.amount)}</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td className="py-4 font-bold text-lg">Total Pembayaran</td>
-                    <td className="py-4 text-right font-bold text-lg">{formatRupiah(invoiceToPrint.amount)}</td>
+                    <td className="py-4 px-4 font-bold text-lg border-r border-black">Total Pembayaran</td>
+                    <td className="py-4 px-4 text-right font-bold text-lg">{formatRupiah(invoiceToPrint.amount)}</td>
                   </tr>
                 </tfoot>
               </table>
               
-              <div className="mt-16 text-right">
-                <p className="text-sm text-zinc-500 italic">Dicetak pada {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+              <div className="hidden print:flex mt-12 pt-4 border-t-2 border-black text-[10pt] text-zinc-700 justify-between items-center break-inside-avoid">
+                <div className="w-1/3 text-left">
+                  Dicetak pada {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+                <div className="w-1/3 text-center">© {new Date().getFullYear()} Legacy Music Center</div>
+                <div className="w-1/3 text-right">Lembar 1/1</div>
               </div>
             </div>
           )}
