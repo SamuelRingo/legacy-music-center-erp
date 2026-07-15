@@ -25,10 +25,10 @@ export default function About() {
     image_3: '/Admin2.webp'
   });
 
-  const carouselImages = Object.keys(data)
-    .filter(k => k.startsWith('image_') && data[k])
+  const carouselImages = Object.keys(data || {})
+    .filter(k => k.startsWith('image_') && (data || {})[k])
     .sort()
-    .map(k => ({ src: data[k], alt: 'About Image' }));
+    .map(k => ({ src: (data || {})[k], alt: 'About Image' }));
 
   const slides = carouselImages.length > 0 ? carouselImages : fallbackImages;
 

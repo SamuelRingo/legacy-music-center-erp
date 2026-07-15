@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLandingContent } from './useLandingContent';
+import LoadingSkeleton from '../../../components/shared/LoadingSkeleton';
 
 const fallbackImages = [
   { src: '/Jumbotron1.webp', alt: 'Legacy Music 1' },
@@ -16,7 +17,7 @@ const fallbackImages = [
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const { data: contentData } = useLandingContent('hero', {
+  const { data: contentData, loading } = useLandingContent('hero', {
     slider_1: '/Jumbotron1.webp',
     slider_2: '/Jumbotron2.webp',
     slider_3: '/Jumbotron3.webp',
@@ -29,7 +30,7 @@ export default function Hero() {
   });
 
   // Convert content map to array of images
-  const carouselImages = Object.keys(contentData)
+  const carouselImages = Object.keys(contentData || {})
     .filter(key => key.startsWith('slider_') && contentData[key])
     .sort() // Ensure slider_1 comes before slider_2
     .map((key, index) => ({
@@ -46,6 +47,14 @@ export default function Hero() {
     }, 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  if (loading || !contentData) {
+    return (
+      <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-zinc-900">
+        <LoadingSkeleton type="card" count={1} />
+      </section>
+    );
+  }
 
   return (
     <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
