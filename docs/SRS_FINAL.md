@@ -31,3 +31,7 @@ Legacy Musik ERP adalah sistem administrasi sekolah musik berbasis web terintegr
 4. **Modul Akademik**: Jurnal, Presensi (Kehadiran), Nilai Akhir kelas.
 5. **Modul Keuangan (Invoicing)**: Generate invoice otomatis, validasi bukti transfer.
 6. **Modul Event/Informasi**: CMS pengelolaan konten Banner halaman Landing.
+
+7. **Modul Manajemen Keuangan & Inventaris**: Pencatatan transaksi pemasukan/pengeluaran dan manajemen data barang.
+8. **Modul Kepegawaian (HR)**: Absensi dan Gaji Staff.
+9. **Fitur Tambahan Terintegrasi**: Cetak Bukti Bayar Invoice, Akses Staff Lihat Kelas (Read-Only), Sistem Grade (Badge), dan Prestasi Siswa.

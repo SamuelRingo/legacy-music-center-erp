@@ -21,3 +21,19 @@ Hal ini akan meningkatkan kredibilitas rapor sekolah.
 ---
 
 *(Catatan Teknis)*: Seiring pengembangan fitur di atas, **Technical Debt** berupa kerentanan paket *(vulnerabilities)* di frontend (`esbuild`) maupun backend (`tar/bcrypt`) wajib diselesaikan melalui proses `npm audit fix --force` di masa post-MVP, yang mana membutuhkan tes integrasi ketat *(E2E)* agar tidak merusak fungsionalitas.
+
+
+---
+
+## Riwayat Penyelesaian (Fase 1-9)
+Seluruh daftar MVP Finishing di bawah ini telah diverifikasi dan diselesaikan 100%:
+
+- [x] **Fase 1**: Bug Fixes (Chatbot, Lupa Password, Phone Validation, Dropdown Kelas, Role Navigasi).
+- [x] **Fase 2**: Invoice System Update (Status Belum Lunas, dll).
+- [x] **Fase 3**: Student Home & Progress Detail (Badge Grade, Prestasi).
+- [x] **Fase 4**: Teacher Grade Update (Evaluasi akhir kelas).
+- [x] **Fase 5**: Landing Page & Public Features.
+- [x] **Fase 6**: Super Admin & Database Setup (Role Super Admin).
+- [x] **Fase 7**: Keuangan, Inventaris, Laporan Staff.
+- [x] **Fase 8**: Absensi & Gaji Staff (Super Admin).
+- [x] **Fase 9**: Final Polish, Testing E2E, Invoice Cetak, Staff Lihat Kelas, Update Docs.
