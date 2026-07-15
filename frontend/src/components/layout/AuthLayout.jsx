@@ -15,11 +15,7 @@ export default function AuthLayout({
         </div>
         
         <div className="relative z-10 flex flex-col justify-end p-12 lg:p-24 h-full text-white">
-          <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-medium w-max">
-            <span className={`w-2 h-2 rounded-full animate-pulse ${badgeColorClass}`}></span>
-            {badgeText}
-          </div>
-          <h1 className="text-4xl lg:text-6xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+          <h1 className="text-4xl lg:text-6xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400 leading-normal pb-2">
             {title}
           </h1>
           <p className="text-lg lg:text-xl text-zinc-300 font-light max-w-md leading-relaxed">

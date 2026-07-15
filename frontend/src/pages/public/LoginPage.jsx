@@ -55,15 +55,13 @@ export default function LoginPage() {
     <AuthLayout
       title="Harmonize Your Education."
       subtitle="Manage classes, schedules, and progress with our state-of-the-art academy management system."
-      badgeText="Legacy Musik ERP"
-      badgeColorClass="bg-cyan-400"
     >
       <div className="mb-10 text-center md:text-left">
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
-          Welcome back
+          Selamat datang kembali
         </h2>
         <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
-          Enter your credentials to access your dashboard.
+          Silakan masukkan kredensial Anda untuk melanjutkan.
         </p>
       </div>
 
@@ -148,9 +146,9 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
-        Don't have an account?{' '}
+        Belum punya akun?{' '}
         <Link to="/register" className="font-semibold text-zinc-900 hover:text-zinc-600 dark:text-white transition-colors">
-          Create an account
+          Daftar
         </Link>
       </div>
     </AuthLayout>
