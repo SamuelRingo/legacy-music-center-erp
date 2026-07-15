@@ -138,66 +138,60 @@ export default function StaffAttendancePage() {
   const StaffRow = ({ group }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
-      <Collapsible asChild open={isOpen} onOpenChange={setIsOpen}>
-        <tbody className="border-b border-zinc-200 dark:border-zinc-800 last:border-0">
-          <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-            <TableCell className="font-medium text-zinc-900 dark:text-white">{group.staffName}</TableCell>
-            <TableCell className="text-center"><span className="text-emerald-600 font-bold">{group.present}</span></TableCell>
-            <TableCell className="text-center"><span className="text-amber-600 font-bold">{group.late}</span></TableCell>
-            <TableCell className="text-center"><span className="text-rose-600 font-bold">{group.absent}</span></TableCell>
-            <TableCell>
-              <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 flex overflow-hidden">
-                <div className="bg-emerald-500 h-full" style={{width: `${(group.present/group.total)*100}%`}}></div>
-                <div className="bg-amber-500 h-full" style={{width: `${(group.late/group.total)*100}%`}}></div>
-                <div className="bg-rose-500 h-full" style={{width: `${(group.absent/group.total)*100}%`}}></div>
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 text-zinc-500 hover:text-zinc-900 dark:hover:text-white" onClick={(e) => e.stopPropagation()}>
-                  Detail <ChevronDown className={`w-4 h-4 ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                </Button>
-              </CollapsibleTrigger>
-            </TableCell>
-          </TableRow>
-          <CollapsibleContent asChild>
-            <TableRow className="border-0 bg-zinc-50/50 dark:bg-zinc-900/20">
-              <TableCell colSpan={6} className="p-0">
-                <div className="px-6 py-4">
-                  <table className="w-full text-sm text-left">
-                    <thead>
-                      <tr className="text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
-                        <th className="pb-2 font-medium w-32">Tanggal</th>
-                        <th className="pb-2 font-medium w-32">Status</th>
-                        <th className="pb-2 font-medium">Catatan</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                      {group.details.map(detail => {
-                        let badgeClass = 'bg-zinc-100 text-zinc-700';
-                        let label = 'Unknown';
-                        if (detail.status === 'PRESENT') { badgeClass = 'bg-emerald-100 text-emerald-700'; label = 'Hadir'; }
-                        else if (detail.status === 'LATE') { badgeClass = 'bg-amber-100 text-amber-700'; label = 'Sakit/Izin'; }
-                        else if (detail.status === 'LEAVE') { badgeClass = 'bg-blue-100 text-blue-700'; label = 'Cuti'; }
-                        else if (detail.status === 'ABSENT') { badgeClass = 'bg-rose-100 text-rose-700'; label = 'Absen'; }
+      <Collapsible render={<tbody className="border-b border-zinc-200 dark:border-zinc-800 last:border-0" />} open={isOpen} onOpenChange={setIsOpen}>
+        <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+          <TableCell className="font-medium text-zinc-900 dark:text-white">{group.staffName}</TableCell>
+          <TableCell className="text-center"><span className="text-emerald-600 font-bold">{group.present}</span></TableCell>
+          <TableCell className="text-center"><span className="text-amber-600 font-bold">{group.late}</span></TableCell>
+          <TableCell className="text-center"><span className="text-rose-600 font-bold">{group.absent}</span></TableCell>
+          <TableCell>
+            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 flex overflow-hidden">
+              <div className="bg-emerald-500 h-full" style={{width: `${(group.present/group.total)*100}%`}}></div>
+              <div className="bg-amber-500 h-full" style={{width: `${(group.late/group.total)*100}%`}}></div>
+              <div className="bg-rose-500 h-full" style={{width: `${(group.absent/group.total)*100}%`}}></div>
+            </div>
+          </TableCell>
+          <TableCell className="text-right">
+            <CollapsibleTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-zinc-950 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 h-8 px-3 text-zinc-500" onClick={(e) => e.stopPropagation()}>
+              Detail <ChevronDown className={`w-4 h-4 ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </CollapsibleTrigger>
+          </TableCell>
+        </TableRow>
+        <CollapsibleContent render={<tr className="border-0 bg-zinc-50/50 dark:bg-zinc-900/20" />}>
+          <TableCell colSpan={6} className="p-0">
+            <div className="px-6 py-4">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
+                    <th className="pb-2 font-medium w-32">Tanggal</th>
+                    <th className="pb-2 font-medium w-32">Status</th>
+                    <th className="pb-2 font-medium">Catatan</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                  {group.details.map(detail => {
+                    let badgeClass = 'bg-zinc-100 text-zinc-700';
+                    let label = 'Unknown';
+                    if (detail.status === 'PRESENT') { badgeClass = 'bg-emerald-100 text-emerald-700'; label = 'Hadir'; }
+                    else if (detail.status === 'LATE') { badgeClass = 'bg-amber-100 text-amber-700'; label = 'Sakit/Izin'; }
+                    else if (detail.status === 'LEAVE') { badgeClass = 'bg-blue-100 text-blue-700'; label = 'Cuti'; }
+                    else if (detail.status === 'ABSENT') { badgeClass = 'bg-rose-100 text-rose-700'; label = 'Absen'; }
 
-                        return (
-                          <tr key={detail.id}>
-                            <td className="py-2 text-zinc-900 dark:text-zinc-300">{new Date(detail.date).toLocaleDateString('en-GB')}</td>
-                            <td className="py-2">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}`}>{label}</span>
-                            </td>
-                            <td className="py-2 text-zinc-600 dark:text-zinc-400">{detail.note || '-'}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </TableCell>
-            </TableRow>
-          </CollapsibleContent>
-        </tbody>
+                    return (
+                      <tr key={detail.id}>
+                        <td className="py-2 text-zinc-900 dark:text-zinc-300">{new Date(detail.date).toLocaleDateString('en-GB')}</td>
+                        <td className="py-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}`}>{label}</span>
+                        </td>
+                        <td className="py-2 text-zinc-600 dark:text-zinc-400">{detail.note || '-'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </TableCell>
+        </CollapsibleContent>
       </Collapsible>
     )
   };
