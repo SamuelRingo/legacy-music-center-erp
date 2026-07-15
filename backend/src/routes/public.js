@@ -74,20 +74,27 @@ router.post('/chatbot', async (req, res, next) => {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: 'Message required' });
     if (!apiKey) return res.status(500).json({ error: 'Gemini not configured' });
-    let systemPrompt = `Kamu adalah asisten Legacy Musik School di Tasikmalaya. 
-ATURAN PENTING:
-- Jawab HANYA dengan 1-3 kalimat final dalam bahasa Indonesia yang ramah.
-- JANGAN menampilkan proses berpikir, analisis, atau opsi jawaban.
-- JANGAN menampilkan 'Role:', 'Tone:', 'Option', atau meta-thinking apa pun.
-- Jika pengguna menyapa, balas dengan sapaan hangat dan tawarkan bantuan.
-- Jika pengguna bertanya tentang kursus, jadwal, atau biaya, berikan jawaban singkat dan arahkan ke halaman pendaftaran atau kontak WA 0812-xxxx-xxxx.
-- Jika ditanya di luar topik sekolah musik, arahkan kembali ke topik dengan sopan.
-- WAJIB mengembalikan balasan dalam format JSON murni dengan satu key "response". Contoh: {"response": "teks balasan di sini"}`;
+    let systemPrompt = `Kamu adalah Customer Service Legacy Musik School. TUGAS UTAMA: Jawab pesan pengguna langsung ke intinya.
+
+ATURAN SUPER KETAT:
+1. JANGAN PERNAH menampilkan proses berpikir, analisis, opsi, persona, tone, atau terjemahan.
+2. LANGSUNG tulis teks balasan akhir yang siap dibaca oleh pengguna.
+3. Maksimal 1-3 kalimat saja.
+4. Gunakan bahasa Indonesia yang ramah.
+5. Jika bertanya tentang kursus/biaya, jawab singkat dan arahkan ke WA 0812-xxxx-xxxx.
+6. DILARANG KERAS menggunakan format bullet points atau awalan seperti "User input", "Option", atau "Tone".`;
+
     try {
       const dbPrompt = await prisma.landingContent.findUnique({
         where: { section_key: { section: 'chatbot', key: 'system_prompt' } }
       });
-      if (dbPrompt && dbPrompt.value) systemPrompt = dbPrompt.value + '\nWAJIB format JSON murni: {"response": "..."}';
+      if (dbPrompt && dbPrompt.value) {
+        systemPrompt = dbPrompt.value + `\n\nATURAN SISTEM (WAJIB DIIKUTI):
+1. JANGAN PERNAH menampilkan proses berpikir, analisis, atau opsi.
+2. LANGSUNG berikan teks balasan akhir.
+3. Maksimal 1-3 kalimat.
+4. DILARANG menggunakan awalan seperti "User input", "Option", atau "Tone".`;
+      }
     } catch (e) {
       console.warn('Failed to fetch chatbot prompt from DB, using fallback');
     }
@@ -96,40 +103,34 @@ ATURAN PENTING:
       'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent',
       { 
         system_instruction: { parts: { text: systemPrompt } },
-        contents: [{ parts: [{ text: message }] }],
-        generationConfig: { responseMimeType: 'application/json' }
+        contents: [{ parts: [{ text: message }] }]
       },
       { headers: { 'Content-Type': 'application/json' }, params: { key: apiKey } }
     );
     
     let replyText = response.data.candidates[0].content.parts[0].text;
-    let reply = "";
-    try {
-      const match = replyText.match(/{"response"\s*:\s*"([^"]+)"}/);
-      if (match) {
-        reply = match[1];
-      } else {
-        // Fallback pencarian kalimat awalan
-        const lines = replyText.split('\n').filter(l => l.trim());
-        const validLine = lines.find(l => l.trim().match(/^(Halo|Selamat|Maaf|Ada)/i));
-        
-        if (validLine) {
-          reply = validLine.trim().replace(/^["']|["']$/g, '');
-        } else if (lines.length > 0) {
-          // Fallback baris terakhir
-          reply = lines[lines.length - 1].replace(/^["']|["']$/g, '');
-        } else {
-          reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx.";
-        }
-      }
-    } catch (e) {
-      console.warn('Gagal parse JSON dari Gemma:', e);
-      reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx.";
+    console.log('Raw response:', replyText);
+
+    let reply = replyText.trim();
+    
+    // Cleanup if model accidentally outputs markdown json block
+    if (reply.startsWith('```json')) {
+      try {
+        const jsonStr = reply.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(jsonStr);
+        reply = parsed.response || jsonStr;
+      } catch (e) {}
+    } else if (reply.startsWith('{') && reply.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(reply);
+        reply = parsed.response || reply;
+      } catch (e) {}
     }
     
-    // Fallback jika jawaban masih jelek/kosong
-    if (!reply || reply.includes('*   Role') || reply.includes('Rules:')) {
-      reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx.";
+    // Fallback jika jawaban kosong, "...", atau berisi meta-thinking
+    const isGarbage = reply.includes('*   ') || reply.includes('Option') || reply.includes('Tone:') || reply.includes('Persona:') || reply.includes("User's input");
+    if (!reply || reply === '...' || isGarbage) {
+      reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx untuk bantuan langsung.";
     }
 
     res.json({ reply });
