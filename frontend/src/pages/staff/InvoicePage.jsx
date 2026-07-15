@@ -14,8 +14,10 @@ import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
 import { useCachedQuery, clearCache } from '../../lib/cache';
 import MonthYearFilter from '../../components/shared/MonthYearFilter';
+import useFooterData from '../../hooks/useFooterData';
 
 export default function InvoicePage() {
+  const footer = useFooterData();
   const { clearDashboardCache } = useDashboardCache();
   const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
@@ -229,7 +231,7 @@ export default function InvoicePage() {
                   <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
                   <div>
                     <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
-                    <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+                    <p className="text-[10pt] text-zinc-700 m-0 p-0">{footer.address} | Telp: {footer.phone}</p>
                   </div>
                 </div>
                 <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">

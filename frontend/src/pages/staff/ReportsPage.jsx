@@ -11,8 +11,10 @@ import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
 import { useCachedQuery } from '../../lib/cache';
+import useFooterData from '../../hooks/useFooterData';
 
 export default function ReportsPage() {
+  const footer = useFooterData();
   const [activeTab, setActiveTab] = useState('finance');
   const printRef = useRef();
   
@@ -98,7 +100,7 @@ export default function ReportsPage() {
             <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-12 object-contain" />
             <div>
               <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
-              <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+              <p className="text-[10pt] text-zinc-700 m-0 p-0">{footer.address} | Telp: {footer.phone}</p>
             </div>
           </div>
           <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">

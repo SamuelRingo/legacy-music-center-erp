@@ -15,6 +15,7 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
 import EmptyState from '../../components/shared/EmptyState';
 import { toast } from 'sonner';
+import useFooterData from '../../hooks/useFooterData';
 
 const BULAN = [
   { value: 1, label: 'Januari' }, { value: 2, label: 'Februari' },
@@ -26,6 +27,7 @@ const BULAN = [
 ];
 
 export default function StaffAttendancePage() {
+  const footer = useFooterData();
   // State for Main Attendance Sheet
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceSheet, setAttendanceSheet] = useState([]);
@@ -500,7 +502,7 @@ export default function StaffAttendancePage() {
               <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
               <div>
                 <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
-                <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+                <p className="text-[10pt] text-zinc-700 m-0 p-0">{footer.address} | Telp: {footer.phone}</p>
               </div>
             </div>
             <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">

@@ -8,8 +8,10 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useCachedQuery } from '../../lib/cache';
+import useFooterData from '../../hooks/useFooterData';
 
 export default function StudentInvoicePage() {
+  const footer = useFooterData();
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
   const [invoiceToPrint, setInvoiceToPrint] = useState(null);
@@ -115,7 +117,7 @@ export default function StudentInvoicePage() {
                   <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
                   <div>
                     <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
-                    <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+                    <p className="text-[10pt] text-zinc-700 m-0 p-0">{footer.address} | Telp: {footer.phone}</p>
                   </div>
                 </div>
                 <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
