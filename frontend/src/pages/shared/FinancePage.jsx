@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../../lib/api';
 import { useCachedQuery, clearCache } from '../../lib/cache';
@@ -31,20 +31,40 @@ export default function FinancePage() {
   const isAdmin = location.pathname.startsWith('/admin');
   const apiPrefix = isAdmin ? '/admin' : '/staff';
 
-  const [monthFilter, setMonthFilter] = useState(new Date().getMonth() + 1);
-  const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
+  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
+
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
-    const res = await api.get(`${apiPrefix}/transactions`, {
-      params: { month: monthFilter, year: yearFilter }
-    });
-    return res.data;
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await api.get(`${apiPrefix}/transactions`, {
+        params: {
+          month: parseInt(monthFilter),
+          year: parseInt(yearFilter)
+        }
+      });
+      console.log('Fetched data:', res.data);
+      setTransactions(res.data.transactions || res.data);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(true);
+      toast.error('Gagal memuat data');
+    } finally {
+      setLoading(false);
+    }
   }, [apiPrefix, monthFilter, yearFilter]);
 
-  const { data: transactions, loading, error, refetch } = useCachedQuery(
-    `finance_${apiPrefix}_${monthFilter}_${yearFilter}`, 
-    fetchTransactions
-  );
+  useEffect(() => {
+    console.log('Fetching transactions for month:', monthFilter, 'year:', yearFilter);
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  const refetch = fetchTransactions;
 
   const [modal, setModal] = useState({ open: false, item: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,7 +217,7 @@ export default function FinancePage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Riwayat Transaksi</CardTitle>
             <div className="flex items-center gap-2">
-              <Select value={monthFilter.toString()} onValueChange={(val) => setMonthFilter(parseInt(val))}>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="w-32"><SelectValue placeholder="Bulan" /></SelectTrigger>
                 <SelectContent>
                   {BULAN.map((b) => (
@@ -205,7 +225,7 @@ export default function FinancePage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={yearFilter.toString()} onValueChange={(val) => setYearFilter(parseInt(val))}>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
                 <SelectTrigger className="w-24"><SelectValue placeholder="Tahun" /></SelectTrigger>
                 <SelectContent>
                   {[2024, 2025, 2026, 2027].map(y => (
@@ -216,7 +236,7 @@ export default function FinancePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <DataTable columns={columns} data={transactions || []} />
+            <DataTable columns={columns} data={transactions || []} searchKey="description" searchable={true} />
           </CardContent>
         </Card>
 

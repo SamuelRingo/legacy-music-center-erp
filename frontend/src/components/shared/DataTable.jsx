@@ -17,6 +17,7 @@ export default function DataTable({
   data = [], 
   searchKey, 
   searchPlaceholder = 'Cari...',
+  searchable = true,
   actionElement,
   filterOptions = [],
   isLoading = false,
@@ -90,11 +91,11 @@ export default function DataTable({
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      {(searchKey || filterOptions?.length > 0 || actionElement) && (
+      {(searchable || filterOptions?.length > 0 || actionElement) && (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-950 p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm">
         <div className="flex flex-1 items-center gap-2 w-full sm:w-auto">
           {/* Search Bar */}
-          {searchKey && (
+          {searchable && (
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
               <Input

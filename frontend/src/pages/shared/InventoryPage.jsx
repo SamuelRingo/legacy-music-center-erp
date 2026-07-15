@@ -173,7 +173,7 @@ export default function InventoryPage() {
             </Select>
           </CardHeader>
           <CardContent>
-            <DataTable columns={columns} data={filteredData} />
+            <DataTable columns={columns} data={filteredData} searchKey="name" searchable={true} />
           </CardContent>
         </Card>
 
