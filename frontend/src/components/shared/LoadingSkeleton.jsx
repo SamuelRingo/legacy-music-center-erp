@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function LoadingSkeleton({ type = 'table', rows = 5, columns = 3 }) {
+export default function LoadingSkeleton({ type = 'table', rows = 5, columns = 3, gridClassName }) {
   if (type === 'table') {
     return (
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
@@ -22,7 +22,7 @@ export default function LoadingSkeleton({ type = 'table', rows = 5, columns = 3 
 
   if (type === 'card') {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={gridClassName || "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"}>
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-sm">
             <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-lg animate-pulse mb-3"></div>

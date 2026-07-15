@@ -185,11 +185,7 @@ export default function FinancePage() {
   if (loading && !transactions) return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <LoadingSkeleton type="card" rows={1} />
-          <LoadingSkeleton type="card" rows={1} />
-          <LoadingSkeleton type="card" rows={1} />
-        </div>
+        <LoadingSkeleton type="card" rows={3} gridClassName="grid grid-cols-1 md:grid-cols-3 gap-4" />
         <LoadingSkeleton type="table" rows={5} columns={5} />
       </div>
     </DashboardLayout>
