@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import api from '../../lib/api';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import DataTable from '../../components/shared/DataTable';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, XCircle, Clock, Save } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Save, Printer } from 'lucide-react';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
@@ -82,6 +83,28 @@ export default function StaffAttendancePage() {
     fetchHistory();
   }, [fetchHistory]);
 
+
+  const printRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `Laporan_Absensi_Staff_${monthFilter}_${yearFilter}`,
+  });
+
+  const historyMetrics = useMemo(() => {
+    return {
+      present: history.filter(h => h.status === 'PRESENT').length,
+      late: history.filter(h => h.status === 'LATE' || h.status === 'LEAVE').length,
+      absent: history.filter(h => h.status === 'ABSENT').length,
+    };
+  }, [history]);
+
+  const mappedHistory = useMemo(() => {
+    return history.sort((a, b) => new Date(b.date) - new Date(a.date)).map(h => ({
+      ...h,
+      staffName: h.user?.name || '-'
+    }));
+  }, [history]);
+
   const handleAttendanceChange = (userId, field, value) => {
     setAttendanceSheet(prev => 
       prev.map(item => item.userId === userId ? { ...item, [field]: value } : item)
@@ -118,14 +141,85 @@ export default function StaffAttendancePage() {
     return (
       <DashboardLayout>
         <ErrorState message="Gagal memuat daftar absensi hari ini." onRetry={fetchSheet} />
-      </DashboardLayout>
+  
+      {/* Hidden Print Area */}
+      <div className="hidden">
+        <div ref={printRef} className="print:p-0 print:bg-white print:text-black print:text-[12pt] print:w-full print:max-w-full print:overflow-hidden p-8">
+          <style type="text/css" media="print">
+            {`
+              @page { size: A4; margin: 10mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            `}
+          </style>
+          
+          <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
+            <div className="flex items-center gap-4 mb-4">
+              <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
+              <div>
+                <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
+                <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+              </div>
+            </div>
+            <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
+              Laporan Absensi Staff
+            </h2>
+            <p className="text-center text-[10pt] mt-1 text-black">
+              Bulan {BULAN.find(b => b.value.toString() === monthFilter)?.label} {yearFilter}
+            </p>
+          </div>
+          
+          <div className="hidden print:block">
+            <table className="w-full text-left border-collapse border border-black mb-8">
+              <thead>
+                <tr className="border-b border-black bg-zinc-100 print:bg-zinc-100">
+                  <th className="py-2 px-4 border-r border-black">Nama Staff</th>
+                  <th className="py-2 px-4 border-r border-black">Tanggal</th>
+                  <th className="py-2 px-4 border-r border-black">Status</th>
+                  <th className="py-2 px-4">Catatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mappedHistory.map((h, idx) => {
+                  let statusLabel = 'Unknown';
+                  if (h.status === 'PRESENT') statusLabel = 'Hadir';
+                  else if (h.status === 'LATE') statusLabel = 'Sakit/Izin';
+                  else if (h.status === 'LEAVE') statusLabel = 'Cuti';
+                  else if (h.status === 'ABSENT') statusLabel = 'Absen';
+
+                  return (
+                    <tr key={h.id || idx} className="border-b border-black">
+                      <td className="py-2 px-4 border-r border-black font-medium">{h.staffName}</td>
+                      <td className="py-2 px-4 border-r border-black">{new Date(h.date).toLocaleDateString('en-GB')}</td>
+                      <td className="py-2 px-4 border-r border-black">{statusLabel}</td>
+                      <td className="py-2 px-4">{h.note || '-'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            
+            <div className="mt-16 text-right text-sm">
+              <p>Jakarta, {new Date().toLocaleDateString('id-ID')}</p>
+              <br/><br/><br/>
+              <p className="font-bold underline">HR / Admin</p>
+            </div>
+            
+            <div className="mt-8 pt-4 border-t border-zinc-300 text-center text-xs text-zinc-500">
+              Dicetak pada {new Date().toLocaleDateString('id-ID')} • © 2026 Legacy Music Center
+            </div>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+
     );
   }
 
   const historyColumns = [
     {
-      header: 'Nama',
-      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</span>
+      header: 'Nama Staff',
+      accessorKey: 'staffName',
+      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.staffName}</span>
     },
     {
       header: 'Tanggal',
@@ -133,15 +227,15 @@ export default function StaffAttendancePage() {
     },
     {
       header: 'Status',
-      cell: (row) => (
-        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
-          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 
-          row.status === 'LEAVE' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'
-        }`}>
-          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Sakit/Izin' : row.status === 'LEAVE' ? 'Cuti' : 'Absen'}
-        </span>
-      )
+      cell: (row) => {
+        let badgeClass = 'bg-zinc-100 text-zinc-700';
+        let label = 'Unknown';
+        if (row.status === 'PRESENT') { badgeClass = 'bg-emerald-100 text-emerald-700'; label = 'Hadir'; }
+        else if (row.status === 'LATE') { badgeClass = 'bg-amber-100 text-amber-700'; label = 'Sakit/Izin'; }
+        else if (row.status === 'LEAVE') { badgeClass = 'bg-blue-100 text-blue-700'; label = 'Cuti'; }
+        else if (row.status === 'ABSENT') { badgeClass = 'bg-rose-100 text-rose-700'; label = 'Absen'; }
+        return <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${badgeClass}`}>{label}</span>;
+      }
     },
     {
       header: 'Catatan',
@@ -292,9 +386,13 @@ export default function StaffAttendancePage() {
         )}
 
         {activeTab === 'riwayat' && (
-          <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm mt-0">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4 bg-zinc-50 dark:bg-zinc-900">
-              <CardTitle>Riwayat Absensi Bulanan</CardTitle>
+          <div className="space-y-6">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div className="grid grid-cols-3 gap-4 w-full lg:w-auto">
+                <MetricCard title="Total Hadir" value={historyMetrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
+                <MetricCard title="Total Terlambat" value={historyMetrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+                <MetricCard title="Total Absen" value={historyMetrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
+              </div>
               <div className="flex items-center gap-2">
                 <Select value={monthFilter} onValueChange={setMonthFilter}>
                   <SelectTrigger className="w-32 bg-white dark:bg-zinc-950">
@@ -317,30 +415,110 @@ export default function StaffAttendancePage() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {loadingHistory ? (
-                <div className="p-6">
-                  <LoadingSkeleton type="table" rows={3} columns={4} />
-                </div>
-              ) : history.length === 0 ? (
-                <div className="p-6">
-                  <EmptyState title="Belum ada riwayat" description="Tidak ada data absensi di bulan ini." />
-                </div>
-              ) : (
-                <DataTable 
-                  columns={historyColumns} 
-                  data={history} 
-                  searchKey="note" 
-                  searchPlaceholder="Cari catatan..." 
-                  searchable={true} 
-                />
-              )}
-            </CardContent>
-          </Card>
+            </div>
+
+            <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm mt-0">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4 bg-zinc-50 dark:bg-zinc-900">
+                <CardTitle>Riwayat Absensi</CardTitle>
+                <Button variant="outline" onClick={handlePrint} className="border-zinc-200">
+                  <Printer className="w-4 h-4 mr-2" /> Cetak Riwayat
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                {loadingHistory ? (
+                  <div className="p-6">
+                    <LoadingSkeleton type="table" rows={3} columns={4} />
+                  </div>
+                ) : mappedHistory.length === 0 ? (
+                  <div className="p-6">
+                    <EmptyState title="Belum ada riwayat" description="Tidak ada data absensi di bulan ini." />
+                  </div>
+                ) : (
+                  <DataTable 
+                    columns={historyColumns} 
+                    data={mappedHistory} 
+                    searchKey="staffName" 
+                    searchPlaceholder="Cari nama staff..." 
+                    searchable={true} 
+                    pagination={false}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
         
       </div>
+
+      {/* Hidden Print Area */}
+      <div className="hidden">
+        <div ref={printRef} className="print:p-0 print:bg-white print:text-black print:text-[12pt] print:w-full print:max-w-full print:overflow-hidden p-8">
+          <style type="text/css" media="print">
+            {`
+              @page { size: A4; margin: 10mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            `}
+          </style>
+          
+          <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
+            <div className="flex items-center gap-4 mb-4">
+              <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-[120px] w-auto object-contain" />
+              <div>
+                <h1 className="text-[14pt] font-bold text-black m-0 p-0 leading-tight">Legacy Music Center</h1>
+                <p className="text-[10pt] text-zinc-700 m-0 p-0">Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345 | Telp: (021) 555-1234</p>
+              </div>
+            </div>
+            <h2 className="text-[14pt] font-bold text-center text-black m-0 uppercase underline decoration-2 underline-offset-4">
+              Laporan Absensi Staff
+            </h2>
+            <p className="text-center text-[10pt] mt-1 text-black">
+              Bulan {BULAN.find(b => b.value.toString() === monthFilter)?.label} {yearFilter}
+            </p>
+          </div>
+          
+          <div className="hidden print:block">
+            <table className="w-full text-left border-collapse border border-black mb-8">
+              <thead>
+                <tr className="border-b border-black bg-zinc-100 print:bg-zinc-100">
+                  <th className="py-2 px-4 border-r border-black">Nama Staff</th>
+                  <th className="py-2 px-4 border-r border-black">Tanggal</th>
+                  <th className="py-2 px-4 border-r border-black">Status</th>
+                  <th className="py-2 px-4">Catatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mappedHistory.map((h, idx) => {
+                  let statusLabel = 'Unknown';
+                  if (h.status === 'PRESENT') statusLabel = 'Hadir';
+                  else if (h.status === 'LATE') statusLabel = 'Sakit/Izin';
+                  else if (h.status === 'LEAVE') statusLabel = 'Cuti';
+                  else if (h.status === 'ABSENT') statusLabel = 'Absen';
+
+                  return (
+                    <tr key={h.id || idx} className="border-b border-black">
+                      <td className="py-2 px-4 border-r border-black font-medium">{h.staffName}</td>
+                      <td className="py-2 px-4 border-r border-black">{new Date(h.date).toLocaleDateString('en-GB')}</td>
+                      <td className="py-2 px-4 border-r border-black">{statusLabel}</td>
+                      <td className="py-2 px-4">{h.note || '-'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            
+            <div className="mt-16 text-right text-sm">
+              <p>Jakarta, {new Date().toLocaleDateString('id-ID')}</p>
+              <br/><br/><br/>
+              <p className="font-bold underline">HR / Admin</p>
+            </div>
+            
+            <div className="mt-8 pt-4 border-t border-zinc-300 text-center text-xs text-zinc-500">
+              Dicetak pada {new Date().toLocaleDateString('id-ID')} • © 2026 Legacy Music Center
+            </div>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
+
   );
 }
