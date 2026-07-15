@@ -5,6 +5,7 @@ import api from '../../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import AuthLayout from '../../components/layout/AuthLayout';
 
 export default function LoginPage() {
