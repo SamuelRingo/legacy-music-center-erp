@@ -67,9 +67,22 @@ router.post('/register', async (req, res, next) => {
       });
     }
 
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
     res.status(201).json({
       message: 'Pendaftaran berhasil. Silakan lanjutkan pembayaran.',
-      userId: user.id
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status
+      }
     });
   } catch (error) {
     next(error);

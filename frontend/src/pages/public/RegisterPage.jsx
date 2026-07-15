@@ -56,7 +56,14 @@ export default function RegisterPage() {
     setStatus('loading');
 
     try {
-      await api.post('/auth/register', formData);
+      const response = await api.post('/auth/register', formData);
+      const { token, user } = response.data;
+      
+      if (token && user) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
       setStatus('success');
     } catch (err) {
       setErrorMessage(err.response?.data?.message || 'Pendaftaran gagal, silakan coba lagi');
@@ -92,8 +99,8 @@ export default function RegisterPage() {
             </a>
           </div>
           
-          <Link to="/" className="inline-flex justify-center w-full bg-white text-zinc-900 hover:bg-zinc-100 font-semibold py-3.5 px-4 rounded-xl transition-colors">
-            Return to Homepage
+          <Link to="/student" className="inline-flex justify-center w-full bg-white text-zinc-900 hover:bg-zinc-100 font-semibold py-3.5 px-4 rounded-xl transition-colors">
+            Lanjut ke Dashboard
           </Link>
         </div>
       </div>
