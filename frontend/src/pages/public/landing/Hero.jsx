@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLandingContent } from './useLandingContent';
-import LoadingSkeleton from '../../../components/shared/LoadingSkeleton';
 
 const fallbackImages = [
   { src: '/Jumbotron1.webp', alt: 'Legacy Music 1' },
@@ -49,11 +48,7 @@ export default function Hero() {
   }, [slides.length]);
 
   if (loading || !contentData) {
-    return (
-      <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-zinc-900">
-        <LoadingSkeleton type="card" count={1} />
-      </section>
-    );
+    return <div className="h-screen bg-zinc-950" />;
   }
 
   return (
