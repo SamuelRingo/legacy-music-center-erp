@@ -158,7 +158,7 @@ export default function DataTable({
                   className={`font-semibold text-zinc-900 dark:text-zinc-300 select-none ${col.className || ''} ${col.accessorKey ? 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800' : ''}`}
                   onClick={() => col.accessorKey && handleSort(col.accessorKey)}
                 >
-                  <div className={`flex items-center gap-1 ${col.className?.includes('text-right') ? 'justify-end' : ''}`}>
+                  <div className={`flex items-center gap-1 ${col.className?.includes('text-right') ? 'justify-end' : ''} ${col.className?.includes('text-center') ? 'justify-center' : ''}`}>
                     {col.header}
                     {col.accessorKey && sortConfig.key === col.accessorKey && (
                       sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />
