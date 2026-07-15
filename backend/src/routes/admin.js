@@ -83,14 +83,25 @@ router.get('/courses/:id/students', async (req, res, next) => {
 
 router.post('/courses', async (req, res, next) => {
   try {
-    const course = await prisma.course.create({ data: req.body });
+    const { name, description, price } = req.body;
+    const course = await prisma.course.create({ 
+      data: { 
+        name, 
+        description, 
+        price: price !== undefined ? parseFloat(price) : 300000 
+      } 
+    });
     res.status(201).json(course);
   } catch (error) { next(error); }
 });
 
 router.put('/courses/:id', async (req, res, next) => {
   try {
-    const course = await prisma.course.update({ where: { id: req.params.id }, data: req.body });
+    const { name, description, price } = req.body;
+    const data = { name, description };
+    if (price !== undefined) data.price = parseFloat(price);
+    
+    const course = await prisma.course.update({ where: { id: req.params.id }, data });
     res.json(course);
   } catch (error) { next(error); }
 });

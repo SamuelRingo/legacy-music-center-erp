@@ -24,7 +24,7 @@ export default function CoursesPage() {
   const { data: coursesData, loading, error, refetch: fetchCourses } = useCachedQuery('admin_courses', fetchCoursesFn);
   const courses = coursesData || [];
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null });
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', price: 300000 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
@@ -47,7 +47,7 @@ export default function CoursesPage() {
 
   const openModal = (mode, data = null) => {
     setModal({ open: true, mode, data });
-    setFormData(data ? { name: data.name, description: data.description || '' } : { name: '', description: '' });
+    setFormData(data ? { name: data.name, description: data.description || '', price: data.price || 300000 } : { name: '', description: '', price: 300000 });
   };
 
   const closeModal = () => setModal({ open: false, mode: 'create', data: null });
@@ -56,7 +56,7 @@ export default function CoursesPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const payload = { name: formData.name, description: formData.description };
+      const payload = { name: formData.name, description: formData.description, price: formData.price };
       if (modal.mode === 'create') {
         await api.post('/admin/courses', payload);
         toast.success('Kursus berhasil ditambahkan');
@@ -91,6 +91,10 @@ export default function CoursesPage() {
 
   const columns = [
     { header: 'Nama Kursus', accessorKey: 'name' },
+    { 
+      header: 'Harga', 
+      cell: (row) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(row.price || 300000)
+    },
     { 
       header: 'Deskripsi', 
       accessorKey: 'description', 
@@ -159,6 +163,10 @@ export default function CoursesPage() {
             <div className="space-y-2">
               <Label>Nama Kursus</Label>
               <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Cth: Piano Klasik" />
+            </div>
+            <div className="space-y-2">
+              <Label>Harga (Rp)</Label>
+              <Input required type="number" min="0" step="1000" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="Cth: 300000" />
             </div>
             <div className="space-y-2">
               <Label>Deskripsi</Label>

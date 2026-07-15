@@ -32,15 +32,15 @@ async function main() {
   // 1. COURSES
   console.log('Seeding Courses...');
   const coursesData = [
-    { name: 'Piano', description: 'Pelajari teknik dasar hingga mahir bermain piano klasik dan pop.' },
-    { name: 'Gitar', description: 'Kuasai berbagai teknik petikan dan chord gitar akustik maupun elektrik.' },
-    { name: 'Drums', description: 'Tingkatkan kemampuan ritme dan koordinasi dengan kursus drum intensif.' },
-    { name: 'Saxophone', description: 'Belajar meniup saxophone dengan teknik pernapasan yang benar.' },
-    { name: 'Violin', description: 'Eksplorasi keindahan nada biola dengan metode pengajaran terbaik.' },
-    { name: 'Vocal', description: 'Latih vokal Anda untuk mencapai jangkauan nada yang lebih luas dan stabil.' },
-    { name: 'Combo Class', description: 'Kelas bermain dalam format band untuk melatih kerja sama tim.' },
-    { name: 'Cello', description: 'Rasakan kedalaman suara instrumen string dari cello.' },
-    { name: 'Music Production', description: 'Belajar merekam, mixing, dan mastering musik digital.' },
+    { name: 'Piano', description: 'Pelajari teknik dasar hingga mahir bermain piano klasik dan pop.', price: 300000 },
+    { name: 'Gitar', description: 'Kuasai berbagai teknik petikan dan chord gitar akustik maupun elektrik.', price: 300000 },
+    { name: 'Drums', description: 'Tingkatkan kemampuan ritme dan koordinasi dengan kursus drum intensif.', price: 300000 },
+    { name: 'Saxophone', description: 'Belajar meniup saxophone dengan teknik pernapasan yang benar.', price: 300000 },
+    { name: 'Violin', description: 'Eksplorasi keindahan nada biola dengan metode pengajaran terbaik.', price: 300000 },
+    { name: 'Vocal', description: 'Latih vokal Anda untuk mencapai jangkauan nada yang lebih luas dan stabil.', price: 300000 },
+    { name: 'Combo Class', description: 'Kelas bermain dalam format band untuk melatih kerja sama tim.', price: 300000 },
+    { name: 'Cello', description: 'Rasakan kedalaman suara instrumen string dari cello.', price: 300000 },
+    { name: 'Music Production', description: 'Belajar merekam, mixing, dan mastering musik digital.', price: 300000 },
   ];
   
   const createdCourses = {};
