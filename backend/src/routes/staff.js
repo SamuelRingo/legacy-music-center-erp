@@ -283,6 +283,10 @@ router.get('/schedules/:id', async (req, res, next) => {
 // GET /api/staff/schedules/:id/students
 router.get('/schedules/:id/students', async (req, res, next) => {
   try {
+    const totalMeetings = await prisma.meeting.count({
+      where: { scheduleId: req.params.id }
+    });
+
     const enrollments = await prisma.enrollment.findMany({
       where: { scheduleId: req.params.id },
       include: {
@@ -291,9 +295,12 @@ router.get('/schedules/:id/students', async (req, res, next) => {
             user: { select: { name: true, email: true } }
           }
         },
-        meetingAttendances: {
-          orderBy: { meeting: { meetingDate: 'desc' } },
-          take: 1
+        _count: {
+          select: {
+            meetingAttendances: {
+              where: { status: 'HADIR' }
+            }
+          }
         },
         finalGrades: true
       }
@@ -302,7 +309,8 @@ router.get('/schedules/:id/students', async (req, res, next) => {
     const data = enrollments.map(e => ({
       ...e.student,
       gradeLevel: e.gradeLevel,
-      StudentAttendance: e.meetingAttendances,
+      attendedMeetings: e._count.meetingAttendances,
+      totalMeetings: totalMeetings,
       grades: e.finalGrades
     }));
     res.json(data);

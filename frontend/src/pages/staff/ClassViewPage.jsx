@@ -4,8 +4,6 @@ import { ArrowLeft, Users, Calendar, Clock, MapPin, Loader2, User } from 'lucide
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
 
 export default function ClassViewPage() {
   const { scheduleId } = useParams();
@@ -73,42 +71,24 @@ export default function ClassViewPage() {
       }
     },
     { 
-      header: 'Kehadiran Terakhir', 
+      header: 'Total Kehadiran', 
       cell: (row) => {
-        const lastAtt = row.StudentAttendance?.[0];
-        if (!lastAtt) return '-';
+        const attended = row.attendedMeetings || 0;
+        const total = row.totalMeetings || 0;
         
-        // Use a local component for the Select to maintain state locally without hitting API
-        const AttendanceDropdown = () => {
-          const [status, setStatus] = useState(lastAtt.status);
-          
-          let bgClass = 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300';
-          if (status === 'HADIR') bgClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
-          else if (status === 'SAKIT' || status === 'IZIN') bgClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-          else if (status === 'ABSEN') bgClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+        let bgClass = 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300';
+        if (total > 0) {
+          const ratio = attended / total;
+          if (ratio >= 0.8) bgClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+          else if (ratio >= 0.5) bgClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+          else bgClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+        }
 
-          return (
-            <Select 
-              value={status} 
-              onValueChange={(val) => {
-                setStatus(val);
-                toast.info('Halaman ini adalah mode baca (read-only). Perubahan absensi hanya berlaku lokal dan tidak disimpan ke server.', { duration: 3000 });
-              }}
-            >
-              <SelectTrigger className={`h-8 w-32 text-xs font-semibold border-0 ${bgClass}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="HADIR">Hadir</SelectItem>
-                <SelectItem value="SAKIT">Sakit</SelectItem>
-                <SelectItem value="IZIN">Izin</SelectItem>
-                <SelectItem value="ABSEN">Absen</SelectItem>
-              </SelectContent>
-            </Select>
-          );
-        };
-        
-        return <AttendanceDropdown />;
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${bgClass}`}>
+            {attended} / {total} Hadir
+          </span>
+        );
       } 
     }
   ];
