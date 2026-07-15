@@ -259,6 +259,75 @@ router.get('/schedules', async (req, res, next) => {
   }
 });
 
+// GET /api/staff/schedules/:id
+router.get('/schedules/:id', async (req, res, next) => {
+  try {
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: req.params.id },
+      include: {
+        course: true,
+        teacher: { select: { id: true, name: true, phone: true } },
+        classroom: true,
+        _count: {
+          select: { enrollments: true }
+        }
+      }
+    });
+    if (!schedule) return res.status(404).json({ message: 'Schedule not found' });
+    res.json(schedule);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/staff/schedules/:id/students
+router.get('/schedules/:id/students', async (req, res, next) => {
+  try {
+    const enrollments = await prisma.enrollment.findMany({
+      where: { scheduleId: req.params.id },
+      include: {
+        student: {
+          include: {
+            user: { select: { name: true, email: true, phone: true } },
+            StudentAttendance: {
+              where: { meeting: { scheduleId: req.params.id } },
+              orderBy: { meeting: { date: 'desc' } },
+              take: 1
+            },
+            grades: {
+              where: { scheduleId: req.params.id }
+            }
+          }
+        }
+      }
+    });
+    res.json(enrollments.map(e => e.student));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/staff/schedules/:id/meetings
+router.get('/schedules/:id/meetings', async (req, res, next) => {
+  try {
+    const meetings = await prisma.meeting.findMany({
+      where: { scheduleId: req.params.id },
+      include: {
+        _count: {
+          select: { attendances: true }
+        },
+        attendances: {
+          where: { status: 'PRESENT' }
+        }
+      },
+      orderBy: { date: 'desc' }
+    });
+    res.json(meetings);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/staff/dashboard-stats
 router.get('/dashboard-stats', async (req, res, next) => {
   try {

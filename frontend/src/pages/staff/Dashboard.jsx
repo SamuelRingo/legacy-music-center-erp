@@ -9,7 +9,7 @@ import EventsPage from './EventsPage';
 import LandingCmsPage from './LandingCmsPage';
 import ProfilePage from '../../components/shared/ProfilePage';
 import StudentDetailPage from '../shared/StudentDetailPage';
-import ClassDetailPage from '../teacher/ClassDetailPage';
+import ClassViewPage from './ClassViewPage';
 
 export default function StaffDashboard() {
 
@@ -25,7 +25,7 @@ export default function StaffDashboard() {
         <Route path="/landing-cms" element={<LandingCmsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/students/:id" element={<StudentDetailPage />} />
-        <Route path="/classes/:id" element={<ClassDetailPage readOnly={true} />} />
+        <Route path="/classes/:scheduleId" element={<ClassViewPage />} />
       </Routes>
     </DashboardLayout>
   );
