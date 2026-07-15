@@ -6,7 +6,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 router.use(authenticate);
-router.use(authorize('TEACHER'));
+router.use(authorize('TEACHER', 'STAFF', 'SUPER_ADMIN'));
 
 // GET /api/teacher/schedules — My teaching schedule
 router.get('/schedules', async (req, res, next) => {
