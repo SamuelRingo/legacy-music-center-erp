@@ -212,7 +212,7 @@ export default function ClassViewPage() {
 
       {/* Detail Pertemuan Dialog */}
       <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
-        <DialogContent className="w-[900px] max-w-[95vw]">
+        <DialogContent className="!w-[900px] !max-w-[95vw] sm:!max-w-[900px]">
           <DialogHeader>
             <DialogTitle>
               {selectedMeeting && `${selectedMeeting.topic || 'Pertemuan'} — ${new Date(selectedMeeting.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
