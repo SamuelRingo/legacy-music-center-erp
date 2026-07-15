@@ -144,14 +144,14 @@ export default function StaffAttendancePage() {
           <TableCell className="text-center"><span className="text-emerald-600 font-bold">{group.present}</span></TableCell>
           <TableCell className="text-center"><span className="text-amber-600 font-bold">{group.late}</span></TableCell>
           <TableCell className="text-center"><span className="text-rose-600 font-bold">{group.absent}</span></TableCell>
-          <TableCell>
+          <TableCell className="text-center">
             <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 flex overflow-hidden">
               <div className="bg-emerald-500 h-full" style={{width: `${(group.present/group.total)*100}%`}}></div>
               <div className="bg-amber-500 h-full" style={{width: `${(group.late/group.total)*100}%`}}></div>
               <div className="bg-rose-500 h-full" style={{width: `${(group.absent/group.total)*100}%`}}></div>
             </div>
           </TableCell>
-          <TableCell className="text-right">
+          <TableCell className="text-center">
             <CollapsibleTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-zinc-950 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 h-8 px-3 text-zinc-500" onClick={(e) => e.stopPropagation()}>
               Detail <ChevronDown className={`w-4 h-4 ml-1 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </CollapsibleTrigger>
@@ -455,8 +455,8 @@ export default function StaffAttendancePage() {
                             <TableHead className="text-center w-24">Hadir</TableHead>
                             <TableHead className="text-center w-32">Sakit/Izin/Cuti</TableHead>
                             <TableHead className="text-center w-24">Absen</TableHead>
-                            <TableHead className="w-[150px]">Status</TableHead>
-                            <TableHead className="text-right w-32">Aksi</TableHead>
+                            <TableHead className="text-center w-[150px]">Status</TableHead>
+                            <TableHead className="text-center w-32">Aksi</TableHead>
                           </TableRow>
                         </TableHeader>
                         {filteredGroupedHistory.length === 0 ? (
