@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import api from '../../lib/api';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import DataTable from '../../components/shared/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -113,12 +114,64 @@ export default function StaffAttendancePage() {
   };
 
   if (errorSheet) {
-    return (
+    const historyColumns = [
+    {
+      header: 'Nama',
+      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</span>
+    },
+    {
+      header: 'Tanggal',
+      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400">{new Date(row.date).toLocaleDateString('en-GB')}</span>
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
+          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+        }`}>
+          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
+        </span>
+      )
+    },
+    {
+      header: 'Catatan',
+      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{row.note || '-'}</span>
+    }
+  ];
+
+  return (
       <DashboardLayout>
         <ErrorState message="Gagal memuat daftar absensi hari ini." onRetry={fetchSheet} />
       </DashboardLayout>
     );
   }
+
+  const historyColumns = [
+    {
+      header: 'Nama',
+      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</span>
+    },
+    {
+      header: 'Tanggal',
+      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400">{new Date(row.date).toLocaleDateString('en-GB')}</span>
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
+          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+        }`}>
+          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
+        </span>
+      )
+    },
+    {
+      header: 'Catatan',
+      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{row.note || '-'}</span>
+    }
+  ];
 
   return (
     <DashboardLayout>
@@ -206,7 +259,33 @@ export default function StaffAttendancePage() {
                                 {['PRESENT', 'LATE', 'ABSENT'].map(status => {
                                   const labels = { 'PRESENT': 'Hadir', 'LATE': 'Terlambat', 'ABSENT': 'Absen' };
                                   const isActive = item.status === status;
-                                  return (
+                                  const historyColumns = [
+    {
+      header: 'Nama',
+      cell: (row) => <span className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</span>
+    },
+    {
+      header: 'Tanggal',
+      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400">{new Date(row.date).toLocaleDateString('en-GB')}</span>
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
+          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+        }`}>
+          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
+        </span>
+      )
+    },
+    {
+      header: 'Catatan',
+      cell: (row) => <span className="text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{row.note || '-'}</span>
+    }
+  ];
+
+  return (
                                     <button
                                       key={status}
                                       onClick={() => handleAttendanceChange(item.userId, 'status', status)}
@@ -293,35 +372,13 @@ export default function StaffAttendancePage() {
                   <EmptyState title="Belum ada riwayat" description="Tidak ada data absensi di bulan ini." />
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800">
-                      <tr>
-                        <th className="px-6 py-4 font-medium">Nama</th>
-                        <th className="px-6 py-4 font-medium">Tanggal</th>
-                        <th className="px-6 py-4 font-medium">Status</th>
-                        <th className="px-6 py-4 font-medium">Catatan</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                      {history.map((record) => (
-                        <tr key={record.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
-                          <td className="px-6 py-4 font-medium text-zinc-900 dark:text-white">{record.user?.name || '-'}</td>
-                          <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">{new Date(record.date).toLocaleDateString('en-GB')}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                              record.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
-                              record.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
-                            }`}>
-                              {record.status === 'PRESENT' ? 'Hadir' : record.status === 'LATE' ? 'Terlambat' : 'Absen'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400 max-w-xs truncate">{record.note || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <DataTable 
+                  columns={historyColumns} 
+                  data={history} 
+                  searchKey="note" 
+                  searchPlaceholder="Cari catatan..." 
+                  searchable={true} 
+                />
               )}
             </CardContent>
           </Card>
