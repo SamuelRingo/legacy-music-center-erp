@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, XCircle, Clock, Save, Printer } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Save, Printer, ChevronDown, Search } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
@@ -37,6 +39,7 @@ export default function StaffAttendancePage() {
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchSheet = useCallback(async () => {
     setLoadingSheet(true);
@@ -179,7 +182,7 @@ export default function StaffAttendancePage() {
                 </tr>
               </thead>
               <tbody>
-                {mappedHistory.map((h, idx) => {
+                {groupedHistory.flatMap(g => g.details.map(d => ({...d, staffName: g.staffName}))).map((h, idx) => {
                   let statusLabel = 'Unknown';
                   if (h.status === 'PRESENT') statusLabel = 'Hadir';
                   else if (h.status === 'LATE') statusLabel = 'Sakit/Izin';
@@ -433,19 +436,53 @@ export default function StaffAttendancePage() {
                   <div className="p-6">
                     <LoadingSkeleton type="table" rows={3} columns={4} />
                   </div>
-                ) : mappedHistory.length === 0 ? (
+                ) : groupedHistory.length === 0 ? (
                   <div className="p-6">
                     <EmptyState title="Belum ada riwayat" description="Tidak ada data absensi di bulan ini." />
                   </div>
                 ) : (
-                  <DataTable 
-                    columns={historyColumns} 
-                    data={mappedHistory} 
-                    searchKey="staffName" 
-                    searchPlaceholder="Cari nama staff..." 
-                    searchable={true} 
-                    pagination={false}
-                  />
+                  <div>
+                    {/* Search Bar */}
+                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center bg-white dark:bg-zinc-950">
+                      <div className="relative w-full max-w-xs">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                        <Input 
+                          placeholder="Cari nama staff..." 
+                          value={searchTerm} 
+                          onChange={(e) => setSearchTerm(e.target.value)} 
+                          className="pl-9 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                        />
+                      </div>
+                    </div>
+                    {/* Expandable Table */}
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-zinc-50 dark:bg-zinc-900/50">
+                          <TableRow>
+                            <TableHead>Nama Staff</TableHead>
+                            <TableHead className="text-center w-24">Hadir</TableHead>
+                            <TableHead className="text-center w-32">Sakit/Izin/Cuti</TableHead>
+                            <TableHead className="text-center w-24">Absen</TableHead>
+                            <TableHead className="w-[150px]">Status</TableHead>
+                            <TableHead className="text-right w-32">Aksi</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        {filteredGroupedHistory.length === 0 ? (
+                          <tbody>
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
+                                Tidak ada data yang cocok dengan "{searchTerm}"
+                              </TableCell>
+                            </TableRow>
+                          </tbody>
+                        ) : (
+                          filteredGroupedHistory.map(group => (
+                            <StaffRow key={group.userId} group={group} />
+                          ))
+                        )}
+                      </Table>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -491,7 +528,7 @@ export default function StaffAttendancePage() {
                 </tr>
               </thead>
               <tbody>
-                {mappedHistory.map((h, idx) => {
+                {groupedHistory.flatMap(g => g.details.map(d => ({...d, staffName: g.staffName}))).map((h, idx) => {
                   let statusLabel = 'Unknown';
                   if (h.status === 'PRESENT') statusLabel = 'Hadir';
                   else if (h.status === 'LATE') statusLabel = 'Sakit/Izin';
