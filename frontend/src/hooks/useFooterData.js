@@ -20,9 +20,9 @@ export default function useFooterData() {
   const { data, loading } = useCachedQuery('landing_footer_data', fetchFooterFn);
   
   return {
-    address: data?.footer_address || 'Jl. Musik Harmoni No. 88, Jakarta Selatan, 12345',
-    phone: data?.footer_phone || '(021) 555-1234',
-    email: data?.footer_email || 'hello@legacymusic.com',
+    address: data?.address || (loading ? 'Memuat...' : ''),
+    phone: data?.phone || (loading ? 'Memuat...' : ''),
+    email: data?.email || (loading ? 'Memuat...' : ''),
     loading
   };
 }
