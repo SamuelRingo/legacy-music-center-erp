@@ -514,28 +514,20 @@ export default function StaffAttendancePage() {
               <thead>
                 <tr className="border-b border-black bg-zinc-100 print:bg-zinc-100">
                   <th className="py-2 px-4 border-r border-black">Nama Staff</th>
-                  <th className="py-2 px-4 border-r border-black">Tanggal</th>
-                  <th className="py-2 px-4 border-r border-black">Status</th>
-                  <th className="py-2 px-4">Catatan</th>
+                  <th className="py-2 px-4 border-r border-black text-center">Total Hadir</th>
+                  <th className="py-2 px-4 border-r border-black text-center">Total Sakit/Izin/Cuti</th>
+                  <th className="py-2 px-4 text-center">Total Absen</th>
                 </tr>
               </thead>
               <tbody>
-                {groupedHistory.flatMap(g => g.details.map(d => ({...d, staffName: g.staffName}))).map((h, idx) => {
-                  let statusLabel = 'Unknown';
-                  if (h.status === 'PRESENT') statusLabel = 'Hadir';
-                  else if (h.status === 'LATE') statusLabel = 'Sakit/Izin';
-                  else if (h.status === 'LEAVE') statusLabel = 'Cuti';
-                  else if (h.status === 'ABSENT') statusLabel = 'Absen';
-
-                  return (
-                    <tr key={h.id || idx} className="border-b border-black">
-                      <td className="py-2 px-4 border-r border-black font-medium">{h.staffName}</td>
-                      <td className="py-2 px-4 border-r border-black">{new Date(h.date).toLocaleDateString('en-GB')}</td>
-                      <td className="py-2 px-4 border-r border-black">{statusLabel}</td>
-                      <td className="py-2 px-4">{h.note || '-'}</td>
-                    </tr>
-                  )
-                })}
+                {groupedHistory.map((group, idx) => (
+                  <tr key={group.userId || idx} className="border-b border-black">
+                    <td className="py-2 px-4 border-r border-black font-medium">{group.staffName}</td>
+                    <td className="py-2 px-4 border-r border-black text-center font-bold text-emerald-700">{group.present}</td>
+                    <td className="py-2 px-4 border-r border-black text-center font-bold text-amber-700">{group.late}</td>
+                    <td className="py-2 px-4 text-center font-bold text-rose-700">{group.absent}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             
