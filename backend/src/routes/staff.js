@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { supabase, getSignedUrl } from '../lib/supabase.js';
 import multer from 'multer';
-import { getStudentDetail, getTransactions, createTransaction, getInventory, createInventoryItem, updateInventoryItem } from './shared.js';
+import { getStudentDetail, getTransactions, createTransaction, updateTransaction, getInventory, createInventoryItem, updateInventoryItem } from './shared.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -671,6 +671,7 @@ router.put('/landing-content', async (req, res, next) => {
 router.get('/students/:id', getStudentDetail);
 router.get('/transactions', getTransactions);
 router.post('/transactions', createTransaction);
+router.put('/transactions/:id', updateTransaction);
 router.get('/inventory', getInventory);
 router.post('/inventory', createInventoryItem);
 router.put('/inventory/:id', updateInventoryItem);

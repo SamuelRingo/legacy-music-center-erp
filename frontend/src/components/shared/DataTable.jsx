@@ -90,7 +90,8 @@ export default function DataTable({
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-950 p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm">
+      {(searchKey || filterOptions?.length > 0 || actionElement) && (
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-950 p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm">
         <div className="flex flex-1 items-center gap-2 w-full sm:w-auto">
           {/* Search Bar */}
           {searchKey && (
@@ -143,6 +144,7 @@ export default function DataTable({
           </div>
         )}
       </div>
+      )}
 
       {/* Table */}
       <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden shadow-sm">

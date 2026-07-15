@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../../lib/api';
-import { useCachedQuery } from '../../lib/cache';
+import { useCachedQuery, clearCache } from '../../lib/cache';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Wallet, TrendingUp, TrendingDown, Edit2 } from 'lucide-react';
+import { ActionMenu } from '../../components/shared/ActionMenu';
+import { formatRupiah } from '../../lib/utils';
 import DataTable from '../../components/shared/DataTable';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
@@ -18,6 +20,14 @@ import { toast } from 'sonner';
 
 export default function FinancePage() {
   const location = useLocation();
+    const BULAN = [
+    { value: 1, label: 'Januari' }, { value: 2, label: 'Februari' },
+    { value: 3, label: 'Maret' }, { value: 4, label: 'April' },
+    { value: 5, label: 'Mei' }, { value: 6, label: 'Juni' },
+    { value: 7, label: 'Juli' }, { value: 8, label: 'Agustus' },
+    { value: 9, label: 'September' }, { value: 10, label: 'Oktober' },
+    { value: 11, label: 'November' }, { value: 12, label: 'Desember' }
+  ];
   const isAdmin = location.pathname.startsWith('/admin');
   const apiPrefix = isAdmin ? '/admin' : '/staff';
 
@@ -36,7 +46,7 @@ export default function FinancePage() {
     fetchTransactions
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modal, setModal] = useState({ open: false, item: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     type: 'INCOME',
@@ -46,17 +56,45 @@ export default function FinancePage() {
     date: new Date().toISOString().split('T')[0]
   });
 
+  const handleOpenModal = (item = null) => {
+    if (item) {
+      setForm({
+        type: item.type,
+        amount: item.amount.toString(),
+        category: item.category,
+        description: item.description || '',
+        date: new Date(item.date).toISOString().split('T')[0]
+      });
+    } else {
+      setForm({
+        type: 'INCOME',
+        amount: '',
+        category: 'SPP',
+        description: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+    }
+    setModal({ open: true, item });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.post(`${apiPrefix}/transactions`, {
+      const payload = {
         ...form,
         amount: parseFloat(form.amount),
         date: new Date(form.date)
-      });
-      toast.success('Transaksi berhasil dicatat');
-      setIsModalOpen(false);
+      };
+      if (modal.item) {
+        await api.put(`${apiPrefix}/transactions/${modal.item.id}`, payload);
+        toast.success('Transaksi berhasil diperbarui');
+      } else {
+        await api.post(`${apiPrefix}/transactions`, payload);
+        toast.success('Transaksi berhasil dicatat');
+      }
+      clearCache(`finance_${apiPrefix}_${monthFilter}_${yearFilter}`);
+      setModal({ open: false, item: null });
       setForm({
         type: 'INCOME',
         amount: '',
@@ -105,8 +143,19 @@ export default function FinancePage() {
       className: 'text-right',
       cell: (row) => (
         <span className={`font-medium ${row.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'}`}>
-          {row.type === 'INCOME' ? '+' : '-'} Rp {row.amount.toLocaleString('id-ID')}
+          {row.type === 'INCOME' ? '+' : '-'} {formatRupiah(row.amount)}
         </span>
+      )
+    },
+    {
+      header: 'Aksi',
+      className: 'text-right',
+      cell: (row) => (
+        <ActionMenu 
+          actions={[
+            { label: 'Edit', icon: Edit2, onClick: () => handleOpenModal(row) }
+          ]}
+        />
       )
     }
   ];
@@ -119,7 +168,7 @@ export default function FinancePage() {
           <LoadingSkeleton type="card" rows={1} />
           <LoadingSkeleton type="card" rows={1} />
         </div>
-        <LoadingSkeleton type="table" rows={5} />
+        <LoadingSkeleton type="table" rows={5} columns={5} />
       </div>
     </DashboardLayout>
   );
@@ -133,15 +182,15 @@ export default function FinancePage() {
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Transaksi Kas</h1>
             <p className="text-sm text-zinc-500">Pencatatan manual arus kas sekolah</p>
           </div>
-          <Button onClick={() => setIsModalOpen(true)} className="bg-gold-500 hover:bg-gold-600 text-zinc-900">
+          <Button onClick={() => handleOpenModal()} className="bg-gold-500 hover:bg-gold-600 text-zinc-900">
             <Plus className="w-4 h-4 mr-2" /> Transaksi Baru
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard title="Total Pemasukan" value={`Rp ${metrics.income.toLocaleString('id-ID')}`} icon={TrendingUp} trend={{ value: 'INCOME', isPositive: true }} />
-          <MetricCard title="Total Pengeluaran" value={`Rp ${metrics.expense.toLocaleString('id-ID')}`} icon={TrendingDown} trend={{ value: 'EXPENSE', isPositive: false }} />
-          <MetricCard title="Saldo Bulan Ini" value={`Rp ${metrics.total.toLocaleString('id-ID')}`} icon={Wallet} trend={{ value: 'SALDO', isPositive: metrics.total >= 0 }} />
+          <MetricCard title="Total Pemasukan" value={formatRupiah(metrics.income)} icon={TrendingUp} trend={{ value: 'INCOME', isPositive: true }} />
+          <MetricCard title="Total Pengeluaran" value={formatRupiah(metrics.expense)} icon={TrendingDown} trend={{ value: 'EXPENSE', isPositive: false }} />
+          <MetricCard title="Saldo Bulan Ini" value={formatRupiah(metrics.total)} icon={Wallet} trend={{ value: 'SALDO', isPositive: metrics.total >= 0 }} />
         </div>
 
         <Card>
@@ -151,8 +200,8 @@ export default function FinancePage() {
               <Select value={monthFilter.toString()} onValueChange={(val) => setMonthFilter(parseInt(val))}>
                 <SelectTrigger className="w-32"><SelectValue placeholder="Bulan" /></SelectTrigger>
                 <SelectContent>
-                  {Array.from({length: 12}).map((_, i) => (
-                    <SelectItem key={i+1} value={(i+1).toString()}>{new Date(2000, i).toLocaleString('id-ID', { month: 'long' })}</SelectItem>
+                  {BULAN.map((b) => (
+                    <SelectItem key={b.value} value={b.value.toString()}>{b.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -171,10 +220,10 @@ export default function FinancePage() {
           </CardContent>
         </Card>
 
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={modal.open} onOpenChange={(val) => !val && setModal({open:false, item:null})}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Catat Transaksi Kas</DialogTitle>
+              <DialogTitle>{modal.item ? 'Edit Transaksi Kas' : 'Catat Transaksi Kas'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -197,6 +246,7 @@ export default function FinancePage() {
               <div className="space-y-2">
                 <Label>Nominal (Rp)</Label>
                 <Input type="number" required min="1" value={form.amount} onChange={(e) => setForm({...form, amount: e.target.value})} />
+                {form.amount && <p className="text-xs text-zinc-500 mt-1">{formatRupiah(form.amount)}</p>}
               </div>
 
               <div className="space-y-2">
@@ -220,7 +270,7 @@ export default function FinancePage() {
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Batal</Button>
+                <Button type="button" variant="outline" onClick={() => setModal({open:false, item:null})}>Batal</Button>
                 <Button type="submit" disabled={isSubmitting} className="bg-gold-500 hover:bg-gold-600 text-zinc-900">
                   {isSubmitting ? 'Menyimpan...' : 'Simpan'}
                 </Button>

@@ -96,6 +96,28 @@ export const createTransaction = async (req, res, next) => {
   }
 };
 
+export const updateTransaction = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { type, amount, category, description, date } = req.body;
+    
+    const transaction = await prisma.transaction.update({
+      where: { id },
+      data: {
+        type,
+        amount: parseFloat(amount),
+        category,
+        description,
+        date: new Date(date)
+      }
+    });
+    
+    res.json(transaction);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ==================== INVENTORY ====================
 
 export const getInventory = async (req, res, next) => {

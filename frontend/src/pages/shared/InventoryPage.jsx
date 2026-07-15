@@ -134,7 +134,7 @@ export default function InventoryPage() {
           <LoadingSkeleton type="card" rows={1} />
           <LoadingSkeleton type="card" rows={1} />
         </div>
-        <LoadingSkeleton type="table" rows={5} />
+        <LoadingSkeleton type="table" rows={5} columns={6} />
       </div>
     </DashboardLayout>
   );
