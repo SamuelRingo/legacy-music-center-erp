@@ -193,7 +193,6 @@ export default function CoursesPage() {
                   <thead className="text-xs text-zinc-700 uppercase bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-300">
                     <tr>
                       <th className="px-4 py-3 font-medium">Nama Murid</th>
-                      <th className="px-4 py-3 font-medium">Kelas</th>
                       <th className="px-4 py-3 font-medium">Guru</th>
                       <th className="px-4 py-3 font-medium text-center">Grade</th>
                     </tr>
@@ -202,7 +201,6 @@ export default function CoursesPage() {
                     {studentsList.map(st => (
                       <tr key={st.enrollmentId} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                         <td className="px-4 py-3 font-bold text-zinc-900 dark:text-white">{st.studentName}</td>
-                        <td className="px-4 py-3">{st.scheduleName}</td>
                         <td className="px-4 py-3">{st.teacherName}</td>
                         <td className="px-4 py-3 text-center">
                           {st.grade !== '-' ? (
