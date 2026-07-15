@@ -387,44 +387,48 @@ export default function StaffAttendancePage() {
 
         {activeTab === 'riwayat' && (
           <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div className="grid grid-cols-3 gap-4 w-full lg:w-auto">
-                <MetricCard title="Total Hadir" value={historyMetrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
-                <MetricCard title="Total Terlambat" value={historyMetrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
-                <MetricCard title="Total Absen" value={historyMetrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Select value={monthFilter} onValueChange={setMonthFilter}>
-                  <SelectTrigger className="w-32 bg-white dark:bg-zinc-950">
-                    <SelectValue placeholder="Bulan">{monthFilter ? BULAN.find(b => b.value.toString() === monthFilter)?.label : "Bulan"}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BULAN.map((b) => (
-                      <SelectItem key={b.value} value={b.value.toString()}>{b.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={yearFilter} onValueChange={setYearFilter}>
-                  <SelectTrigger className="w-24 bg-white dark:bg-zinc-950">
-                    <SelectValue placeholder="Tahun">{yearFilter || "Tahun"}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2024, 2025, 2026, 2027].map(y => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            
+            {/* Row 1: Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <MetricCard title="Total Hadir" value={historyMetrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
+              <MetricCard title="Total Terlambat" value={historyMetrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+              <MetricCard title="Total Absen" value={historyMetrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
             </div>
 
-            <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm mt-0">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4 bg-zinc-50 dark:bg-zinc-900">
-                <CardTitle>Riwayat Absensi</CardTitle>
-                <Button variant="outline" onClick={handlePrint} className="border-zinc-200">
-                  <Printer className="w-4 h-4 mr-2" /> Cetak Riwayat
-                </Button>
+            <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <CardHeader className="border-b border-zinc-200 dark:border-zinc-800 pb-4 bg-zinc-50 dark:bg-zinc-900">
+                {/* Row 2: Filters and Print Button */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Select value={monthFilter} onValueChange={setMonthFilter}>
+                      <SelectTrigger className="w-32 bg-white dark:bg-zinc-950">
+                        <SelectValue placeholder="Bulan">{monthFilter ? BULAN.find(b => b.value.toString() === monthFilter)?.label : "Bulan"}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BULAN.map((b) => (
+                          <SelectItem key={b.value} value={b.value.toString()}>{b.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={yearFilter} onValueChange={setYearFilter}>
+                      <SelectTrigger className="w-24 bg-white dark:bg-zinc-950">
+                        <SelectValue placeholder="Tahun">{yearFilter || "Tahun"}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2024, 2025, 2026, 2027].map(y => (
+                          <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button variant="outline" onClick={handlePrint} className="border-zinc-200">
+                    <Printer className="w-4 h-4 mr-2" /> Cetak Riwayat
+                  </Button>
+                </div>
               </CardHeader>
+              
               <CardContent className="p-0">
+                {/* Row 3: Table */}
                 {loadingHistory ? (
                   <div className="p-6">
                     <LoadingSkeleton type="table" rows={3} columns={4} />
