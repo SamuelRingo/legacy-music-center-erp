@@ -15,7 +15,7 @@ import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
 import { useCachedQuery, clearCache } from '../../lib/cache';
 
-export default function ClassDetailPage() {
+export default function ClassDetailPage({ readOnly = false }) {
   const { id: scheduleId } = useParams();
   const navigate = useNavigate();
   const { clearDashboardCache } = useDashboardCache();

@@ -5,7 +5,7 @@ import DataTable from '../../components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, BookOpen, User, MapPin, Calendar, Clock } from 'lucide-react';
+import { Plus, Edit2, Eye, Trash2, BookOpen, User, MapPin, Calendar, Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import { useCachedQuery, clearCache } from '../../lib/cache';
 const DAYS = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
 
 export default function SchedulingPage() {
+  const navigate = useNavigate();
   const fetchSchedulesFn = useCallback(async () => {
     const [schedRes, courseRes, teacherRes, roomRes] = await Promise.all([
       api.get('/staff/schedules'),
@@ -195,6 +196,10 @@ export default function SchedulingPage() {
       header: 'Aksi',
       cell: (row) => row.isSeparator ? null : (
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/staff/classes/${row.id}`)} className="h-8 p-0 px-2 text-zinc-600 border-zinc-200">
+            <Eye size={14} className="mr-1" />
+            <span className="text-xs">Lihat</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={() => handleOpenEdit(row)} className="h-8 w-8 p-0">
             <Edit2 size={14} />
           </Button>

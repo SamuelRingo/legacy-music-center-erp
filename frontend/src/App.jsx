@@ -12,6 +12,7 @@ import FinancePage from './pages/shared/FinancePage';
 import InventoryPage from './pages/shared/InventoryPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { DashboardProvider } from './context/DashboardContext';
 
 import StaffAttendancePage from './pages/admin/StaffAttendancePage';
@@ -19,6 +20,7 @@ import StaffSalaryPage from './pages/admin/StaffSalaryPage';
 
 export default function App() {
   return (
+    <TooltipProvider>
     <DashboardProvider>
       <BrowserRouter>
         <Toaster position="bottom-right" richColors />
@@ -73,5 +75,6 @@ export default function App() {
       </Routes>
       </BrowserRouter>
     </DashboardProvider>
+    </TooltipProvider>
   );
 }

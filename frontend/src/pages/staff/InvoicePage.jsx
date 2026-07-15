@@ -24,6 +24,18 @@ export default function InvoicePage() {
   // Modal States
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [invoiceToPrint, setInvoiceToPrint] = useState(null);
+  const printRef = useRef();
+  
+  const handlePrintAction = useReactToPrint({
+    content: () => printRef.current,
+  });
+
+  const onPrintClick = (invoice) => {
+    setInvoiceToPrint(invoice);
+    setTimeout(handlePrintAction, 50);
+  };
+
   
   const [payDialogState, setPayDialogState] = useState({ open: false, invoiceId: null });
   const [isPaying, setIsPaying] = useState(false);
@@ -109,6 +121,7 @@ export default function InvoicePage() {
       cell: (row) => (
         <ActionMenu
           actions={[
+            row.status === 'PAID' && { label: 'Cetak Bukti Bayar', icon: Printer, onClick: () => onPrintClick(row) },
             row.status !== 'PAID' && { label: 'Tandai Lunas', icon: CheckCircle, onClick: () => setPayDialogState({ open: true, invoiceId: row.id }) },
             row.status !== 'PAID' && { label: 'Hapus', icon: Trash2, onClick: () => setDeleteDialogState({ open: true, invoiceId: row.id }), isDanger: true }
           ].filter(Boolean)}
@@ -180,6 +193,55 @@ export default function InvoicePage() {
         onConfirm={handleDeleteInvoice}
         isProcessing={isDeleting}
       />
+
+      {/* HIDDEN PRINT COMPONENT */}
+      <div style={{ display: 'none' }}>
+        <div ref={printRef} className="p-8 text-black bg-white" style={{ width: '800px' }}>
+          {invoiceToPrint && (
+            <div>
+              <div className="text-center mb-8 border-b-2 border-black pb-4">
+                <h1 className="text-3xl font-bold uppercase tracking-wider mb-2">Legacy Music Center</h1>
+                <h2 className="text-xl text-zinc-600">Bukti Pembayaran</h2>
+              </div>
+              
+              <div className="mb-8">
+                <p><strong>Nama Siswa:</strong> {invoiceToPrint.student?.user?.name}</p>
+                <p><strong>Tagihan Untuk:</strong> Bulan {invoiceToPrint.month} Tahun {invoiceToPrint.year}</p>
+                <p><strong>Status:</strong> {invoiceToPrint.status === 'PAID' ? 'LUNAS' : 'BELUM LUNAS'}</p>
+                {invoiceToPrint.paidAt && (
+                  <p><strong>Tanggal Lunas:</strong> {new Date(invoiceToPrint.paidAt).toLocaleDateString('id-ID')}</p>
+                )}
+              </div>
+              
+              <table className="w-full text-left mb-8 border-collapse">
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="py-2">Deskripsi</th>
+                    <th className="py-2 text-right">Nominal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-zinc-200">
+                    <td className="py-4">Pembayaran Biaya SPP / Kursus Musik</td>
+                    <td className="py-4 text-right font-medium">{formatRupiah(invoiceToPrint.amount)}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td className="py-4 font-bold text-lg">Total Pembayaran</td>
+                    <td className="py-4 text-right font-bold text-lg">{formatRupiah(invoiceToPrint.amount)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+              
+              <div className="mt-16 text-right">
+                <p className="text-sm text-zinc-500 italic">Dicetak pada {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
     </div>
   );
 }
