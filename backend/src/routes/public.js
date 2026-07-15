@@ -108,8 +108,10 @@ ATURAN SUPER KETAT:
       { headers: { 'Content-Type': 'application/json' }, params: { key: apiKey } }
     );
     
+    console.log('RAW MODEL RESPONSE:', JSON.stringify(response.data, null, 2));
+
     let replyText = response.data.candidates[0].content.parts[0].text;
-    console.log('Raw response:', replyText);
+    console.log('Raw response text:', replyText);
 
     let reply = replyText.trim();
     
@@ -126,10 +128,39 @@ ATURAN SUPER KETAT:
         reply = parsed.response || reply;
       } catch (e) {}
     }
+
+    // Filter baris yang berisi meta-thinking (chain of thought)
+    const lines = reply.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const validLines = lines.filter(line => {
+      if (line.startsWith('*')) return false;
+      
+      const lower = line.toLowerCase();
+      if (
+        lower.includes('option') ||
+        lower.includes('role:') ||
+        lower.includes('tone:') ||
+        lower.includes('user input') ||
+        lower.includes('constraint') ||
+        lower.includes('draft') ||
+        lower.includes('meta-thinking') ||
+        lower.includes('persona:') ||
+        lower.includes('style:') ||
+        lower.includes('sentences?')
+      ) {
+        return false;
+      }
+      return true;
+    });
+
+    if (validLines.length > 0) {
+      // Ambil baris terakhir yang tersisa dan bersihkan dari tanda kutip awal/akhir jika ada
+      reply = validLines[validLines.length - 1].replace(/^["']|["']$/g, '');
+    } else {
+      reply = "";
+    }
     
-    // Fallback jika jawaban kosong, "...", atau berisi meta-thinking
-    const isGarbage = reply.includes('*   ') || reply.includes('Option') || reply.includes('Tone:') || reply.includes('Persona:') || reply.includes("User's input");
-    if (!reply || reply === '...' || isGarbage) {
+    // Fallback jika jawaban kosong, "...", atau tidak ada yang tersisa setelah difilter
+    if (!reply || reply === '...') {
       reply = "Maaf, saya tidak mengerti. Silakan hubungi WA 0812-xxxx-xxxx untuk bantuan langsung.";
     }
 
