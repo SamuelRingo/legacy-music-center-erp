@@ -149,7 +149,7 @@ export default function LandingCmsPage() {
     return (
       <div className="space-y-6 p-6">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Landing Page CMS</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">Konten Landing Page</h1>
           <p className="text-zinc-500">Atur konten halaman depan sekolah musik secara real-time.</p>
         </div>
         <LoadingSkeleton type="card" count={3} />
@@ -170,7 +170,7 @@ export default function LandingCmsPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">Landing Page CMS</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">Konten Landing Page</h1>
         <p className="text-zinc-500">Atur konten halaman depan sekolah musik secara real-time.</p>
       </div>
 
