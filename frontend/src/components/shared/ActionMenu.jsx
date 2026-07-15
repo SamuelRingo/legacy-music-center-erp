@@ -25,10 +25,8 @@ export function ActionMenu({ actions = [] }) {
   return (
     <div className="flex justify-end">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-500 hover:text-zinc-900 rounded-lg">
-            <MoreHorizontal size={16} />
-          </Button>
+        <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 outline-none transition-colors">
+          <MoreHorizontal size={16} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           {normalActions.map((action, idx) => {
