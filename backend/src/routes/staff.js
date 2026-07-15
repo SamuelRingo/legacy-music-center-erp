@@ -138,7 +138,13 @@ router.delete('/invoices/:id', async (req, res, next) => {
 // GET /api/staff/invoices — All invoices
 router.get('/invoices', async (req, res, next) => {
   try {
+    const { month, year } = req.query;
+    const where = {};
+    if (month) where.month = parseInt(month);
+    if (year) where.year = parseInt(year);
+
     const invoices = await prisma.invoice.findMany({
+      where,
       include: { student: { include: { user: { select: { name: true, email: true } } } } },
       orderBy: { createdAt: 'desc' }
     });

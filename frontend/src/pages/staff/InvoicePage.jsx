@@ -13,14 +13,23 @@ import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import { useDashboardCache } from '../../context/DashboardContext';
 import { useCachedQuery, clearCache } from '../../lib/cache';
+import MonthYearFilter from '../../components/shared/MonthYearFilter';
 
 export default function InvoicePage() {
   const { clearDashboardCache } = useDashboardCache();
+  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
+
   const fetchInvoicesFn = useCallback(async () => {
-    const res = await api.get('/staff/invoices');
+    const res = await api.get('/staff/invoices', {
+      params: {
+        month: parseInt(monthFilter),
+        year: parseInt(yearFilter)
+      }
+    });
     return res.data;
-  }, []);
-  const { data: invoicesData, loading, error, refetch: fetchData } = useCachedQuery('staff_invoices', fetchInvoicesFn);
+  }, [monthFilter, yearFilter]);
+  const { data: invoicesData, loading, error, refetch: fetchData } = useCachedQuery(`staff_invoices_${monthFilter}_${yearFilter}`, fetchInvoicesFn);
   const invoices = invoicesData || [];
   
   // Modal States
@@ -51,7 +60,7 @@ export default function InvoicePage() {
       const res = await api.post('/staff/invoices/generate');
       clearDashboardCache('staff');
       clearDashboardCache('admin');
-      clearCache('staff_invoices');
+      clearCache(`staff_invoices_${monthFilter}_${yearFilter}`);
       toast.success(res.data.message);
       fetchData();
       setIsGenerateOpen(false);
@@ -69,7 +78,7 @@ export default function InvoicePage() {
       await api.post(`/staff/invoices/${payDialogState.invoiceId}/pay`);
       clearDashboardCache('staff');
       clearDashboardCache('admin');
-      clearCache('staff_invoices');
+      clearCache(`staff_invoices_${monthFilter}_${yearFilter}`);
       toast.success('Tagihan berhasil ditandai lunas!');
       fetchData();
       setPayDialogState({ open: false, invoiceId: null });
@@ -85,7 +94,7 @@ export default function InvoicePage() {
     setIsDeleting(true);
     try {
       await api.delete(`/staff/invoices/${deleteDialogState.invoiceId}`);
-      clearCache('staff_invoices');
+      clearCache(`staff_invoices_${monthFilter}_${yearFilter}`);
       toast.success('Tagihan berhasil dihapus!');
       fetchData();
       setDeleteDialogState({ open: false, invoiceId: null });
@@ -139,14 +148,22 @@ export default function InvoicePage() {
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Tagihan & Pembayaran</h1>
           <p className="text-zinc-500 dark:text-zinc-400">Kelola tagihan bulanan siswa dan status pembayaran.</p>
         </div>
-        <Button 
-          onClick={() => setIsGenerateOpen(true)} 
-          disabled={isGenerating}
-          className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg"
-        >
-          <Receipt size={18} />
-          Generate Tagihan Bulan Ini
-        </Button>
+        <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
+          <MonthYearFilter 
+            monthFilter={monthFilter} 
+            yearFilter={yearFilter} 
+            onMonthChange={setMonthFilter} 
+            onYearChange={setYearFilter} 
+          />
+          <Button 
+            onClick={() => setIsGenerateOpen(true)} 
+            disabled={isGenerating}
+            className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg whitespace-nowrap"
+          >
+            <Receipt size={18} />
+            Generate Tagihan
+          </Button>
+        </div>
       </div>
 
       {loading ? (

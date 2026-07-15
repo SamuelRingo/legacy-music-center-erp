@@ -19,14 +19,7 @@ import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
 import { toast } from 'sonner';
 
-  const BULAN = [
-    { value: 1, label: 'Januari' }, { value: 2, label: 'Februari' },
-    { value: 3, label: 'Maret' }, { value: 4, label: 'April' },
-    { value: 5, label: 'Mei' }, { value: 6, label: 'Juni' },
-    { value: 7, label: 'Juli' }, { value: 8, label: 'Agustus' },
-    { value: 9, label: 'September' }, { value: 10, label: 'Oktober' },
-    { value: 11, label: 'November' }, { value: 12, label: 'Desember' }
-  ];
+import MonthYearFilter, { BULAN } from '../../components/shared/MonthYearFilter';
 
 export default function FinancePage() {
   const location = useLocation();
@@ -227,22 +220,12 @@ export default function FinancePage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Riwayat Transaksi</CardTitle>
             <div className="flex items-center gap-2">
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="w-32"><SelectValue placeholder="Bulan">{monthFilter ? BULAN.find(b => b.value.toString() === monthFilter)?.label : "Bulan"}</SelectValue></SelectTrigger>
-                <SelectContent>
-                  {BULAN.map((b) => (
-                    <SelectItem key={b.value} value={b.value.toString()}>{b.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="w-24"><SelectValue placeholder="Tahun" /></SelectTrigger>
-                <SelectContent>
-                  {[2024, 2025, 2026, 2027].map(y => (
-                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MonthYearFilter 
+                monthFilter={monthFilter} 
+                yearFilter={yearFilter} 
+                onMonthChange={setMonthFilter} 
+                onYearChange={setYearFilter} 
+              />
             </div>
           </CardHeader>
           <CardContent>
