@@ -346,6 +346,43 @@ router.get('/schedules/:id/meetings', async (req, res, next) => {
   }
 });
 
+// GET /api/staff/meetings/:id/attendance
+router.get('/meetings/:id/attendance', async (req, res, next) => {
+  try {
+    const meeting = await prisma.meeting.findUnique({
+      where: { id: req.params.id },
+      include: {
+        attendances: {
+          include: {
+            enrollment: {
+              include: {
+                student: {
+                  include: { user: { select: { name: true } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!meeting) return res.status(404).json({ message: 'Meeting not found' });
+
+    const data = meeting.attendances.map(att => ({
+      studentName: att.enrollment.student.user.name,
+      status: att.status,
+      note: att.note || '-'
+    }));
+
+    res.json({
+      journal: meeting.journal || '',
+      attendances: data
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/staff/dashboard-stats
 router.get('/dashboard-stats', async (req, res, next) => {
   try {

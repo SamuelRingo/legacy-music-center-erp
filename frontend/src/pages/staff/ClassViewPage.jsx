@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, Clock, MapPin, Loader2, User } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Clock, MapPin, Loader2, User, Eye } from 'lucide-react';
 import api from '../../lib/api';
 import DataTable from '../../components/shared/DataTable';
+import { ActionMenu } from '../../components/shared/ActionMenu';
+import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
+import ErrorState from '../../components/shared/ErrorState';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 export default function ClassViewPage() {
@@ -14,6 +18,11 @@ export default function ClassViewPage() {
   const [meetings, setMeetings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [meetingDetail, setMeetingDetail] = useState(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [detailError, setDetailError] = useState('');
 
   useEffect(() => {
     fetchClassData();
@@ -93,6 +102,20 @@ export default function ClassViewPage() {
     }
   ];
 
+  const handleViewMeeting = async (meeting) => {
+    setSelectedMeeting(meeting);
+    setIsLoadingDetail(true);
+    setDetailError('');
+    try {
+      const res = await api.get(`/staff/meetings/${meeting.id}/attendance`);
+      setMeetingDetail(res.data);
+    } catch (err) {
+      setDetailError('Gagal memuat detail pertemuan');
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
   const meetingColumns = [
     { header: 'Tanggal', cell: (row) => new Date(row.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
     { header: 'Materi / Topik', cell: (row) => row.topic || '-' },
@@ -103,6 +126,21 @@ export default function ClassViewPage() {
         const total = students.length;
         return `${presentCount} / ${total} Hadir`;
       }
+    },
+    {
+      header: 'Aksi',
+      className: 'w-16 text-center',
+      cell: (row) => (
+        <ActionMenu 
+          actions={[
+            {
+              label: 'Lihat Detail',
+              icon: Eye,
+              onClick: () => handleViewMeeting(row)
+            }
+          ]}
+        />
+      )
     }
   ];
 
@@ -171,6 +209,76 @@ export default function ClassViewPage() {
           />
         </div>
       </div>
+
+      {/* Detail Pertemuan Dialog */}
+      <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
+        <DialogContent className="w-[900px] max-w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedMeeting && `${selectedMeeting.topic || 'Pertemuan'} — ${new Date(selectedMeeting.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {isLoadingDetail ? (
+            <div className="py-6"><LoadingSkeleton type="table" rows={3} columns={3} /></div>
+          ) : detailError ? (
+            <div className="py-6"><ErrorState message={detailError} onRetry={() => handleViewMeeting(selectedMeeting)} /></div>
+          ) : meetingDetail ? (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-zinc-900 dark:text-white mb-2">Jurnal Mengajar</h3>
+                <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 text-sm text-zinc-700 dark:text-zinc-300">
+                  {meetingDetail.journal ? meetingDetail.journal : <span className="italic text-zinc-500">Tidak ada jurnal untuk pertemuan ini.</span>}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-zinc-900 dark:text-white mb-2">Daftar Hadir Murid</h3>
+                <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                      <tr>
+                        <th className="px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Nama Murid</th>
+                        <th className="px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Status</th>
+                        <th className="px-4 py-3 font-medium text-zinc-500 dark:text-zinc-400">Catatan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                      {meetingDetail.attendances.map((att, i) => {
+                        let badgeClass = 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300';
+                        if (att.status === 'HADIR') badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+                        else if (att.status === 'SAKIT' || att.status === 'IZIN') badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+                        else if (att.status === 'ABSEN') badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+                        
+                        return (
+                          <tr key={i} className="bg-white dark:bg-zinc-950">
+                            <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{att.studentName}</td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${badgeClass}`}>
+                                {att.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{att.note}</td>
+                          </tr>
+                        );
+                      })}
+                      {meetingDetail.attendances.length === 0 && (
+                        <tr className="bg-white dark:bg-zinc-950">
+                          <td colSpan={3} className="px-4 py-6 text-center text-zinc-500">Belum ada data absensi.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" onClick={() => setSelectedMeeting(null)}>Tutup</Button>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
