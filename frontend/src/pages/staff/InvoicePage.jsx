@@ -5,7 +5,7 @@ import DataTable from '../../components/shared/DataTable';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { ActionMenu } from '../../components/shared/ActionMenu';
 import { Button } from '@/components/ui/button';
-import { Receipt, CheckCircle, Clock, Trash2 } from 'lucide-react';
+import { Receipt, CheckCircle, Clock, Trash2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import EmptyState from '../../components/shared/EmptyState';
