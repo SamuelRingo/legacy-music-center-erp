@@ -191,13 +191,15 @@ export default function SchedulingPage() {
       ) : row.course?.name 
     },
     { header: 'Guru', cell: (row) => row.isSeparator ? null : row.teacher?.name },
-    { header: 'Ruangan', cell: (row) => row.isSeparator ? null : row.classroom?.name },
-    { header: 'Waktu', cell: (row) => row.isSeparator ? null : `${row.startTime} - ${row.endTime}` },
-    { header: 'Terisi', cell: (row) => row.isSeparator ? null : `${row.enrollments?.length || 0} / ${row.classroom?.capacity || 0}` },
+    { header: 'Ruangan', cell: (row) => row.isSeparator ? null : row.classroom?.name, className: 'text-center' },
+    { header: 'Waktu', cell: (row) => row.isSeparator ? null : `${row.startTime} - ${row.endTime}`, className: 'text-center' },
+    { header: 'Terisi', cell: (row) => row.isSeparator ? null : `${row.enrollments?.length || 0} / ${row.classroom?.capacity || 0}`, className: 'text-center' },
     {
       header: 'Aksi',
+      className: 'text-center w-[80px]',
       cell: (row) => row.isSeparator ? null : (
         <ActionMenu 
+          className="flex justify-center"
           actions={[
             {
               label: 'Lihat Kelas',

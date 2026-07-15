@@ -15,7 +15,7 @@ import { MoreHorizontal } from 'lucide-react';
  * @param {Object} props
  * @param {Array} props.actions - Array of action objects: { label, icon: Icon, onClick, isDanger }
  */
-export function ActionMenu({ actions = [] }) {
+export function ActionMenu({ actions = [], className = "flex justify-end" }) {
   const validActions = actions.filter(Boolean);
   if (validActions.length === 0) return null;
 
@@ -23,7 +23,7 @@ export function ActionMenu({ actions = [] }) {
   const dangerActions = validActions.filter(a => a.isDanger);
 
   return (
-    <div className="flex justify-end">
+    <div className={className}>
       <DropdownMenu>
         <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 outline-none transition-colors">
           <MoreHorizontal size={16} />
