@@ -12,6 +12,7 @@ import DataTable from '../../components/shared/DataTable';
 import MetricCard from '../../components/shared/MetricCard';
 import LoadingSkeleton from '../../components/shared/LoadingSkeleton';
 import ErrorState from '../../components/shared/ErrorState';
+import EmptyState from '../../components/shared/EmptyState';
 import { toast } from 'sonner';
 
 const BULAN = [
@@ -42,7 +43,10 @@ export default function StaffAttendancePage() {
         }),
         api.get('/admin/users')
       ]);
-      setAttendances(attRes.data.attendances || attRes.data);
+      
+      const fetchedAtt = attRes.data.attendances || attRes.data;
+      const sortedAtt = [...fetchedAtt].sort((a,b) => new Date(b.date) - new Date(a.date));
+      setAttendances(sortedAtt);
       
       const filteredUsers = (usersRes.data.users || usersRes.data).filter(u => u.role === 'STAFF' || u.role === 'TEACHER');
       setUsers(filteredUsers);
@@ -98,25 +102,21 @@ export default function StaffAttendancePage() {
     {
       header: 'Nama',
       cell: (row) => (
-        <div className="font-medium">{row.user?.name || '-'}</div>
+        <div className="font-medium text-zinc-900 dark:text-white">{row.user?.name || '-'}</div>
       )
     },
     {
-      header: 'Role',
-      cell: (row) => <span className="text-xs text-zinc-500">{row.user?.role || '-'}</span>
-    },
-    {
       header: 'Tanggal',
-      cell: (row) => new Date(row.date).toLocaleDateString('id-ID')
+      cell: (row) => new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     },
     {
       header: 'Status',
       cell: (row) => (
-        <span className={`px-2 py-1 rounded text-xs font-bold ${
-          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' : 
-          row.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+        <span className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+          row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-500/50 dark:text-emerald-300' : 
+          row.status === 'LATE' ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:border-amber-500/50 dark:text-amber-300' : 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-900/30 dark:border-rose-500/50 dark:text-rose-300'
         }`}>
-          {row.status}
+          {row.status === 'PRESENT' ? 'Hadir' : row.status === 'LATE' ? 'Terlambat' : 'Absen'}
         </span>
       )
     },
@@ -133,11 +133,11 @@ export default function StaffAttendancePage() {
     <DashboardLayout>
       <div className="space-y-6">
         <LoadingSkeleton type="card" rows={3} gridClassName="grid grid-cols-1 md:grid-cols-3 gap-4" />
-        <LoadingSkeleton type="table" rows={5} columns={5} />
+        <LoadingSkeleton type="table" rows={5} columns={4} />
       </div>
     </DashboardLayout>
   );
-  if (error && !attendances.length) return <DashboardLayout><ErrorState onRetry={fetchData} /></DashboardLayout>;
+  if (error && !attendances.length) return <DashboardLayout><ErrorState message="Gagal memuat data absensi" onRetry={fetchData} /></DashboardLayout>;
 
   return (
     <DashboardLayout>
@@ -145,7 +145,7 @@ export default function StaffAttendancePage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Absensi Staff</h1>
-            <p className="text-sm text-zinc-500">Rekap kehadiran harian guru dan staff</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Rekap kehadiran harian guru dan staff</p>
           </div>
           <Button onClick={handleOpenModal} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Plus className="w-4 h-4 mr-2" /> Catat Absensi
@@ -153,17 +153,17 @@ export default function StaffAttendancePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard title="Hadir (Present)" value={metrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
-          <MetricCard title="Terlambat (Late)" value={metrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
-          <MetricCard title="Absen (Absent)" value={metrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
+          <MetricCard title="Total Hadir" value={metrics.present} icon={CheckCircle} colorClass="text-emerald-600" bgClass="bg-emerald-100 dark:bg-emerald-900/30" />
+          <MetricCard title="Total Terlambat" value={metrics.late} icon={Clock} colorClass="text-amber-600" bgClass="bg-amber-100 dark:bg-amber-900/30" />
+          <MetricCard title="Total Absen" value={metrics.absent} icon={XCircle} colorClass="text-rose-600" bgClass="bg-rose-100 dark:bg-rose-900/30" />
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <CardTitle>Riwayat Absensi</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-full sm:w-32">
                   <SelectValue placeholder="Bulan">{monthFilter ? BULAN.find(b => b.value.toString() === monthFilter)?.label : "Bulan"}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -173,7 +173,7 @@ export default function StaffAttendancePage() {
                 </SelectContent>
               </Select>
               <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-full sm:w-24">
                   <SelectValue placeholder="Tahun">{yearFilter || "Tahun"}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -185,7 +185,11 @@ export default function StaffAttendancePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <DataTable columns={columns} data={attendances || []} searchKey="note" searchPlaceholder="Cari catatan..." searchable={true} />
+            {attendances.length === 0 ? (
+              <EmptyState title="Belum ada data absensi" description="Tambahkan absensi baru untuk staff." />
+            ) : (
+              <DataTable columns={columns} data={attendances} searchKey="user.name" searchPlaceholder="Cari nama staff..." searchable={true} pagination={false} />
+            )}
           </CardContent>
         </Card>
 
@@ -215,15 +219,21 @@ export default function StaffAttendancePage() {
                 <Select value={form.status} onValueChange={(val) => setForm({...form, status: val})}>
                   <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PRESENT">Hadir (Present)</SelectItem>
-                    <SelectItem value="LATE">Terlambat (Late)</SelectItem>
-                    <SelectItem value="ABSENT">Absen (Absent)</SelectItem>
+                    <SelectItem value="PRESENT">Hadir</SelectItem>
+                    <SelectItem value="LATE">Terlambat</SelectItem>
+                    <SelectItem value="ABSENT">Absen</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Catatan (Opsional)</Label>
-                <Input placeholder="Contoh: Izin sakit, macet di jalan..." value={form.note} onChange={(e) => setForm({...form, note: e.target.value})} />
+                <textarea 
+                  className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm resize-none" 
+                  rows="3" 
+                  placeholder="Contoh: Izin sakit, macet di jalan..." 
+                  value={form.note} 
+                  onChange={(e) => setForm({...form, note: e.target.value})} 
+                />
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setModal({open: false})}>Batal</Button>
