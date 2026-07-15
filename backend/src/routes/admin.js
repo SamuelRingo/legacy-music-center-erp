@@ -19,7 +19,8 @@ router.get('/courses', async (req, res, next) => {
       include: {
         schedules: {
           include: {
-            teacher: { select: { id: true, name: true } }
+            teacher: { select: { id: true, name: true } },
+            _count: { select: { enrollments: true } }
           }
         }
       }
@@ -27,17 +28,52 @@ router.get('/courses', async (req, res, next) => {
 
     const formatted = courses.map(c => {
       const teacherMap = new Map();
+      let studentCount = 0;
       c.schedules.forEach(s => {
         if (s.teacher) teacherMap.set(s.teacher.id, s.teacher.name);
+        studentCount += (s._count?.enrollments || 0);
       });
       const { schedules, ...rest } = c;
       return {
         ...rest,
+        studentCount,
         teachers: Array.from(teacherMap.values())
       };
     });
 
     res.json(formatted);
+  } catch (error) { next(error); }
+});
+
+router.get('/courses/:id/students', async (req, res, next) => {
+  try {
+    const schedules = await prisma.schedule.findMany({
+      where: { courseId: req.params.id },
+      include: {
+        teacher: { select: { name: true } },
+        enrollments: {
+          include: {
+            student: { select: { name: true } },
+            finalGrade: true
+          }
+        }
+      }
+    });
+
+    const students = [];
+    schedules.forEach(sched => {
+      sched.enrollments.forEach(enr => {
+        students.push({
+          enrollmentId: enr.id,
+          studentName: enr.student?.name || 'Unknown',
+          scheduleName: sched.name,
+          teacherName: sched.teacher?.name || '-',
+          grade: enr.finalGrade ? enr.finalGrade.score : '-'
+        });
+      });
+    });
+
+    res.json(students);
   } catch (error) { next(error); }
 });
 
