@@ -30,7 +30,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Legacy Music" className="h-10" />
+          {/* <img src="/logo.png" alt="Legacy Music" className="h-10" /> */}
         </Link>
 
         {/* Desktop Links */}
