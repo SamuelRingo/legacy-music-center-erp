@@ -514,7 +514,7 @@ export default function SchedulingPage() {
         <div className="p-8 font-sans text-zinc-900">
           {/* Header */}
           <div className="flex items-center gap-4 border-b-2 border-zinc-300 pb-6 mb-6">
-            <img src="/Logolegacymusic.webp" alt="Legacy Music Center" className="h-16 object-contain" />
+            <img src="/logo.png" alt="Legacy Music Center" className="h-16 object-contain" />
             <div>
               <h1 className="text-2xl font-bold text-zinc-900">Legacy Music Center</h1>
               <p className="text-sm text-zinc-600">Jl. Pembangunan No. 10, Jakarta • Telp: (021) 1234-5678</p>
