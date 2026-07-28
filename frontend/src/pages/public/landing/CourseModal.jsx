@@ -37,7 +37,7 @@ export default function CourseModal({ course, open, onOpenChange }) {
             <div className="flex flex-col gap-2 mb-4 mt-2">
               <div className="flex items-center gap-2 text-zinc-300 bg-zinc-800/80 px-3 py-2 rounded-lg text-[10px] md:text-xs">
                 <Clock size={14} className="text-gold-500 shrink-0" />
-                <span>3 Bulan per Grade</span>
+                <span>3 Fase per Grade</span>
               </div>
               <div className="flex items-center gap-2 text-zinc-300 bg-zinc-800/80 px-3 py-2 rounded-lg text-[10px] md:text-xs">
                 <Star size={14} className="text-gold-500 shrink-0" />

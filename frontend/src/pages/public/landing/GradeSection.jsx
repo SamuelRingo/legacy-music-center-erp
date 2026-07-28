@@ -11,9 +11,9 @@ export default function GradeSection() {
   ];
 
   const months = [
-    { num: 1, title: 'Bulan 1: Repertoir', desc: 'Mempelajari dan menyiapkan repertoar lagu.' },
-    { num: 2, title: 'Bulan 2: Ujian', desc: 'Ujian teori dan praktek untuk menguji pemahaman.' },
-    { num: 3, title: 'Bulan 3: Student Performance', desc: 'Penampilan langsung siswa di depan audiens.' }
+    { num: 1, title: 'Fase 1: Repertoir', desc: 'Mempelajari dan menyiapkan repertoar lagu.' },
+    { num: 2, title: 'Fase 2: Ujian', desc: 'Ujian teori dan praktek untuk menguji pemahaman.' },
+    { num: 3, title: 'Fase 3: Student Performance', desc: 'Penampilan langsung siswa di depan audiens.' }
   ];
 
   return (
@@ -49,11 +49,11 @@ export default function GradeSection() {
           ))}
         </div>
 
-        {/* Sub-section: 3 Bulan per Grade */}
+        {/* Sub-section: 3 Fase per Grade */}
         <div className="bg-zinc-900/40 rounded-3xl p-8 md:p-12 border border-zinc-800">
           <div className="text-center mb-10">
-            <h3 className="text-2xl font-bold text-white mb-3">Durasi 3 Bulan per Grade</h3>
-            <p className="text-zinc-400">Setiap grade ditempuh dalam 3 bulan dengan fokus yang bertahap.</p>
+            <h3 className="text-2xl font-bold text-white mb-3">Terdapat 3 Fase per Grade</h3>
+            <p className="text-zinc-400">Setiap grade ditempuh dalam 3 fase dengan fokus yang bertahap.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
