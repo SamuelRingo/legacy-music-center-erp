@@ -70,7 +70,7 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
-        <img src="/logo.png" alt="Legacy Music Center" className="h-24 md:h-32 mb-8 drop-shadow-2xl" />
+        <img src="/logo.png" alt="Legacy Music Center" className="h-32 md:h-40 mb-8 drop-shadow-2xl" />
         
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-[1.15] tracking-tight drop-shadow-lg">
           Inspirasi Musik <br className="hidden sm:block" />
