@@ -2,7 +2,7 @@
 
 Sistem Enterprise Resource Planning (ERP) khusus untuk manajemen **Legacy Music Center**. Platform ini dirancang secara terpusat untuk memfasilitasi 4 peran utama (Super Admin, Staff, Guru, dan Siswa) guna mengotomatisasi dan mengintegrasikan seluruh operasional akademik, keuangan, dan administratif sekolah musik.
 
-## 🌟 Fitur Utama
+## Fitur Utama
 - **Multi-Role Dashboards**: Tampilan antarmuka khusus yang disesuaikan dengan kebutuhan setiap role (Super Admin, Staff, Teacher, dan Student).
 - **Manajemen Akademik**: Manajemen kursus dengan penyesuaian harga, jadwal kelas interaktif, pencatatan absensi, dan perkembangan belajar siswa.
 - **Manajemen Keuangan**: Sistem invoicing otomatis, pencatatan transaksi kas (Income/Expense), dan pelaporan keuangan.
@@ -11,19 +11,19 @@ Sistem Enterprise Resource Planning (ERP) khusus untuk manajemen **Legacy Music 
 - **Content Management System (CMS)**: Pengaturan konten dinamis untuk Landing Page, banner event, dan informasi sekolah.
 - **Customer Service AI**: Chatbot terintegrasi berbasis Google Gemini AI untuk membantu calon pendaftar.
 
-## 🛠 Teknologi Utama
+## Teknologi Utama
 - **Frontend**: React (Vite), Tailwind CSS, Shadcn UI, Recharts, Google Generative AI (Gemini)
 - **Backend**: Node.js, Express, Prisma ORM, JWT, Google Generative AI (Gemini)
 - **Database**: PostgreSQL (Supabase)
 - **Penyimpanan**: Supabase Storage (Bukti Bayar, Banner Event)
 
-## 📋 Persyaratan (Prerequisites)
+## Persyaratan (Prerequisites)
 - Node.js v18+
 - npm (Node Package Manager)
 - Database PostgreSQL (Supabase disarankan)
 - API Key Google Gemini (untuk fitur Chatbot AI)
 
-## 🚀 Cara Instalasi & Menjalankan (Local Development)
+## Cara Instalasi & Menjalankan (Local Development)
 
 ### 1. Kloning & Instalasi
 Buka terminal dan jalankan:
@@ -85,7 +85,7 @@ Akses `http://localhost:5173` melalui browser Anda.
 
 ---
 
-## 🔑 Akun Demo (Local / Staging)
+## Akun Demo (Local / Staging)
 
 Berikut adalah akun demonstrasi yang dihasilkan secara otomatis oleh skrip `prisma:seed`. Data simulasi (jadwal, transaksi, absensi) sudah di-generate untuk periode bulan Juni - Agustus 2026.
 
