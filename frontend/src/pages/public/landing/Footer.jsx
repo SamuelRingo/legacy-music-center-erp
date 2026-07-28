@@ -117,7 +117,7 @@ export default function Footer() {
       {/* Copyright */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-8 border-t border-zinc-800/50 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
-           <img src="/logo.png" alt="Logo" className="h-6" />
+           {/* <img src="/logo.png" alt="Logo" className="h-6" /> */}
         </div>
         <p className="text-zinc-500 text-xs md:text-sm font-medium">
           &copy; {new Date().getFullYear()} Legacy Music Center. All rights reserved.
