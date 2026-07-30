@@ -84,17 +84,3 @@ npm run dev
 Akses `http://localhost:5173` melalui browser Anda.
 
 ---
-
-## Akun Demo (Local / Staging)
-
-Berikut adalah akun demonstrasi yang dihasilkan secara otomatis oleh skrip `prisma:seed`. Data simulasi (jadwal, transaksi, absensi) sudah di-generate untuk periode bulan Juni - Agustus 2026.
-
-| Role | Email | Password |
-|------|-------|----------|
-| **Super Admin** | `admin@legacymusik.sch.id` | `password123` |
-| **Staff 1** | `staff1@legacymusik.sch.id` | `password123` |
-| **Staff 2** | `staff2@legacymusik.sch.id` | `password123` |
-| **Teacher** | `teacher1@legacymusik.sch.id` | `password123` |
-| **Student** | `student1@legacymusik.sch.id` | `password123` |
-
-> **Catatan**: Akun dengan role `STUDENT` yang mendaftar mandiri akan berstatus `PENDING` dan harus divalidasi oleh Staff. Namun, akun student demo di atas sudah aktif otomatis melalui seed sehingga bisa langsung digunakan.
