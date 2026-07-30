@@ -108,54 +108,42 @@ export default function ClassDetailPage({ readOnly = false }) {
     }
   };
 
-  const handleUpdateGrade = async (enrollmentId, field, value) => {
+  const [levelModal, setLevelModal] = useState({ open: false, enrollmentId: null, studentName: '', gradeLevel: '1', currentMonth: '1' });
+  const [isSubmittingLevel, setIsSubmittingLevel] = useState(false);
+
+  const submitLevel = async (e) => {
+    e.preventDefault();
+    setIsSubmittingLevel(true);
     try {
-      await api.put(`/teacher/enrollments/${enrollmentId}/grade`, { [field]: parseInt(value) });
+      await api.put(`/teacher/enrollments/${levelModal.enrollmentId}/grade`, { 
+        gradeLevel: parseInt(levelModal.gradeLevel),
+        currentMonth: parseInt(levelModal.currentMonth)
+      });
       clearCache(`teacher_class_${scheduleId}`);
-      toast.success('Berhasil diperbarui');
+      toast.success('Grade berhasil diperbarui');
+      setLevelModal({ ...levelModal, open: false });
       fetchData();
     } catch (error) {
-      toast.error('Gagal memperbarui data siswa');
+      toast.error('Gagal memperbarui grade');
+    } finally {
+      setIsSubmittingLevel(false);
     }
   };
 
   const columns = [
     { 
       header: 'Nama Siswa', 
-      cell: (row) => (
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">{row.student?.user?.name}</span>
-          <div className="flex items-center gap-2 mt-1">
-            <Select 
-              value={row.gradeLevel ? row.gradeLevel.toString() : ''} 
-              onValueChange={(val) => handleUpdateGrade(row.id, 'gradeLevel', val)}
-            >
-              <SelectTrigger className="h-7 w-24 text-xs">
-                <SelectValue placeholder="Grade" />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5].map(g => (
-                  <SelectItem key={g} value={g.toString()}>Grade {g}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={row.currentMonth ? row.currentMonth.toString() : ''} 
-              onValueChange={(val) => handleUpdateGrade(row.id, 'currentMonth', val)}
-            >
-              <SelectTrigger className="h-7 w-32 text-xs">
-                <SelectValue placeholder="Bulan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 (Repertoir)</SelectItem>
-                <SelectItem value="2">2 (Ujian)</SelectItem>
-                <SelectItem value="3">3 (Performance)</SelectItem>
-              </SelectContent>
-            </Select>
+      cell: (row) => {
+        const monthLabel = row.currentMonth === 1 ? '1 (Repertoir)' : row.currentMonth === 2 ? '2 (Ujian)' : row.currentMonth === 3 ? '3 (Performance)' : '-';
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="font-medium">{row.student?.user?.name}</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              Grade {row.gradeLevel || '-'} • Fase {monthLabel}
+            </span>
           </div>
-        </div>
-      )
+        );
+      }
     },
     { header: 'No. Telp (Wali)', cell: (row) => row.student?.parentPhone || '-' },
     { 
@@ -179,40 +167,60 @@ export default function ClassDetailPage({ readOnly = false }) {
     },
     {
       header: 'Aksi',
-      className: 'w-36 text-center',
+      className: 'text-center',
       cell: (row) => {
         const finalGrade = row.finalGrades && row.finalGrades.length > 0 ? row.finalGrades[0] : null;
-        if (finalGrade) {
-          return (
-            <Button 
-              variant="outline" 
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
               size="sm"
-              className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
+              className="gap-2 text-zinc-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setEditGradeConfirm({ open: true, row, finalGrade });
+                setLevelModal({ 
+                  open: true, 
+                  enrollmentId: row.id, 
+                  studentName: row.student?.user?.name,
+                  gradeLevel: row.gradeLevel ? row.gradeLevel.toString() : '1',
+                  currentMonth: row.currentMonth ? row.currentMonth.toString() : '1'
+                });
               }}
             >
-              Edit Nilai
+              Edit Grade
             </Button>
-          );
-        }
-        return (
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="gap-2 text-zinc-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setGradeModal({ open: true, enrollmentId: row.id, studentName: row.student?.user?.name });
-              setGradeForm({ score: '', evaluation: '' });
-            }}
-          >
-            <FileBadge size={14} />
-            Beri Nilai Akhir
-          </Button>
+
+            {finalGrade ? (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditGradeConfirm({ open: true, row, finalGrade });
+                }}
+              >
+                Edit Nilai
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-2 text-zinc-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setGradeModal({ open: true, enrollmentId: row.id, studentName: row.student?.user?.name });
+                  setGradeForm({ score: '', evaluation: '' });
+                }}
+              >
+                <FileBadge size={14} />
+                Beri Nilai Akhir
+              </Button>
+            )}
+          </div>
         );
       }
     }
@@ -501,6 +509,60 @@ export default function ClassDetailPage({ readOnly = false }) {
         confirmText="Lanjut Edit"
         variant="default"
       />
+
+      {/* Edit Level Dialog */}
+      <Dialog open={levelModal.open} onOpenChange={(open) => !open && setLevelModal({ ...levelModal, open: false })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Grade Siswa</DialogTitle>
+            <DialogDescription>
+              Ubah Grade Level dan Fase untuk {levelModal.studentName}.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={submitLevel} className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Grade Level</label>
+              <Select 
+                value={levelModal.gradeLevel} 
+                onValueChange={(val) => setLevelModal({ ...levelModal, gradeLevel: val })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih Grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map(g => (
+                    <SelectItem key={g} value={g.toString()}>Grade {g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Bulan / Fase</label>
+              <Select 
+                value={levelModal.currentMonth} 
+                onValueChange={(val) => setLevelModal({ ...levelModal, currentMonth: val })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih Fase" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 (Repertoir)</SelectItem>
+                  <SelectItem value="2">2 (Ujian)</SelectItem>
+                  <SelectItem value="3">3 (Performance)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setLevelModal({ ...levelModal, open: false })}>
+                Batal
+              </Button>
+              <Button type="submit" disabled={isSubmittingLevel} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                {isSubmittingLevel ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
