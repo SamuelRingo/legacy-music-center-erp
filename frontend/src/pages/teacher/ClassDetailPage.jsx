@@ -108,6 +108,17 @@ export default function ClassDetailPage({ readOnly = false }) {
     }
   };
 
+  const handleUpdateGrade = async (enrollmentId, field, value) => {
+    try {
+      await api.put(`/teacher/enrollments/${enrollmentId}/grade`, { [field]: parseInt(value) });
+      clearCache(`teacher_class_${scheduleId}`);
+      toast.success('Berhasil diperbarui');
+      fetchData();
+    } catch (error) {
+      toast.error('Gagal memperbarui data siswa');
+    }
+  };
+
   const columns = [
     { 
       header: 'Nama Siswa', 
@@ -177,7 +188,11 @@ export default function ClassDetailPage({ readOnly = false }) {
               variant="outline" 
               size="sm"
               className="gap-2 text-zinc-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50"
-              onClick={() => setEditGradeConfirm({ open: true, row, finalGrade })}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setEditGradeConfirm({ open: true, row, finalGrade });
+              }}
             >
               Edit Nilai
             </Button>
@@ -188,7 +203,9 @@ export default function ClassDetailPage({ readOnly = false }) {
             variant="outline" 
             size="sm"
             className="gap-2 text-zinc-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               setGradeModal({ open: true, enrollmentId: row.id, studentName: row.student?.user?.name });
               setGradeForm({ score: '', evaluation: '' });
             }}
